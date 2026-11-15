@@ -1,6 +1,6 @@
 [submodule "base"]
 	path = base
-	url = https://github.com/aaronzi/Virtual-Factory.git
+	url = https://github.com/vitorramon/Virtual-Factory.git
 [submodule "simulador"]
 	path = simulador
 	url = https://github.com/vitorramon/GemeoDigitalCelulares.git
