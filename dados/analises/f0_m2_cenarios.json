@@ -1,0 +1,183 @@
+{
+  "data": "2026-11-15",
+  "simulador": "/tmp/claude-1000/-home-vitor-ramon-projetos-lean-manufacture/d0520dd1-3571-429f-bdf7-dc2cd1b297ca/scratchpad/f0-m2-e7mj4d0m/sim",
+  "commit": "1e4b27d",
+  "turno_horas": 8,
+  "semente": 7,
+  "ciclo_ideal": 20,
+  "custos": {
+    "SPI": 15.0,
+    "AOI": 60.0,
+    "Teste funcional": 240.0,
+    "unit": 240.0
+  },
+  "baseline_m1": {
+    "fpy": 78,
+    "rty": 82,
+    "oee": 68,
+    "um_menos_copq": 95
+  },
+  "cenarios": {
+    "Atual": {
+      "execucao": "84935745e2124ab6b3684659a20c5fb4",
+      "eventos": 75923,
+      "status": [
+        "validada",
+        75923,
+        75923
+      ],
+      "iniciadas": 1440,
+      "concluidas": 986,
+      "retidas_reprovadas": 63,
+      "wip_final": 391,
+      "ng_teste": 63,
+      "lead_time_min": 69.42865111561865,
+      "filas_finais": {
+        "Bateria": 369
+      },
+      "segundos_simulacao": 6.57,
+      "ciclo_ideal_teste": 26,
+      "end": 28800,
+      "wip": 391,
+      "fpy": 94,
+      "rty": 94,
+      "oee": 68.47222222222223,
+      "oee_disponibilidade": 100,
+      "oee_desempenho": 72.84722222222223,
+      "oee_qualidade": 93.99428026692088,
+      "um_menos_copq": 95.625,
+      "custo_nao_qualidade": 15120,
+      "teste_total": 1050,
+      "teste_aprovadas": 987,
+      "teste_reprovadas": 63,
+      "lead_time_min_metricsjs": 69.42865111561865,
+      "fila_media": 182.74666666666667,
+      "fila_maxima": 370,
+      "rejeicoes": {
+        "Teste funcional": 63
+      }
+    },
+    "SPI/AOI": {
+      "execucao": "88cc59e52316495b83bfbc8e2b364bfc",
+      "eventos": 82945,
+      "status": [
+        "validada",
+        82945,
+        82945
+      ],
+      "iniciadas": 1440,
+      "concluidas": 1047,
+      "retidas_reprovadas": 90,
+      "wip_final": 303,
+      "ng_teste": 2,
+      "lead_time_min": 57.91133397007322,
+      "filas_finais": {
+        "Bateria": 281
+      },
+      "segundos_simulacao": 6.09,
+      "ciclo_ideal_teste": 26,
+      "end": 28800,
+      "wip": 303,
+      "fpy": 99.8093422306959,
+      "rty": 93.66994728557648,
+      "oee": 72.70833333333333,
+      "oee_disponibilidade": 100,
+      "oee_desempenho": 72.84722222222223,
+      "oee_qualidade": 99.8093422306959,
+      "um_menos_copq": 98.69791666666666,
+      "custo_nao_qualidade": 4500,
+      "teste_total": 1049,
+      "teste_aprovadas": 1047,
+      "teste_reprovadas": 2,
+      "lead_time_min_metricsjs": 57.91133397007322,
+      "fila_media": 139.92104166666667,
+      "fila_maxima": 282,
+      "rejeicoes": {
+        "SPI": 28,
+        "AOI": 60,
+        "Teste funcional": 2
+      }
+    },
+    "SPI/AOI + Lean": {
+      "execucao": "5d86c3f1055645a19328a2f8eba8915b",
+      "eventos": 87261,
+      "status": [
+        "validada",
+        87261,
+        87261
+      ],
+      "iniciadas": 1440,
+      "concluidas": 1087,
+      "retidas_reprovadas": 90,
+      "wip_final": 263,
+      "ng_teste": 2,
+      "lead_time_min": 50.728242870285186,
+      "filas_finais": {
+        "Teste funcional": 91,
+        "Câmera traseira": 150
+      },
+      "segundos_simulacao": 3.95,
+      "ciclo_ideal_teste": 26,
+      "end": 28800,
+      "wip": 263,
+      "fpy": 99.81651376146789,
+      "rty": 93.67667768670283,
+      "oee": 75.48611111111111,
+      "oee_disponibilidade": 100,
+      "oee_desempenho": 75.625,
+      "oee_qualidade": 99.81634527089072,
+      "um_menos_copq": 98.69791666666666,
+      "custo_nao_qualidade": 4500,
+      "teste_total": 1090,
+      "teste_aprovadas": 1088,
+      "teste_reprovadas": 2,
+      "lead_time_min_metricsjs": 50.728242870285186,
+      "fila_media": 119.13677083333333,
+      "fila_maxima": 241,
+      "rejeicoes": {
+        "SPI": 28,
+        "AOI": 60,
+        "Teste funcional": 2
+      }
+    },
+    "SPI/AOI + Lean ampliado": {
+      "execucao": "9f464a48ae0b4d4bbb9d84e3f5e6dc70",
+      "eventos": 90256,
+      "status": [
+        "validada",
+        90256,
+        90256
+      ],
+      "iniciadas": 1440,
+      "concluidas": 1327,
+      "retidas_reprovadas": 90,
+      "wip_final": 23,
+      "ng_teste": 2,
+      "lead_time_min": 8.1,
+      "filas_finais": {},
+      "segundos_simulacao": 4.25,
+      "ciclo_ideal_teste": 19,
+      "end": 28800,
+      "wip": 23,
+      "fpy": 99.84962406015038,
+      "rty": 93.70775133034063,
+      "oee": 92.15277777777777,
+      "oee_disponibilidade": 100,
+      "oee_desempenho": 92.29166666666667,
+      "oee_qualidade": 99.84951091045899,
+      "um_menos_copq": 98.69791666666666,
+      "custo_nao_qualidade": 4500,
+      "teste_total": 1330,
+      "teste_aprovadas": 1328,
+      "teste_reprovadas": 2,
+      "lead_time_min_metricsjs": 8.1,
+      "fila_media": 0,
+      "fila_maxima": 0,
+      "rejeicoes": {
+        "SPI": 28,
+        "AOI": 60,
+        "Teste funcional": 2
+      }
+    }
+  }
+}
