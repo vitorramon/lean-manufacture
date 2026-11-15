@@ -24,13 +24,17 @@ Não dependem de código e destravam decisões. Detalhes em SPECS §9.
 Objetivo: saber se o Virtual-Factory roda neste ambiente (Linux/WSL2 com Docker Desktop) e quanto dele é preciso.
 
 - [ ] 0.1 Iniciar o repositório Git do M3; incluir Virtual-Factory e simulador do M2 com commit fixado (ADR-0001)
+      — parcial em 2026-11-15: falta git-lfs permanente no PATH
 - [ ] 0.2 Instalar ferramentas: `uv`, Python 3.12, Godot 4.7.2, Git LFS, navegador OPC UA (UaExpert ou equivalente)
+      — parcial em 2026-11-15: falta Git LFS instalado; OPC UA só `uals --help`
 - [ ] 0.3 Subir o compose do Virtual-Factory e registrar o que sobe, tempo de subida e consumo de memória
+      — parcial em 2026-11-15: pilha completa só em cópia temporária; refazer a partir de `base/` com LFS
 - [ ] 0.4 Rodar a planta em modo sem janela e observar os eventos `part_released`, `part_inspected`, `part_sorted`
-- [ ] 0.5 Definir o perfil reduzido de serviços necessário ao M3
-- [ ] 0.6 Validar o mapeamento planta virtual ↔ linha de celulares (ARCHITECTURE §4) e ajustar o ADR-0009
-- [ ] 0.7 Rodar o simulador do M2 em Linux, conferir os números de SPECS §2.2 e extrair FPY, RTY e COPQ do painel
-- [ ] 0.8 Rodar 30 replicações do M2 (sementes distintas) no trecho recortado: média ± desvio da geração "Simulado"
+      — parcial em 2026-11-15: os 3 eventos só foram observados na rodada da 0.5
+- [x] 0.5 Definir o perfil reduzido de serviços necessário ao M3
+- [x] 0.6 Validar o mapeamento planta virtual ↔ linha de celulares (ARCHITECTURE §4) e ajustar o ADR-0009
+- [x] 0.7 Rodar o simulador do M2 em Linux, conferir os números de SPECS §2.2 e extrair FPY, RTY e COPQ do painel
+- [x] 0.8 Rodar 30 replicações do M2 (sementes distintas) no trecho recortado: média ± desvio da geração "Simulado"
 
 Saída: registro em PROGRESS com medições; ADR-0009 confirmado ou revisado; decisão de continuar com a base.
 Ponto de decisão: se a base não subir de forma estável em WSL2, reabrir o ADR-0001 antes de escrever código.
