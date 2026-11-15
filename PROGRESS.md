@@ -4,7 +4,7 @@ Registro do andamento. As tarefas vêm de [PLAN.md](PLAN.md). Atualize este arqu
 caixa, anote a data e aponte a evidência.
 
 **Última atualização:** 2026-11-15
-**Fase atual:** Fase 0 executada (4 de 8 feitas, 4 parciais); decisão: continuar com a base; próxima: Fase 1
+**Fase atual:** Fase 0 executada (6 de 8 feitas, 0.3 e 0.4 parciais); decisão: continuar com a base; próxima: Fase 1
 **Código do M3 implementado:** só scripts de análise da Fase 0 (`dados/analises/`); nenhum serviço
 
 ## Resumo
@@ -13,7 +13,7 @@ caixa, anote a data e aponte a evidência.
 |---|---|---|
 | Análise e documentação inicial | Concluída | 2026-11-15 |
 | Pendências do grupo (P-01 a P-07) | Abertas | 2 de 7 |
-| Fase 0 — Fundação | Em andamento (0.1–0.4 parciais) | 4 de 8 |
+| Fase 0 — Fundação | Em andamento (0.3 e 0.4 parciais) | 6 de 8 |
 | Fase 1 — Primeiro dispositivo | Não iniciada | 0 de 13 |
 | Fase 2 — Rastreabilidade | Não iniciada | 0 de 10 |
 | Fase 3 — Rede federada | Não iniciada | 0 de 11 |
@@ -30,7 +30,7 @@ Autoavaliação corrente. "Hoje" é o que se sustentaria com evidência se a ent
 | Rastreabilidade + KPIs | 8 | 0 | Fase 2 (o critério avalia o sistema real). Já há a coluna Simulado com n = 30 (FPY, RTY, OEE, 1 − COPQ; tarefas 0.7 e 0.8); falta o Medido |
 | Documentação profissional | 8 | 0 | Fase 4 (os documentos de projeto existem, o README final e o relatório não) |
 | Apresentação + demo | 8 | 0 | Fase 4 |
-| Reprodutibilidade | 6 | 0 | `start.py` e teste do terceiro; git-lfs permanente (submódulos já fixados) |
+| Reprodutibilidade | 6 | 0 | `start.py` e teste do terceiro (submódulos fixados e LFS resolvidos na Fase 0) |
 | Bônus | +4 | 0 | Fase 5 |
 
 ## Feito
@@ -73,15 +73,16 @@ Autoavaliação corrente. "Hoje" é o que se sustentaria com evidência se a ent
 Estado aceito pelo verificador (não o declarado). Ambiente: WSL2 6.18.58.1, 12 CPUs, 15 GiB, Docker 29.9.2,
 Compose v5.6.1, disco com 906 GB livres.
 
-- [ ] 0.1 **Parcial** — repositório `main` criado; submódulos por https em commit fixado: `base/` `c558b9e`
+- [x] 0.1 Repositório `main` criado; submódulos por https em commit fixado: `base/` `c558b9e`
   (aaronzi/Virtual-Factory), `simulador/` `1e4b27d` (GemeoDigitalCelulares); os dois commits estão nos remotos
-  públicos. LFS baixado depois, na 0.5 (184 objetos, 60 MB). Falta: git-lfs permanente no PATH (hoje
-  `git -C base lfs version` → `'lfs' is not a git command`) — evidência: `docs/evidencias/f0-0.1-repositorio.md`
-- [ ] 0.2 **Parcial** — instalados em espaço de usuário com checksum: uv 0.13.8, CPython 3.12.16 (9,4 s),
-  Godot 4.7.2.stable.official.ed1daf0bf (sha512 OK, `--headless --quit` rc=0), amqtt 0.12.2; 9 portas livres.
-  Faltam: git-lfs instalado (a instalação em `~/.local/bin` foi negada pelo controle de permissões) e sessão OPC UA
-  real (só `uals --help`); ferramenta de build do ESP32 ausente (decidir antes da 1.7) —
-  evidência: `docs/evidencias/f0-0.2-ambiente.md`
+  públicos. LFS baixado na 0.5 (184 objetos, 60 MB); git-lfs 3.7.1 instalado pelo usuário via apt (2026-11-15):
+  `git -C base lfs ls-files | wc -l` = 184, `git -C base status -s` vazio — evidência:
+  `docs/evidencias/f0-0.1-repositorio.md`
+- [x] 0.2 Instalados em espaço de usuário com checksum: uv 0.13.8, CPython 3.12.16 (9,4 s),
+  Godot 4.7.2.stable.official.ed1daf0bf (sha512 OK, `--headless --quit` rc=0), amqtt 0.12.2, navegador OPC UA
+  `uals` (asyncua, via `uvx`); git-lfs 3.7.1 em `/usr/bin` (apt, pelo usuário); 9 portas livres. Ressalvas: a sessão
+  OPC UA real contra a 4840 fica para a rodada da 0.3; ferramenta de build do ESP32 ausente (decidir em ADR antes
+  da 1.7) — evidência: `docs/evidencias/f0-0.2-ambiente.md`
 - [ ] 0.3 **Parcial** — pilha completa (27 serviços: 23 rodando, 11 healthy, 4 de execução única com exit 0) só
   subiu numa cópia temporária com 106 PNG de reserva: `up` 51 s, healthy 110 s (com cache), 2 721,1 MiB, CPU 37,58 %,
   `/shells` com 27; imagem `vf-services:dev` 580 MB, +7,2 GB de imagens. A partir de `base/` sem LFS, o
@@ -107,7 +108,7 @@ Compose v5.6.1, disco com 906 GB livres.
 Surpresas:
 
 - Sem os objetos Git LFS a base não sobe (`provisioner`) e a peça não existe na planta. O LFS foi baixado com um
-  binário de usuário do scratchpad; o git-lfs permanente continua pendente.
+  binário de usuário do scratchpad; depois o usuário instalou o git-lfs 3.7.1 via apt.
 - A planta é determinística (takt 12 s, sementes fixas): serve para fluxo, rastreio, lead time do trecho e FPY de
   demonstração, não para a amostra de tempo de ciclo da geração Medido. Candidato a revisão do ADR-0013.
 - O FPY do M2 (94 %) diverge do M1 (78 %): o M2 só gera três defeitos de 2 %; no M1 o RTY (82) é maior que o FPY
@@ -149,8 +150,8 @@ Medido na tarefa 0.2 (`docs/evidencias/f0-0.2-ambiente.md`).
 | CPython 3.12.16 (via uv); sistema 3.14.4 | Instalado na 0.2 |
 | Godot 4.7.2.stable.official.ed1daf0bf (`~/.local/opt/godot`, link `~/.local/bin/godot`, sha512 conferido) | Instalado na 0.2 |
 | amqtt 0.12.2 (`amqtt_sub`, `amqtt_pub`) | Instalado na 0.2 |
-| Navegador OPC UA: `uvx --from asyncua uals` (efêmero) | Só `--help` verificado |
-| git-lfs | **Ausente no PATH**; LFS da base baixado com binário temporário do scratchpad |
+| Navegador OPC UA: `uvx --from asyncua uals` (efêmero) | Só `--help` verificado; sessão real na rodada da 0.3 |
+| git-lfs 3.7.1 (`/usr/bin/git-lfs`, apt) | Instalado pelo usuário em 2026-11-15 |
 | PlatformIO / arduino-cli | Ausentes; decidir em ADR antes da 1.7 |
 | Portas 1883, 9001, 4840, 4841, 4850, 4851, 8091, 3001, 8501 | Livres antes da subida |
 | Disco | 1007 GB, 906 GB livres |
@@ -158,13 +159,13 @@ Medido na tarefa 0.2 (`docs/evidencias/f0-0.2-ambiente.md`).
 
 ## Em andamento
 
-Fechar as parciais da Fase 0 (0.1–0.4) após a instalação do git-lfs; depois, Fase 1.
+Fechar as parciais da Fase 0 (0.3: pilha completa a partir de `base/`; 0.4: rodada própria ou aceitar o adendo);
+depois, Fase 1.
 
 ## Bloqueios
 
 | Bloqueio | Impede | Depende de |
 |---|---|---|
-| git-lfs não instalado de forma permanente | `git status`/checkout no submódulo `base/` ao tocar arquivo LFS; teste do terceiro; fecha 0.1 e 0.2 | Usuário (`sudo apt install git-lfs`) |
 | Pilha completa a partir de `base/` não refeita | Fecha 0.3 | Nova rodada (sem bloqueio técnico) |
 | Aceitação da L0 emulada (P-02) | Prioridade de comprar hardware | Professor |
 | Datas e integrantes (P-05) | Cronograma com datas | Grupo |

@@ -49,8 +49,8 @@ tem evidência (PLAN, "Definição de pronto").
 ## Ambiente
 
 - Linux em WSL2 com Docker Desktop. Caminhos com espaço (`MOD 3`): use aspas.
-- Em 2026-11-15 faltavam `uv`, Godot, PlatformIO e cliente Mosquitto; Python do sistema é 3.14, o Virtual-Factory
-  pede 3.12 (use `uv`).
+- Instalados na Fase 0: `uv`, Python 3.12 (via uv), Godot 4.7.2 e amqtt em `~/.local`; git-lfs via apt. Falta a
+  ferramenta de build do ESP32. Python do sistema é 3.14; o Virtual-Factory pede 3.12 (use `uv`).
 - Não há `pdftotext`: os PDFs das aulas não abrem com a ferramenta de leitura. O texto das aulas relevantes já está
   resumido em SPECS.
 - O `CLAUDE.md` do Virtual-Factory foi escrito para macOS (`/Applications/Godot.app`); adapte os comandos.
