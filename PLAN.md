@@ -16,7 +16,8 @@ Não dependem de código e destravam decisões. Detalhes em SPECS §9.
 - [x] P-03 Extras: material lido; o grupo confirmou que não as fez (2026-11-15) — conteúdo absorvido na Fase 3
 - [ ] P-04 Definir grupo parceiro da cadeia (ou assumir elo emulado)
 - [ ] P-05 Datas de apresentação e entrega; integrantes e papéis
-- [ ] P-06 Criar fork do Virtual-Factory e repositório final no GitHub
+- [ ] P-06 Criar fork do Virtual-Factory e repositório final no GitHub — fork criado em 2026-11-15
+      (`vitorramon/Virtual-Factory`, ADR-0014); falta o repositório final
 - [ ] P-07 Decidir se haverá meta de lead time/espera (o M1 não definiu)
 
 ## Fase 0 — Fundação e validação da base
@@ -40,6 +41,8 @@ Ponto de decisão: se a base não subir de forma estável em WSL2, reabrir o ADR
 Objetivo: um evento de ciclo sai de um dispositivo emulado e aparece no dashboard, passando por MQTT, OPC UA, banco
 e AAS.
 
+- [ ] 1.0 Contêiner de desenvolvimento (`.devcontainer/`, ADR-0015): Python 3.12/uv, Godot 4.7.2, git-lfs, amqtt,
+      asyncua, PlatformIO, Node; Docker do hospedeiro; validar rede até broker e OPC UA e rodar a planta sem janela
 - [ ] 1.1 Escrever o contrato `dev/v1`: esquemas JSON e mensagens de referência (`pipeline/contrato/`)
 - [ ] 1.2 Emulador Python do `esp32-bat01` com a fonte `roteiro`
 - [ ] 1.3 `device-gateway`: assinatura MQTT, validação, timestamp, servidor OPC UA com um objeto

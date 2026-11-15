@@ -19,11 +19,12 @@ vale como direção de trabalho até o grupo confirmar ou recusar. *Substituído
 | [0010](0010-dashboard-streamlit-e-andon.md) | Dashboard em Streamlit com Andon de 4 níveis | Proposto | Aulas M2.A5 e M3.A2 |
 | [0011](0011-federacao-t2t.md) | Federação T2T em OPC UA, com elo parceiro emulado como reserva | Proposto | Aula M3.A3 |
 | [0012](0012-orquestracao.md) | Compose adicional sobre a base e `start.py` como entrada única | Proposto | Aulas M2.A5 e M3.A4 |
-| [0013](0013-origem-da-geracao-medida.md) | A geração "Medido (M3)" não usa dados de roteiro | Proposto | Deriva do 0002 |
-| [0014](0014-submodulos-fixados-e-lfs.md) | Base e simulador como submódulos em commit fixado, por https, com LFS local | Proposto | Tarefas 0.1 e 0.5 |
-| [0015](0015-ferramentas-em-espaco-de-usuario.md) | Ferramentas do ambiente em espaço de usuário, com checksum conferido | Proposto | Tarefa 0.2 |
-| [0016](0016-perfil-reduzido-da-base.md) | Perfil reduzido da base com 8 serviços | Proposto | Tarefa 0.5; detalha o 0012 |
-| [0017](0017-metodo-da-geracao-simulada.md) | Método da geração "Simulado": 30 replicações, t pareado, distribuição por peça | Proposto | Tarefas 0.7 e 0.8 |
+| [0013](0013-origem-da-geracao-medida.md) | A geração "Medido (M3)" não usa dados de roteiro; planta só para fluxo, rastreio e FPY | Aceito | Grupo, 2026-11-15 |
+| [0014](0014-submodulos-fixados-e-lfs.md) | Base (fork do grupo) e simulador como submódulos em commit fixado, por https, com LFS local | Aceito | Grupo, 2026-11-15 |
+| [0015](0015-conteiner-de-desenvolvimento.md) | Ferramentas de desenvolvimento num contêiner de desenvolvimento | Aceito | Grupo, 2026-11-15 |
+| [0016](0016-perfil-reduzido-da-base.md) | Perfil reduzido da base com 8 serviços | Aceito | Grupo, 2026-11-15 |
+| [0017](0017-metodo-da-geracao-simulada.md) | Método da geração "Simulado": 30 replicações, t pareado, distribuição por peça | Aceito | Grupo, 2026-11-15 |
+| [0018](0018-platformio-para-o-firmware.md) | PlatformIO como ferramenta de build do firmware ESP32 | Aceito | Grupo, 2026-11-15 |
 
 ## Modelo
 

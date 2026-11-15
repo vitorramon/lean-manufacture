@@ -14,7 +14,7 @@ caixa, anote a data e aponte a evidência.
 | Análise e documentação inicial | Concluída | 2026-11-15 |
 | Pendências do grupo (P-01 a P-07) | Abertas | 2 de 7 |
 | Fase 0 — Fundação | Concluída (2026-11-15) | 8 de 8 |
-| Fase 1 — Primeiro dispositivo | Não iniciada | 0 de 13 |
+| Fase 1 — Primeiro dispositivo | Não iniciada | 0 de 14 |
 | Fase 2 — Rastreabilidade | Não iniciada | 0 de 10 |
 | Fase 3 — Rede federada | Não iniciada | 0 de 11 |
 | Fase 4 — Consolidação | Não iniciada | 0 de 11 |
@@ -171,9 +171,19 @@ Fase 1: começar pela 1.1 (contrato `dev/v1`) e pela 1.6 (`start.py` com o perfi
 
 ## Registro de decisões
 
-Ver [docs/adr/README.md](docs/adr/README.md). Aceitas pelo grupo: 0001, 0002, 0004. Propostas, aguardando
-validação: 0003 e 0005 a 0017 (0014 submódulos e LFS, 0015 ferramentas em espaço de usuário, 0016 perfil reduzido,
-0017 método da geração Simulado — novas na Fase 0).
+Ver [docs/adr/README.md](docs/adr/README.md). Aceitas pelo grupo: 0001, 0002, 0004, 0013 a 0018. Propostas,
+aguardando validação: 0003 e 0005 a 0012.
+
+Em 2026-11-15, depois da Fase 0, o grupo decidiu:
+
+- ADR-0013 aceito com restrição: a planta Godot (determinística) vale para fluxo, rastreio, lead time do trecho e
+  FPY de demonstração; tempo de ciclo, outliers e Ishikawa só da fonte `operador`.
+- ADR-0014 aceito com o **fork do grupo** (`vitorramon/Virtual-Factory`, mesmo commit `c558b9e`) no lugar do
+  repositório de origem; `.gitmodules` por https.
+- ADR-0015 trocado: ferramentas num **contêiner de desenvolvimento** (`.devcontainer/`, tarefa 1.0), em vez de
+  instalações em `~/.local` (que ficam como alternativa).
+- ADR-0016 (perfil reduzido de 8 serviços) e ADR-0017 (método da geração Simulado) aceitos como propostos.
+- ADR-0018 novo: PlatformIO para o firmware ESP32.
 
 ## Evidências coletadas
 

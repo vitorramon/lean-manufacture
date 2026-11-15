@@ -1,39 +1,51 @@
-# ADR-0015: Ferramentas do ambiente instaladas em espaço de usuário, com checksum conferido
+# ADR-0015: Ferramentas de desenvolvimento num contêiner de desenvolvimento
 
-- Estado: Proposto
+- Estado: Aceito (grupo, 2026-11-15)
 - Data: 2026-11-15
-- Origem: tarefa 0.2 da Fase 0 (pedido do usuário "instalar true"); regra do trabalho "sem sudo nem apt"
+- Origem: tarefa 0.2 da Fase 0; escolha do grupo entre "espaço de usuário", "apt" e "contêiner de desenvolvimento"
 
 ## Contexto
 
-O ambiente (WSL2, Python 3.14 do sistema) não tinha `uv`, Python 3.12, Godot 4.7.2, cliente MQTT, navegador OPC UA
-nem git-lfs. O Virtual-Factory pede Python 3.12 e Godot 4.7.2. O assistente não pode usar `sudo` nem `apt`.
+O projeto depende de versões exatas: Python 3.12 (o sistema tem 3.14), Godot 4.7.2 (a base pede essa versão),
+git-lfs, cliente MQTT, navegador OPC UA e, a partir da tarefa 1.7, a ferramenta de build do ESP32 (ADR-0018). Na
+Fase 0 tudo foi instalado no computador do autor, em `~/.local` com checksum conferido (git-lfs via apt), e
+funcionou. O critério de reprodutibilidade (6 pts) exige que um colega de outro grupo rode o sistema só com o
+README, em outro computador.
 
 ## Decisão
 
-1. **uv** 0.13.8 a partir do tarball oficial do release, com sha256 conferido, em `~/.local/bin` (não pelo
-   `install.sh`, para poder conferir o checksum).
-2. **Python 3.12** via `uv python install 3.12` (CPython 3.12.16); nada no Python do sistema.
-3. **Godot 4.7.2 stable** do release oficial, sha512 conferido com `SHA512-SUMS.txt`, em
-   `~/.local/opt/godot/Godot_v4.7.2-stable_linux.x86_64`, com link `~/.local/bin/godot`. Uso sem janela
-   (`--headless`); opcionalmente `GODOT_PATH` aponta para o binário.
-4. **Cliente MQTT**: `uv tool install amqtt` (0.12.2; `amqtt_sub`, `amqtt_pub`) em vez do `mosquitto-clients`.
-5. **Navegador OPC UA**: `uvx --python 3.12 --from asyncua uals` (efêmero); UaExpert no Windows é opcional.
-6. **git-lfs**: pacote do sistema (`sudo apt install git-lfs`) feito pelo usuário, ou binário oficial com sha256
-   conferido em `~/.local/bin`, com autorização. Ainda não instalado de forma permanente.
-7. Ferramenta de build do ESP32: decidir em ADR próprio antes da tarefa 1.7.
+1. As ferramentas de desenvolvimento ficam num **contêiner de desenvolvimento** versionado em `.devcontainer/`
+   (`devcontainer.json` + `Dockerfile`), utilizável pelo VS Code ("Reopen in Container") ou pela CLI
+   `devcontainer`, com:
+   - Python 3.12 e `uv` (versões fixadas);
+   - Godot 4.7.2 stable para Linux, baixado do release oficial com sha512 conferido no build, usado sem janela
+     (`--headless`);
+   - git e git-lfs; `amqtt` (cliente MQTT); `asyncua` (`uals`, navegador OPC UA);
+   - PlatformIO (ADR-0018), com o cache da toolchain num volume nomeado;
+   - Node.js (testes do `metrics.js` do M2).
+2. Docker de dentro do contêiner usa o daemon do hospedeiro (*docker-outside-of-docker*, socket montado): a base e
+   os serviços do M3 continuam subindo no Docker do hospedeiro, como na Fase 0.
+3. Pré-requisitos do hospedeiro para o terceiro: Docker (Docker Desktop no Windows/WSL2) e git; o resto vem do
+   contêiner.
+4. As instalações em `~/.local` feitas na Fase 0 (uv 0.13.8, CPython 3.12.16, Godot 4.7.2, amqtt) continuam válidas
+   como caminho alternativo sem contêiner e ficam registradas em `docs/evidencias/f0-0.2-ambiente.md`.
+5. Implementação e validação: tarefa 1.0 do PLAN.
 
 ## Consequências
 
-- Nada exige root; o ambiente pode ser refeito por um script de usuário (útil no teste do terceiro).
-- Versões exatas e checksums ficam registrados em `docs/evidencias/f0-0.2-ambiente.md`.
-- `~/.local/bin` precisa estar no PATH.
-- Enquanto o git-lfs não estiver no PATH, o submódulo `base/` fica frágil (ADR-0014).
-- O OPC UA só foi verificado com `uals --help`, sem sessão real contra a 4840.
+- Reprodutibilidade: o ambiente de quem desenvolve e o do terceiro passam a ser o mesmo arquivo versionado.
+- A planta Godot roda sem janela dentro do contêiner; a visualização 3D com janela fica no hospedeiro, se alguém
+  quiser.
+- A rede precisa ser validada na 1.0: de dentro do contêiner os serviços publicados pelo hospedeiro (1883, 4840,
+  4850, 8091…) são alcançados por `host.docker.internal` ou com `--network=host`; os scripts devem aceitar o
+  endereço do broker e do OPC UA por variável de ambiente, não fixar `localhost`.
+- Gravação no ESP32 físico por USB a partir do contêiner, no WSL2, exige `usbipd`; não é necessária enquanto a L0
+  for emulada (ADR-0002).
+- Imagem de desenvolvimento de alguns GB (Godot + toolchain do ESP32); construída uma vez.
 
 ## Alternativas consideradas
 
-- **apt/sudo para tudo**: mais simples, mas fora do que o assistente pode fazer e sem garantia da versão exata
-  pedida pela base (Godot 4.7.2).
-- **Flatpak/Snap do Godot**: não avaliado; o binário oficial com checksum atende sem dependências extras.
-- **mosquitto-clients**: exige apt; o amqtt cobre a assinatura de teste.
+- **Espaço de usuário (`~/.local`) com checksum**: usado e validado na Fase 0; mantido como alternativa, mas depende
+  de cada computador repetir as instalações.
+- **apt/sudo para tudo**: mais simples, sem garantia das versões exatas (Godot 4.7.2, Python 3.12).
+- **Flatpak/Snap do Godot**: não avaliado.

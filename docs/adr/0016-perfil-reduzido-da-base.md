@@ -1,6 +1,6 @@
 # ADR-0016: Perfil reduzido da base com 8 serviços
 
-- Estado: Proposto
+- Estado: Aceito (grupo, 2026-11-15)
 - Data: 2026-11-15
 - Origem: tarefa 0.5 da Fase 0; detalha o item 2 do ADR-0012
 

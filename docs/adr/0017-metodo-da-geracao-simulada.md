@@ -1,6 +1,6 @@
 # ADR-0017: Método da geração "Simulado (M2)": 30 replicações, t pareado e distribuição por peça
 
-- Estado: Proposto
+- Estado: Aceito (grupo, 2026-11-15)
 - Data: 2026-11-15
 - Origem: tarefas 0.7 e 0.8 da Fase 0; aula M2.A2 (replicações e warm-up)
 
