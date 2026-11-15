@@ -81,11 +81,19 @@ arquivo compose adicional, serviços próprios e dados próprios (ADR-0001).
 | Mosquitto (1883, 9001) | Virtual-Factory | Mesmo broker; árvore nova `dev/v1/...` ao lado do UNS `vf/...` |
 | BaSyx AAS (8091), Web UI (3001), DPP API (8093), resolver (8096) | Virtual-Factory | Destino da escrita do `aas-sync`; ficha navegável por QR |
 | `plc-comm` (4840, 4841) e `edge` | Virtual-Factory | Inalterados; servem de referência de servidor OPC UA |
-| Historian, Grafana, alarmes, MES, ERP, manutenção, fornecedor | Virtual-Factory | Opcionais; perfil reduzido a definir na Fase 0 |
+| Historian, Grafana, alarmes, MES, ERP, manutenção, fornecedor | Virtual-Factory | Fora do perfil reduzido (ADR-0016); sobem só com a pilha completa |
 | `device-gateway`, `aas-sync`, `twin-t2t` | **Nosso** | Núcleo do M3 |
 | Firmware ESP32 e emulador de dispositivos | **Nosso** | L0 |
 | `app/` (Streamlit) e `nucleo/` | **Nosso**, herdando cálculos do M2 | L3/L4 |
 | Simulador SimPy | M2 (`GemeoDigitalCelulares`) | Geração "Simulado" e what-if |
+
+**Perfil reduzido da base (tarefa 0.5, ADR-0016).** O M3 sobe só 8 dos 27 serviços do compose da base:
+`mqtt`, `db`, `basyx-config`, `provisioner`, `aas-env`, `aas-ui`, `plc-comm`, `edge` (6 de longa duração e 2 de
+execução única). Nenhum deles depende dos 19 que ficam de fora. Medido em 2026-11-15 a partir de `base/` com os
+objetos LFS reais: subida assentada em 66–112 s (duas rodadas), 776,1 MiB somados nos 6 contêineres contra
+2 721,1 MiB nos 23 da pilha completa (−71 %); AAS com 27 shells; planta Godot sem janela publicando
+`part_released`, `part_inspected` e `part_sorted`. Modo econômico opcional sem `plc-comm` e `edge` (planta com
+`--vf-backplane=off`): 402,8 MiB, mas sem o OPC UA 4840 do CLP. Evidência: `docs/evidencias/f0-0.5-perfil-reduzido.md`.
 
 Direção dos fluxos: o Virtual-Factory já leva **CLP → OPC UA → edge → MQTT → bridge → AAS**. O M3 acrescenta o
 caminho dos dispositivos de campo no sentido pedido pelo grupo, **dispositivo → MQTT → OPC UA → AAS**, sem alterar o
@@ -235,15 +243,22 @@ Grafana e a AAS Web UI do Virtual-Factory continuam disponíveis como visão de 
 
 | Processo | Porta | Onde roda |
 |---|---|---|
-| Mosquitto | 1883, 9001 | Contêiner (Virtual-Factory) |
-| BaSyx AAS / Web UI | 8091 / 3001 | Contêiner (Virtual-Factory) |
-| `plc-comm` (CLP virtual) | 4840, 4841 | Contêiner (Virtual-Factory) |
+| Mosquitto | 1883, 9001 | Contêiner (Virtual-Factory) — confirmado na Fase 0 |
+| BaSyx AAS / Web UI | 8091 / 3001 | Contêiner (Virtual-Factory) — confirmado na Fase 0 (`/shells` com 27; UI 200) |
+| `plc-comm` (CLP virtual) | 4840, 4841 | Contêiner (Virtual-Factory) — confirmado na Fase 0 (TCP; `edge` ponteia `opc.tcp://localhost:4840/vf/plc01`) |
+| `edge` (CLP → UNS) | — | Contêiner (Virtual-Factory), no perfil reduzido |
+| Postgres do BaSyx (`db`) | 5432 (só interno) | Contêiner (Virtual-Factory), no perfil reduzido |
 | `device-gateway` | 4850 | Contêiner (nosso compose adicional) |
 | `aas-sync` | — | Contêiner |
 | `twin-t2t` | 4851 | Contêiner |
 | Emulador de dispositivos | — | Contêiner ou processo local |
 | Streamlit | 8501 | Processo local ou contêiner |
 | Godot (planta 3D) | — | Nativo no host, opcional |
+
+Na Fase 0 (2026-11-15) as portas 1883, 9001, 4840, 4841, 4850, 4851, 8091, 3001 e 8501 estavam livres no host antes
+da subida (`f0-0.2-ambiente.md`). Não houve sessão OPC UA com cliente na 4840: só abertura TCP e o `edge` conectado.
+O perfil reduzido ainda é uma lista explícita de serviços (`docker compose -f infra/docker-compose.yml up -d <8
+serviços>`); o `start.py` deve reproduzi-la (ADR-0016).
 
 Subida: `python start.py --fonte <godot|roteiro|operador|replay|hardware>` (ADR-0012) sobe o compose do
 Virtual-Factory com o nosso arquivo adicional, espera os health checks, inicia a fonte escolhida e o dashboard, e
