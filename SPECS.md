@@ -315,7 +315,7 @@ disciplina); apresentações "na próxima semana", ordem sorteada. **As datas ex
 | P-03 | ~~Extras~~ — **resolvida em 2026-11-15**: o grupo não fez as Extras. O conteúdo delas entra na Fase 3, e o lead time simulado da cadeia será gerado com um modelo simplificado de cadeia (tarefa 3.0), com a origem declarada | — | — |
 | P-04 | Definir os grupos parceiros da cadeia (fornecedor e distribuição) e combinar o contrato de variáveis, ou assumir elos emulados | RF-A3 e bônus | Média |
 | P-05 | Datas da apresentação e da entrega; papéis dos 6 integrantes (nomes já constam do M1) | Cronograma do PLAN e roteiro da apresentação | Alta |
-| P-06 | Criar o fork do Virtual-Factory e o repositório final do grupo no GitHub | Teste do terceiro | Média — fork criado em 2026-11-15 (`vitorramon/Virtual-Factory`, ADR-0014); falta o repositório final |
+| P-06 | Criar o fork do Virtual-Factory e o repositório final do grupo no GitHub | Teste do terceiro | ~~Média~~ Resolvida em 2026-11-15: fork `vitorramon/Virtual-Factory` (ADR-0014) e repositório `vitorramon/lean-manufacture` |
 
 ## 10. Riscos
 

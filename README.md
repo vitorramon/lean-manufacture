@@ -40,12 +40,13 @@ Detalhes e diagramas: [ARCHITECTURE.md](ARCHITECTURE.md). Diagrama final: `docs/
 A preencher na Fase 1, depois de testado em máquina limpa. Forma prevista:
 
 ```bash
-git clone --recurse-submodules <repositório do grupo>
-cd projeto-final-grupo7
+git clone --recurse-submodules https://github.com/vitorramon/lean-manufacture.git
+cd lean-manufacture
 python start.py --fonte roteiro      # ou: godot | operador | replay | hardware
 ```
 
-Pré-requisitos previstos: Docker, Python 3.12, `uv`; Godot 4.7.2 apenas para a fonte `godot`.
+Pré-requisitos previstos: Docker e git com git-lfs; o resto (Python 3.12, `uv`, Godot 4.7.2, PlatformIO) vem do
+contêiner de desenvolvimento (ADR-0015, tarefa 1.0).
 
 ## 4. Hardware
 

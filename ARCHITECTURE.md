@@ -267,7 +267,7 @@ passa a monitorar: processo vivo, porta respondendo, dado fluindo.
 Estrutura-alvo do repositório final (a aula 4 a prescreve):
 
 ```text
-projeto-final-grupo7/            (hoje: Documentation/Atividade/MOD 3)
+lean-manufacture/                (github.com/vitorramon/lean-manufacture; local: Documentation/Atividade/MOD 3)
   README.md  SPECS.md  ARCHITECTURE.md  PLAN.md  PROGRESS.md  CLAUDE.md
   start.py
   docs/        adr/  relatorio.pdf  arquitetura.png  cartoes_conexao.md  evidencias/

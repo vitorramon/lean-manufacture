@@ -12,7 +12,7 @@ caixa, anote a data e aponte a evidência.
 | Fase | Estado | Concluído |
 |---|---|---|
 | Análise e documentação inicial | Concluída | 2026-11-15 |
-| Pendências do grupo (P-01 a P-07) | Abertas | 2 de 7 |
+| Pendências do grupo (P-01 a P-07) | Abertas | 3 de 7 |
 | Fase 0 — Fundação | Concluída (2026-11-15) | 8 de 8 |
 | Fase 1 — Primeiro dispositivo | Não iniciada | 0 de 14 |
 | Fase 2 — Rastreabilidade | Não iniciada | 0 de 10 |

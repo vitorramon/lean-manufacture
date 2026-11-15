@@ -1,7 +1,7 @@
 # Módulo 3 — notas para o Claude
 
-Projeto final do Grupo 7 (Cenário 08, linha de celulares) da disciplina PGENE586. Esta pasta é a raiz do futuro
-repositório `projeto-final-grupo7`.
+Projeto final do Grupo 7 (Cenário 08, linha de celulares) da disciplina PGENE586. Esta pasta é a raiz do
+repositório `vitorramon/lean-manufacture` (remoto `origin`; push só a pedido).
 
 ## Leia antes de agir
 
