@@ -20,6 +20,10 @@ vale como direção de trabalho até o grupo confirmar ou recusar. *Substituído
 | [0011](0011-federacao-t2t.md) | Federação T2T em OPC UA, com elo parceiro emulado como reserva | Proposto | Aula M3.A3 |
 | [0012](0012-orquestracao.md) | Compose adicional sobre a base e `start.py` como entrada única | Proposto | Aulas M2.A5 e M3.A4 |
 | [0013](0013-origem-da-geracao-medida.md) | A geração "Medido (M3)" não usa dados de roteiro | Proposto | Deriva do 0002 |
+| [0014](0014-submodulos-fixados-e-lfs.md) | Base e simulador como submódulos em commit fixado, por https, com LFS local | Proposto | Tarefas 0.1 e 0.5 |
+| [0015](0015-ferramentas-em-espaco-de-usuario.md) | Ferramentas do ambiente em espaço de usuário, com checksum conferido | Proposto | Tarefa 0.2 |
+| [0016](0016-perfil-reduzido-da-base.md) | Perfil reduzido da base com 8 serviços | Proposto | Tarefa 0.5; detalha o 0012 |
+| [0017](0017-metodo-da-geracao-simulada.md) | Método da geração "Simulado": 30 replicações, t pareado, distribuição por peça | Proposto | Tarefas 0.7 e 0.8 |
 
 ## Modelo
 
