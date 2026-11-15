@@ -1,0 +1,20 @@
+# Ambientes e caches Python
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Bancos de trabalho (amostras pequenas vão em dados/amostras/)
+*.db
+*.db-*
+*.sqlite3*
+
+# Segredos
+.env
+.env.*
+!.env.example
+**/secrets.h
+
+# Dados brutos e vídeos grandes
+dados/brutos/
+*.mp4
+.ruff_cache/
