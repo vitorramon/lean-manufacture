@@ -4,7 +4,7 @@ Registro do andamento. As tarefas vêm de [PLAN.md](PLAN.md). Atualize este arqu
 caixa, anote a data e aponte a evidência.
 
 **Última atualização:** 2026-11-15
-**Fase atual:** Fase 0 executada (6 de 8 feitas, 0.3 e 0.4 parciais); decisão: continuar com a base; próxima: Fase 1
+**Fase atual:** Fase 0 concluída (8 de 8); decisão: continuar com a base; próxima: Fase 1
 **Código do M3 implementado:** só scripts de análise da Fase 0 (`dados/analises/`); nenhum serviço
 
 ## Resumo
@@ -13,7 +13,7 @@ caixa, anote a data e aponte a evidência.
 |---|---|---|
 | Análise e documentação inicial | Concluída | 2026-11-15 |
 | Pendências do grupo (P-01 a P-07) | Abertas | 2 de 7 |
-| Fase 0 — Fundação | Em andamento (0.3 e 0.4 parciais) | 6 de 8 |
+| Fase 0 — Fundação | Concluída (2026-11-15) | 8 de 8 |
 | Fase 1 — Primeiro dispositivo | Não iniciada | 0 de 13 |
 | Fase 2 — Rastreabilidade | Não iniciada | 0 de 10 |
 | Fase 3 — Rede federada | Não iniciada | 0 de 11 |
@@ -81,17 +81,18 @@ Compose v5.6.1, disco com 906 GB livres.
 - [x] 0.2 Instalados em espaço de usuário com checksum: uv 0.13.8, CPython 3.12.16 (9,4 s),
   Godot 4.7.2.stable.official.ed1daf0bf (sha512 OK, `--headless --quit` rc=0), amqtt 0.12.2, navegador OPC UA
   `uals` (asyncua, via `uvx`); git-lfs 3.7.1 em `/usr/bin` (apt, pelo usuário); 9 portas livres. Ressalvas: a sessão
-  OPC UA real contra a 4840 fica para a rodada da 0.3; ferramenta de build do ESP32 ausente (decidir em ADR antes
+  OPC UA real contra a 4840 foi feita na rodada final da 0.3; ferramenta de build do ESP32 ausente (decidir em ADR antes
   da 1.7) — evidência: `docs/evidencias/f0-0.2-ambiente.md`
-- [ ] 0.3 **Parcial** — pilha completa (27 serviços: 23 rodando, 11 healthy, 4 de execução única com exit 0) só
-  subiu numa cópia temporária com 106 PNG de reserva: `up` 51 s, healthy 110 s (com cache), 2 721,1 MiB, CPU 37,58 %,
-  `/shells` com 27; imagem `vf-services:dev` 580 MB, +7,2 GB de imagens. A partir de `base/` sem LFS, o
-  `provisioner` saiu com exit 1 (226 s a frio até a falha). Falta refazer a pilha completa a partir de `base/` com
-  LFS. Cópia temporária apagada no fechamento — evidência: `docs/evidencias/f0-0.3-subida-base.md`
-- [ ] 0.4 **Parcial** — na rodada própria (sem LFS) a planta sem janela rodou 181 s, 24 741 mensagens, mas só
-  3 `part_released`. Os três eventos foram observados na rodada da 0.5 (sessão `S-20261115T221136Z-5706`: 7 / 6 / 5,
-  1 de 6 reprovada, lead time 21,3–24,8 s, média 23,31 s, mesmo serial nos três) — evidência:
-  `docs/evidencias/f0-0.4-eventos-planta.md` (adendo) e `dados/amostras/f0-0.5-eventos-perfil-reduzido.jsonl`
+- [x] 0.3 Pilha completa a partir de `base/` com LFS (27 serviços: 11 healthy, 12 rodando sem healthcheck, 4 de
+  execução única com exit 0, 0 falhas): `up` 46,8 s, assentada em 79,3 s (imagens em cache), 23 contêineres com
+  2 638,2 MiB e CPU 42,22 %; `/shells` com 27, aas-ui 200; sessão OPC UA real com `uals` em
+  `opc.tcp://localhost:4840/vf/plc01` (nó `ns=2;s=PLC01`); `down` sem `-v` em 4,4 s. Antes, sem LFS, o
+  `provisioner` saía com exit 1 (226 s a frio) — evidência: `docs/evidencias/f0-0.3-subida-base.md`
+- [x] 0.4 Rodada própria com LFS e pilha completa: planta sem janela 180 s, rc=0, 0 linhas ERROR, 41 163 mensagens
+  (sessão `S-20261115T224238Z-957a`); 14 `part_released`, 13 `part_inspected`, 12 `part_sorted`, mesmo serial nos
+  três; 2 de 13 reprovadas; lead time liberada → separada 21,3–24,8 s, média 23,79 s (n = 12); os 5 primeiros
+  lead times repetem exatamente os da 0.5 — evidência: `docs/evidencias/f0-0.4-eventos-planta.md`,
+  `dados/amostras/f0-0.4-eventos-planta-lfs.jsonl`
 - [x] 0.5 Perfil reduzido de 8 serviços (ADR-0016) a partir de `base/` com LFS: `up` 46,0/29,1 s, assentado
   111,5/65,9 s, 776,1 MiB (−71 % da pilha completa), 27 shells, planta com 0 linhas ERROR. Modo sem CLP: 402,8 MiB —
   evidência: `docs/evidencias/f0-0.5-perfil-reduzido.md`
@@ -121,8 +122,8 @@ Surpresas:
 Mudou no plano: ADRs 0014 a 0017 propostos; SPECS §2.2, README §5 e ARCHITECTURE §3/§4/§10 atualizados.
 
 **Ponto de decisão da Fase 0: continuar com a base (ADR-0001 mantido).** A base subiu a partir de `base/` em duas
-rodadas do perfil reduzido (assentada em 66–112 s, 776 MiB de 15 GiB) e a pilha completa subiu sem falha numa cópia
-(2,7 GiB). A falha observada foi só a falta de LFS, não instabilidade do WSL2.
+rodadas do perfil reduzido (assentada em 66–112 s, 776 MiB de 15 GiB) e a pilha completa também subiu a partir de
+`base/` com LFS (assentada em 79 s, 2,6 GiB). A falha observada foi só a falta de LFS, não instabilidade do WSL2.
 
 ### 2026-11-15 — ferramentas do assistente
 
@@ -150,7 +151,7 @@ Medido na tarefa 0.2 (`docs/evidencias/f0-0.2-ambiente.md`).
 | CPython 3.12.16 (via uv); sistema 3.14.4 | Instalado na 0.2 |
 | Godot 4.7.2.stable.official.ed1daf0bf (`~/.local/opt/godot`, link `~/.local/bin/godot`, sha512 conferido) | Instalado na 0.2 |
 | amqtt 0.12.2 (`amqtt_sub`, `amqtt_pub`) | Instalado na 0.2 |
-| Navegador OPC UA: `uvx --from asyncua uals` (efêmero) | Só `--help` verificado; sessão real na rodada da 0.3 |
+| Navegador OPC UA: `uvx --from asyncua uals` (efêmero) | Sessão real aberta na 4840 (rodada final da 0.3) |
 | git-lfs 3.7.1 (`/usr/bin/git-lfs`, apt) | Instalado pelo usuário em 2026-11-15 |
 | PlatformIO / arduino-cli | Ausentes; decidir em ADR antes da 1.7 |
 | Portas 1883, 9001, 4840, 4841, 4850, 4851, 8091, 3001, 8501 | Livres antes da subida |
@@ -159,14 +160,12 @@ Medido na tarefa 0.2 (`docs/evidencias/f0-0.2-ambiente.md`).
 
 ## Em andamento
 
-Fechar as parciais da Fase 0 (0.3: pilha completa a partir de `base/`; 0.4: rodada própria ou aceitar o adendo);
-depois, Fase 1.
+Fase 1: começar pela 1.1 (contrato `dev/v1`) e pela 1.6 (`start.py` com o perfil reduzido do ADR-0016).
 
 ## Bloqueios
 
 | Bloqueio | Impede | Depende de |
 |---|---|---|
-| Pilha completa a partir de `base/` não refeita | Fecha 0.3 | Nova rodada (sem bloqueio técnico) |
 | Aceitação da L0 emulada (P-02) | Prioridade de comprar hardware | Professor |
 | Datas e integrantes (P-05) | Cronograma com datas | Grupo |
 
@@ -184,8 +183,8 @@ Destino: `docs/evidencias/`, um arquivo por requisito de SPECS.
 |---|---|---|
 | `docs/evidencias/f0-0.1-repositorio.md` | 0.1 | commits fixados, `ls-remote`, adendo do LFS |
 | `docs/evidencias/f0-0.2-ambiente.md` | 0.2 | versões, checksums, portas, disco |
-| `docs/evidencias/f0-0.3-subida-base.md` | 0.3 | compose ps, tempos, `docker stats` da pilha completa |
-| `docs/evidencias/f0-0.4-eventos-planta.md` | 0.4 | rodada sem LFS e adendo com a rodada da 0.5 |
+| `docs/evidencias/f0-0.3-subida-base.md` | 0.3 | compose ps, tempos, `docker stats` da pilha completa; rodada final em `base/` com LFS e sessão OPC UA |
+| `docs/evidencias/f0-0.4-eventos-planta.md` | 0.4 | rodada sem LFS (histórico) e rodada própria com LFS: 14/13/12 eventos |
 | `docs/evidencias/f0-0.5-perfil-reduzido.md` | 0.5 | perfil de 8 serviços: tempos, memória, eventos |
 | `docs/evidencias/f0-0.6-mapeamento.md` | 0.6 | mapeamento validado, lead times por peça |
 | `docs/evidencias/f0-0.7-simulador-m2.md` | 0.7 | testes, 4 cenários, FPY/RTY/COPQ |

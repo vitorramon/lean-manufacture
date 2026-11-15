@@ -25,10 +25,8 @@ Objetivo: saber se o Virtual-Factory roda neste ambiente (Linux/WSL2 com Docker 
 
 - [x] 0.1 Iniciar o repositório Git do M3; incluir Virtual-Factory e simulador do M2 com commit fixado (ADR-0001)
 - [x] 0.2 Instalar ferramentas: `uv`, Python 3.12, Godot 4.7.2, Git LFS, navegador OPC UA (UaExpert ou equivalente)
-- [ ] 0.3 Subir o compose do Virtual-Factory e registrar o que sobe, tempo de subida e consumo de memória
-      — parcial em 2026-11-15: pilha completa só em cópia temporária; refazer a partir de `base/` com LFS
-- [ ] 0.4 Rodar a planta em modo sem janela e observar os eventos `part_released`, `part_inspected`, `part_sorted`
-      — parcial em 2026-11-15: os 3 eventos só foram observados na rodada da 0.5
+- [x] 0.3 Subir o compose do Virtual-Factory e registrar o que sobe, tempo de subida e consumo de memória
+- [x] 0.4 Rodar a planta em modo sem janela e observar os eventos `part_released`, `part_inspected`, `part_sorted`
 - [x] 0.5 Definir o perfil reduzido de serviços necessário ao M3
 - [x] 0.6 Validar o mapeamento planta virtual ↔ linha de celulares (ARCHITECTURE §4) e ajustar o ADR-0009
 - [x] 0.7 Rodar o simulador do M2 em Linux, conferir os números de SPECS §2.2 e extrair FPY, RTY e COPQ do painel
