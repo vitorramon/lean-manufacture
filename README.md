@@ -62,18 +62,29 @@ calibração: a preencher na Fase 1.
 
 ## 5. KPIs — três gerações
 
-| KPI | Baseline (M1) | Simulado (M2) | Medido (M3) | Meta (M1) |
+| KPI | Baseline (M1) | Simulado (M2), média ± desvio, n = 30 | Medido (M3) | Meta (M1) |
 |---|---|---|---|---|
-| FPY | 78 % | a extrair do painel do M2 | a medir | 92 % |
-| RTY | 82 % | a extrair do painel do M2 | a medir | 90 % |
-| OEE | 68 % | 68,47 % (atual) → 75,49 % (Lean local) → 92,15 % (Lean ampliado) | a medir | 80 % |
-| 1 − COPQ (scrap) | 95 % | a extrair do painel do M2 | a medir | 98 % |
-| Lead time médio (min) — complementar | sem baseline no M1 | 69,43 → 50,73 → 8,10 | a medir | a definir |
-| Espera no posto Bateria — complementar | sem baseline no M1 | fila final 369 → 0 | a medir | a definir |
+| FPY (teste funcional) | 78 % | 94,18 ± 0,77 % (atual) → 99,80 ± 0,13 % (Lean local) → 99,78 ± 0,12 % (Lean ampliado) | a medir | 92 % |
+| RTY | 82 % | 94,18 ± 0,77 % (atual) → 94,03 ± 0,53 % (Lean local) → 94,01 ± 0,52 % (Lean ampliado) | a medir | 90 % |
+| OEE da linha (ciclo 20 s) | 68 % | 68,61 ± 0,56 % (atual) → 75,47 ± 0,10 % (Lean local) → 92,44 ± 0,54 % (Lean ampliado) | a medir | 80 % |
+| 1 − COPQ (scrap) | 95 % | 95,75 ± 0,56 % (atual) → 98,76 ± 0,14 % (Lean local) → 98,71 ± 0,15 % (Lean ampliado) | a medir | 98 % |
+| Lead time do trecho Bateria → Embalagem (min) — complementar | sem baseline no M1 | 64,22 ± 0,22 → 46,55 ± 1,60 → 2,87 ± 0,00 | a medir | a definir |
+| Espera na fila da Bateria (min) — complementar | sem baseline no M1 | 61,54 ± 0,00 → 0,00 → 0,00 | a medir | a definir |
 
-Baseline e meta vêm da entrega do M1 (projeção em 90 dias). Os valores do M2 são de uma única execução (8 h,
-semente 7) e cobrem a linha inteira; o M3 mede um trecho, e a comparação final será feita sobre o mesmo trecho. O
-M1 não definiu baseline nem meta de lead time.
+Fonte da coluna "Simulado (M2)": simulador do M2 (`simulador/`, commit `1e4b27d`), sem alteração, 30 replicações de
+8 h por cenário (sementes 1–30), KPIs calculados pelo `metrics.js` do próprio painel; tarefa 0.8, evidência
+[`docs/evidencias/f0-0.8-replicacoes.md`](docs/evidencias/f0-0.8-replicacoes.md) e tabela completa com IC 95 % em
+[`dados/analises/f0_replicacoes.md`](dados/analises/f0_replicacoes.md). O cenário SPI/AOI sem Lean está lá também.
+
+Baseline e meta vêm da entrega do M1 (projeção em 90 dias). O M1 não definiu baseline nem meta de lead time.
+Limitações desta coluna:
+
+- Os desvios são pequenos porque o modelo do M2 tem tempos determinísticos e sorteia só os defeitos: medem a
+  sensibilidade à semente, não a variabilidade real do processo. Para comparar com o medido (tarefa 1.12) usa-se a
+  distribuição por peça (no atual, de 184 s a 7 520 s no trecho).
+- O FPY simulado (94 %) diverge do M1 (78 %): o M2 só gera três defeitos de solda de 2 % cada (SPECS §2.2).
+- No cenário atual a fila da Bateria cresce o turno todo; o lead time do trecho depende do horizonte de 8 h e é
+  limite inferior (só peças concluídas).
 
 ## 6. Cartão de conexão
 

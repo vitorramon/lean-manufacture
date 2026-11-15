@@ -72,7 +72,7 @@ Três consequências para o M3:
 | Exigência das aulas do M2 | Entregue | Lacuna que afeta o M3 |
 |---|---|---|
 | Simulador SimPy do cenário, ≥ 3 KPIs, 2 cenários | Sim: 22 estações, 4 cenários (Atual, SPI/AOI, Lean local, Lean ampliado) | — |
-| 30 replicações, média ± desvio | Não: uma única semente (7), turno de 8 h | Coluna "Simulado" sem intervalo de confiança |
+| 30 replicações, média ± desvio | Não: uma única semente (7), turno de 8 h | Feitas no M3 (tarefa 0.8, n = 30); ver abaixo |
 | Pipeline OPC UA (porta 4840) → SQLite `leituras` | Parcial: MQTT (Mosquitto) → coletor → SQLite `eventos`; sem OPC UA | M3 pressupõe address space OPC UA e UaExpert |
 | Digital Twin 2D sincronizado com o banco | Sim (`painel.html` reproduz eventos) | — |
 | What-if integrado | Parcial: editor de tempos + comparação A/B | Sem what-if da cadeia |
@@ -91,11 +91,32 @@ Resultados simulados do M2 (8 h, semente 7), que formam a geração "Simulado":
 | SPI/AOI + Lean local | 1 087 | 2 | 263 | 50,73 min | 75,49 % |
 | SPI/AOI + Lean ampliado | 1 327 | 2 | 23 | 8,10 min | 92,15 % |
 
-Coerência com o M1: o OEE simulado do cenário atual (68,47 %) coincide com o baseline do M1 (68 %). O FPY simulado
-não coincide: pelas contagens finais do cenário atual (986 aprovadas embaladas e 63 reprovadas no teste), fica
-perto de 94 %, contra 78 % do M1; o valor exato deve ser lido do painel do M2. A divergência tem de ser explicada
-no relatório (o modelo do M2 só gera os defeitos de solda de 2 % por origem, sem as demais perdas do diagnóstico).
-RTY e COPQ do M2 são calculados no painel e não constam dos documentos; extrair na Fase 0.
+Reproduzido em Linux/WSL2 na tarefa 0.7 (2026-11-15), sem alterar o simulador (commit `1e4b27d`): os quatro cenários
+deram exatamente os números acima, em duas cópias independentes (evidência `docs/evidencias/f0-0.7-simulador-m2.md`).
+
+KPIs de qualidade do M2 (8 h, semente 7), calculados pelo próprio `metrics.js` do painel (`buildMetrics(...).at(28800)`,
+ciclo de 20 s, custos padrão do painel: SPI R$ 15, AOI R$ 60, reprovação final R$ 240, referência R$ 240/placa):
+
+| Cenário | FPY | RTY | 1 − COPQ |
+|---|---:|---:|---:|
+| Atual | 94,00 % | 94,00 % | 95,63 % |
+| SPI/AOI | 99,81 % | 93,67 % | 98,70 % |
+| SPI/AOI + Lean local | 99,82 % | 93,68 % | 98,70 % |
+| SPI/AOI + Lean ampliado | 99,85 % | 93,71 % | 98,70 % |
+
+Com 30 replicações (sementes 1–30, tarefa 0.8, `dados/analises/f0_replicacoes.md`), média ± desvio: FPY 94,18 ± 0,77 /
+99,80 ± 0,13 / 99,80 ± 0,13 / 99,78 ± 0,12 %; RTY ≈ 94,0 % nos quatro; OEE 68,61 ± 0,56 / 72,69 ± 0,10 / 75,47 ± 0,10 /
+92,44 ± 0,54 %; 1 − COPQ 95,75 ± 0,56 / 98,77 ± 0,14 / 98,76 ± 0,14 / 98,71 ± 0,15 %. A variância entre replicações
+é quase nula porque, no M2, tempos de processo e de chegada são fixos e só os defeitos são sorteados.
+
+Coerência com o M1: o OEE simulado do cenário atual (68,47 %) coincide com o baseline do M1 (68 %), e o 1 − COPQ
+(95,6 %) coincide com o do M1 (95 %). O FPY **não coincide**: 94,00 % no M2 (987 aprovadas de 1 050 testadas) contra
+78 % do M1. O modelo do M2 só gera três defeitos de solda de 2 % cada (0,98³ = 94,12 % esperado); faltam as perdas da
+etapa manual, a falsa falha e o retrabalho do diagnóstico do M1. O próprio Pareto do M1 daria cerca de 97,5 %, de
+modo que o FPY de 78 % do M1 também não decorre do Pareto. O RTY do M2 (94 %) também diverge do M1 (82 %), e no M1 o
+RTY (82) é maior que o FPY (78), o que indica definições diferentes das do M2 (RTY = produto dos FPY). Com SPI/AOI
+o RTY cai um pouco, porque os mesmos defeitos passam a ser detectados mais cedo. Estas divergências têm de ser
+explicadas no relatório, não ajustadas.
 
 ### 2.3 Aulas Extras — rede de gêmeos (não entregues pelo grupo)
 
