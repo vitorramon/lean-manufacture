@@ -1,0 +1,17 @@
+# Estímulo de TESTE da bancada virtual do QEMU (ADR-0021). Sintético, escrito à mão: não é medição (ADR-0013).
+# Cada linha vai para a serial do ESP32 emulado; "espera <s>" pausa o envio. Comandos: toque, temp <°C>, estado.
+espera 10       # boot, DHCP e conexão MQTT (o que chega à serial antes do boot se perde)
+temp 24.6
+toque           # abre o ciclo 1
+espera 12
+toque           # fecha o ciclo 1 (dur_s ~12)
+temp 24.8
+espera 6
+toque           # abre o ciclo 2
+espera 9.5
+toque           # fecha o ciclo 2 (dur_s ~9.5)
+temp nan        # sensor falha: nada de telemetria
+espera 6
+temp 25         # inteiro: o firmware publica 25 (o emulador Python, 25.0)
+espera 6
+estado
