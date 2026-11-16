@@ -71,6 +71,8 @@ services:
   aas-sync:
     <<: *lean-servico
     command: ["/opt/aas_sync/bin/python", "-m", "aas_sync"]
+    # Acima dos 10 s que o aas-sync espera para esvaziar a fila no desligamento (antes do SIGKILL).
+    stop_grace_period: 20s
     environment:
       OPCUA_URL: opc.tcp://device-gateway:4850/lean/dispositivos
       AAS_URL: http://aas-env:8091
