@@ -1,0 +1,10 @@
+{
+  "name": "logica",
+  "version": "0.1.0",
+  "description": "Lógica do firmware independente de placa: debounce, ciclo, seq, boot e payloads dev/v1 (ADR-0003).",
+  "frameworks": "*",
+  "platforms": "*",
+  "dependencies": {
+    "bblanchon/ArduinoJson": "7.2.1"
+  }
+}
