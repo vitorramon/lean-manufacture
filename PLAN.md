@@ -43,19 +43,33 @@ e AAS.
 
 - [ ] 1.0 Contêiner de desenvolvimento (`.devcontainer/`, ADR-0015): Python 3.12/uv, Godot 4.7.2, git-lfs, amqtt,
       asyncua, PlatformIO, Node; Docker do hospedeiro; validar rede até broker e OPC UA e rodar a planta sem janela
+      — parcial em 2026-11-15: falta executar `devcontainer up` ou "Reopen in Container" e anexar a saída
 - [ ] 1.1 Escrever o contrato `dev/v1`: esquemas JSON e mensagens de referência (`pipeline/contrato/`)
+      — parcial em 2026-11-15: falta `.env.example`; alinhar `origem` (ADR-0005, regra firmware.md); decidir `boot` obrigatório
 - [ ] 1.2 Emulador Python do `esp32-bat01` com a fonte `roteiro`
+      — parcial em 2026-11-15: falta reexecutar a integração com o broker no ar (fonte roteiro rodou pelo `start.py` na 1.10)
 - [ ] 1.3 `device-gateway`: assinatura MQTT, validação, timestamp, servidor OPC UA com um objeto
+      — parcial em 2026-11-15: falta corrigir a sequência (zerar só com boot novo, rejeitar boot menor), ruff no dev, print do address space no UaExpert
 - [ ] 1.4 `aas-sync`: subscription OPC UA → `leituras` no SQLite e estado do dispositivo no AAS
+      — parcial em 2026-11-15: falta repetir a gravação no SQLite com backoff (hoje descarta o lote) e reexecutar integração e queda
 - [ ] 1.5 `nucleo/dados.py` e página "Visão geral" mínima; Andon cinza por ausência de dado
+      — parcial em 2026-11-15: falta o vídeo do RF-A1-10; origens medidas fixas na L3; sessão de teste do operador aparece como medida
 - [ ] 1.6 Compose adicional e `start.py` com health check
+      — parcial em 2026-11-15: falta teste em máquina limpa (RNF-01) e exercitar `operador` com pessoa
 - [ ] 1.7 Firmware ESP32: lógica independente de placa, camada de hardware, publicação MQTT; compilar para ESP32
-- [ ] 1.8 Escolher e configurar o emulador de firmware; rodar o firmware nele contra o mesmo broker
+      — parcial em 2026-11-15: evidência com tamanho de binário errado (real: Flash 761 933 B, RAM 45 328 B); `eventosPerdidos` não publicado
+- [x] 1.8 Escolher e configurar o emulador de firmware; rodar o firmware nele contra o mesmo broker
+      — 2026-11-15: QEMU da Espressif (ADR-0021), 16/16 mensagens válidas com `firmware:emulado`
 - [ ] 1.9 Fontes `godot` e `operador` no emulador
+      — parcial em 2026-11-15: operador só com teclas injetadas; sessão de teste se declara `emulador:operador` (ADR-0013)
 - [ ] 1.10 Teste da troca de L0: mesmo commit de L2–L4 com `roteiro`, `godot`, `operador` e firmware emulado
+      — parcial em 2026-11-15: 4 fontes com o mesmo hash de L2–L4; falta commit de L2–L4 e fonte `hardware`; sessão de teste na amostra medida
 - [ ] 1.11 Procedimento de calibração (4 testes) e faixas de validação; registro no README
+      — parcial em 2026-11-15: 4 testes só sobre emulação; calibração física pendente
 - [ ] 1.12 Coleta de ≥ 30 ciclos com a fonte `operador`; comparação com o simulado (tabela e histogramas)
+      — bloqueado em 2026-11-15: falta a sessão com pessoa (≥ 30 ciclos); scripts prontos
 - [ ] 1.13 Classificação de ≥ 3 outliers (Muda real × falha de medição)
+      — bloqueado em 2026-11-15: depende da 1.12
 
 Evidências: print do address space; vídeo do dashboard atualizando; gráfico comparativo; registro de calibração;
 tabela de outliers.

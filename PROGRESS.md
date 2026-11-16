@@ -4,8 +4,12 @@ Registro do andamento. As tarefas vêm de [PLAN.md](PLAN.md). Atualize este arqu
 caixa, anote a data e aponte a evidência.
 
 **Última atualização:** 2026-11-15
-**Fase atual:** Fase 0 concluída (8 de 8); decisão: continuar com a base; próxima: Fase 1
-**Código do M3 implementado:** só scripts de análise da Fase 0 (`dados/analises/`); nenhum serviço
+**Fase atual:** Fase 1 em andamento (1 feita, 11 parciais, 2 bloqueadas de 14); a Fase 1 não fecha sem a coleta
+com operador (1.12/1.13) e o vídeo do dashboard
+**Código do M3 implementado:** contrato `dev/v1` (`pipeline/contrato`), emulador com fontes `roteiro`, `godot` e
+`operador` (`hardware/emulador`), firmware ESP32 com QEMU (`hardware/firmware`), `device-gateway` (OPC UA 4850),
+`aas-sync` (SQLite WAL e AAS), app Streamlit com "Visão geral" e Andon (`app/`), compose adicional e `start.py`
+(`infra/`), contêiner de desenvolvimento (`.devcontainer/`), scripts de análise da 1.12/1.13 (`dados/analises/f1_*`)
 
 ## Resumo
 
@@ -14,7 +18,7 @@ caixa, anote a data e aponte a evidência.
 | Análise e documentação inicial | Concluída | 2026-11-15 |
 | Pendências do grupo (P-01 a P-07) | Abertas | 3 de 7 |
 | Fase 0 — Fundação | Concluída (2026-11-15) | 8 de 8 |
-| Fase 1 — Primeiro dispositivo | Não iniciada | 0 de 14 |
+| Fase 1 — Primeiro dispositivo | Em andamento: 1 feita (1.8), 11 parciais, 2 bloqueadas (1.12, 1.13) | 1 de 14 |
 | Fase 2 — Rastreabilidade | Não iniciada | 0 de 10 |
 | Fase 3 — Rede federada | Não iniciada | 0 de 11 |
 | Fase 4 — Consolidação | Não iniciada | 0 de 11 |
@@ -26,11 +30,11 @@ Autoavaliação corrente. "Hoje" é o que se sustentaria com evidência se a ent
 
 | Critério | Pts | Hoje | O que falta |
 |---|---:|---:|---|
-| Sistema real funcionando | 10 | 0 | Fases 1 e 2 |
+| Sistema real funcionando | 10 | 2 | Caminho dispositivo emulado → MQTT → OPC UA → SQLite/AAS → dashboard roda pelo `start.py` com 4 fontes (`f1-1.6-start.md`, `f1-1.10-troca-l0.md`), mas tudo emulado (P-02), sem vídeo do dashboard, sem print no UaExpert e com sessão de teste contando como Medido. Falta: correções da revisão, vídeo, coleta com operador, Fase 2 |
 | Rastreabilidade + KPIs | 8 | 0 | Fase 2 (o critério avalia o sistema real). Já há a coluna Simulado com n = 30 (FPY, RTY, OEE, 1 − COPQ; tarefas 0.7 e 0.8); falta o Medido |
 | Documentação profissional | 8 | 0 | Fase 4 (os documentos de projeto existem, o README final e o relatório não) |
 | Apresentação + demo | 8 | 0 | Fase 4 |
-| Reprodutibilidade | 6 | 0 | `start.py` e teste do terceiro (submódulos fixados e LFS resolvidos na Fase 0) |
+| Reprodutibilidade | 6 | 1 | `start.py` com health check existe e rodou (`f1-1.6-start.md`); falta `.env.example`, `devcontainer up` e teste do terceiro em máquina limpa |
 | Bônus | +4 | 0 | Fase 5 |
 
 ## Feito
@@ -125,6 +129,81 @@ Mudou no plano: ADRs 0014 a 0017 propostos; SPECS §2.2, README §5 e ARCHITECTU
 rodadas do perfil reduzido (assentada em 66–112 s, 776 MiB de 15 GiB) e a pilha completa também subiu a partir de
 `base/` com LFS (assentada em 79 s, 2,6 GiB). A falha observada foi só a falta de LFS, não instabilidade do WSL2.
 
+### 2026-11-15 — Fase 1: primeiro dispositivo de ponta a ponta
+
+Estado aceito pelo verificador (não o declarado). Reverificação no fechamento, sem broker no ar (integração pulada):
+contrato 66 passaram; emulador 30 + 4 pulados; device_gateway 83 + 5 pulados; aas_sync 32 + 2 pulados; app 21;
+firmware `pio test -e native` 29/29 e `pio run -e esp32` SUCCESS. Todo dado desta fase é de teste ou emulado
+(ADR-0013): nenhum número abaixo é medição.
+
+- [ ] 1.0 **Parcial.** `.devcontainer/` (Dockerfile, devcontainer.json, README): imagem `lean-m3-dev:1.0` de 1,31 GB,
+  build sem cache 69,8 s; uv 0.13.8, Python 3.12.16, Godot 4.7.2, git-lfs 3.7.1, Node 26.13.1, amqtt 0.12.2, asyncua
+  2.1.0, PlatformIO 6.2.0, docker 29.9.3. Rede host: 5/5 portas da base, `/shells` 200 com 27; planta sem janela
+  rc=0 em 30,66 s com 5 414 mensagens publicadas. Validado por `docker run` equivalente; **não** executados o
+  `devcontainer up` (negado pela política da sessão) nem o "Reopen in Container" — evidência:
+  `docs/evidencias/f1-1.0-devcontainer.md`
+- [ ] 1.1 **Parcial.** Contrato `dev/v1` em `pipeline/contrato/`: 4 esquemas + esquema de `config/dispositivos.yaml`,
+  15 mensagens válidas e 29 inválidas, `validar()` com motivo em pt-BR; 66 testes (5 de data/hora rejeitada). Falta
+  `.env.example` (escrita em `.env*` bloqueada pela permissão), alinhar `origem` com ADR-0005 e
+  `.claude/rules/firmware.md`, decidir `boot` obrigatório em tel/evt — evidência: `docs/evidencias/f1-1.1-contrato.md`
+- [ ] 1.2 + 1.9 **Parcial.** Emulador `hardware/emulador/` com 3 fontes. Roteiro: 61 mensagens, `seq` 0–60 sem
+  lacuna, `dur_s` idênticos ao roteiro; Last Will retido após `kill -9`. Godot: 7 liberações → 7 inícios e 6 fins,
+  `dur_s` 11,999–12,001 s. Operador: só teclas injetadas por pipe (4 ciclos, debounce barrou toque a 104 ms) —
+  **teste**. Achado: a sessão de teste declara `emulador:operador` e entra como Medido (viola ADR-0013 na L0) —
+  evidência: `docs/evidencias/f1-1.2-emulador.md`, `f1-1.9-fontes.md`, `dados/amostras/f1-emulador-*.jsonl`
+- [ ] 1.3 **Parcial.** `device-gateway` em `pipeline/device_gateway/`: OPC UA 4850, validação de contrato,
+  configuração, faixa e sequência, `SourceTimestamp` do gateway, variável sem dado = `BadWaitingForInitialData`.
+  Rajada sintética de 2 000 msg QoS 1 em 0,82 s sem lacuna, leitura OPC UA concorrente máx. 3,4 ms. Achado da
+  revisão: status online com o mesmo `boot` reinicia a sequência e boot anterior é aceito (contraria RNF-06); ruff
+  fora das dependências de dev; falta print no UaExpert — evidência: `docs/evidencias/f1-1.3-device-gateway.md`
+- [ ] 1.4 **Parcial.** `aas-sync` em `pipeline/aas_sync/`: 17 variáveis assinadas com `StatusValueTimestamp`;
+  demonstração com roteiro: 51 leituras, 2 rejeitados, 1 sessão; reconexão em ~3 s; reinício idempotente (51/0/1/2).
+  AAS com shell `urn:lean-manufacture:grupo7:aas:esp32-bat01`. `eventos` vazia até a 2.3/2.4. Achado: falha em
+  `banco.aplicar` descarta o lote (RF-A2-09) — evidência: `docs/evidencias/f1-1.4-aas-sync.md`
+- [ ] 1.5 **Parcial.** `app/nucleo/dados.py` (só leitura), `regras.py` (Andon de 4 níveis, cinza com prazo 15 s),
+  página "Visão geral" com `st.fragment` a cada 2 s; 4 prints (amarelo, vermelho, cinza por prazo, cinza por Last
+  Will). Falta o vídeo do RF-A1-10; `ORIGENS_MEDIDAS` fixo na L3 (contraria RF-G-04) — evidência:
+  `docs/evidencias/f1-1.5-dashboard.md` e `f1-1.5-visao-geral-*.png`
+- [ ] 1.6 **Parcial** (declarada feita, rebaixada). `infra/docker-compose.lean.yml` (profiles, ADR-0022) e
+  `start.py`: a frio, `up` 52,0 s, health checks 59,6 s, dashboard 60,8 s, primeiro ciclo 89,3 s; SIGKILL → Online
+  falso em 4 ms; SIGSTOP → cinza em 15,9 s e offline em 22,8 s; dashboard morto relançado em 3,4 s; imagem 471 MB.
+  No fechamento: README sem `replay`, CLAUDE "Comandos", ARCHITECTURE §10 e ADR-0022 atualizados. Falta máquina limpa
+  (RNF-01) — evidência: `docs/evidencias/f1-1.6-start.md`
+- [ ] 1.7 **Parcial** (declarada feita, rebaixada). Firmware em `hardware/firmware/`: lógica sem Arduino (debounce,
+  ciclo, sequência, boot, payload) testada byte a byte contra o contrato (29/29), botão em tarefa FreeRTOS com fila.
+  Tamanho real com rede: Flash 761 933 B (58,1 %), RAM 45 328 B; a evidência original (386 161 B) vinha de um binário
+  sem Wi-Fi/MQTT e ganhou uma seção de correção. `eventosPerdidos` não é publicado — evidência:
+  `docs/evidencias/f1-1.7-firmware.md`, `hardware/dispositivos.md`
+- [x] 1.8 QEMU da Espressif `esp-develop-9.2.2-20260417` (ADR-0021) com camada `hal` placa/QEMU e driver openeth:
+  amostra com 16/16 mensagens válidas, todas `firmware:emulado`, mesmo formato do emulador Python (`conferir_formato.py`
+  OK); gateway com 7 aceitas, 0 rejeitadas; `start.py --fonte firmware` na 1.10. Estímulo sintético. Wokwi não
+  executado (exige conta) — evidência: `docs/evidencias/f1-1.8-emulador-firmware.md`,
+  `dados/amostras/f1-firmware-emulado.jsonl`
+- [ ] 1.10 + 1.11 **Parcial.** Troca de L0 pelo `start.py` com roteiro, godot, operador (teclas injetadas) e
+  firmware no QEMU, com o mesmo hash de conteúdo de L2–L4 (`d6c2c88`) antes e depois; `origem` correta no OPC UA, em
+  `sessoes` e na página. Calibração de procedimento sobre emulação: offset +0,021 s, erro máx. 0,80 %, CV 0,077 %
+  (firmware); faixas `dur_s` 1–600 s e 0–60 °C; registro no README §4. Falta commit de L2–L4 (feito neste fechamento,
+  a repetir contra ele), fonte `hardware` e calibração física — evidência: `docs/evidencias/f1-1.10-troca-l0.md`,
+  `f1-1.11-calibracao.md`, `docs/calibracao.md`
+- [ ] 1.12 + 1.13 **Bloqueado.** Sem sessão com pessoa. Prontos: `docs/roteiro-coleta-operador.md`,
+  `dados/coleta/modelo-anotacoes.csv`, `dados/analises/f1_comparacao.py` e `f1_outliers.py` (recusam amostra com
+  menos de 30 ciclos; exigem `--desde`); `Dados.rejeicoes()` — evidência: `docs/evidencias/f1-1.12-preparo-coleta.md`
+
+Surpresas:
+
+- O binário do firmware da 1.7 era metade do real: sem `secrets.h` o compilador eliminou Wi-Fi e MQTT.
+- Com `--network=host` no Docker Desktop, `localhost` resolvia para `::1` e a planta não publicava; resolvido com
+  `gai.conf` (ADR-0024).
+- O broker compartilhado misturou publicadores de tarefas paralelas com o mesmo `id`; os testes passaram a usar ids
+  próprios (`gwteste-bat01`, `synteste-bat01`, `teste-emu01`).
+- A sessão de operador com teclas injetadas apareceu no painel como "Tempo de ciclo medido (n = 4)": o contrato não
+  distingue sessão de teste (risco R-08).
+- O simulado do M2 dá 27,00 s em todas as 31 650 peças da Bateria: a comparação da 1.12 vai falar de forma e tamanho
+  da diferença, não de valor-p.
+
+Mudou no plano: ADRs 0019 a 0024 propostos; SPECS §2.4, §6.1, §6.2 e R-08; ARCHITECTURE §10; README §3, §4, §6 e §7;
+CLAUDE "Comandos".
+
 ### 2026-11-15 — ferramentas do assistente
 
 - [x] `.claude/` na raiz do espaço de trabalho, adaptado do projeto Órbita: 9 regras, 7 skills, 5 agentes e
@@ -153,26 +232,31 @@ Medido na tarefa 0.2 (`docs/evidencias/f0-0.2-ambiente.md`).
 | amqtt 0.12.2 (`amqtt_sub`, `amqtt_pub`) | Instalado na 0.2 |
 | Navegador OPC UA: `uvx --from asyncua uals` (efêmero) | Sessão real aberta na 4840 (rodada final da 0.3) |
 | git-lfs 3.7.1 (`/usr/bin/git-lfs`, apt) | Instalado pelo usuário em 2026-11-15 |
-| PlatformIO / arduino-cli | Ausentes; decidir em ADR antes da 1.7 |
+| PlatformIO 6.1.18 (`uv tool`; 6.2.0 no contêiner) e QEMU da Espressif (`~/.local/opt`) | Instalados na Fase 1 (ADR-0018, ADR-0021) |
 | Portas 1883, 9001, 4840, 4841, 4850, 4851, 8091, 3001, 8501 | Livres antes da subida |
 | Disco | 1007 GB, 906 GB livres |
 | Leitor de PDF (`poppler`) | Ausente |
 
 ## Em andamento
 
-Fase 1: começar pela 1.1 (contrato `dev/v1`) e pela 1.6 (`start.py` com o perfil reduzido do ADR-0016).
+Fase 1, correções antes da coleta: separar a sessão de teste do operador (origem de teste com ADR), sequência por
+`boot` no gateway, backoff na gravação do `aas-sync`, origens medidas em configuração, `.env.example`, vídeo do
+dashboard e print no UaExpert. Depois, a sessão com operador (1.12/1.13).
 
 ## Bloqueios
 
 | Bloqueio | Impede | Depende de |
 |---|---|---|
-| Aceitação da L0 emulada (P-02) | Prioridade de comprar hardware | Professor |
+| Sessão de coleta com uma pessoa do grupo (≥ 30 ciclos) | 1.12, 1.13 e a geração Medido do tempo de ciclo | Grupo |
+| Escrita de `.env.example` negada pela permissão do ambiente | 1.1 completa | Usuário (criar o arquivo ou liberar a permissão) |
+| `devcontainer up` / "Reopen in Container" negados pela política da sessão | 1.0 completa | Usuário |
+| Aceitação da L0 emulada (P-02) | Prioridade de comprar hardware; fonte `hardware` | Professor |
 | Datas e integrantes (P-05) | Cronograma com datas | Grupo |
 
 ## Registro de decisões
 
 Ver [docs/adr/README.md](docs/adr/README.md). Aceitas pelo grupo: 0001, 0002, 0004, 0013 a 0018. Propostas,
-aguardando validação: 0003 e 0005 a 0012.
+aguardando validação: 0003, 0005 a 0012, 0019 a 0024.
 
 Em 2026-11-15, depois da Fase 0, o grupo decidiu:
 
@@ -184,6 +268,17 @@ Em 2026-11-15, depois da Fase 0, o grupo decidiu:
   instalações em `~/.local` (que ficam como alternativa).
 - ADR-0016 (perfil reduzido de 8 serviços) e ADR-0017 (método da geração Simulado) aceitos como propostos.
 - ADR-0018 novo: PlatformIO para o firmware ESP32.
+
+Na Fase 1 (2026-11-15), propostos pelo assistente, aguardando o grupo:
+
+- ADR-0019: rejeições e diagnóstico do gateway pelo address space (`Gateway.UltimaRejeicao`, contadores).
+- ADR-0020: shell e submodelo `DadosOperacionais` por dispositivo no AAS; tabela `rejeitados`; idempotência.
+- ADR-0021: QEMU da Espressif como emulador do firmware; camada `hal`.
+- ADR-0022: perfil reduzido por `profiles` no compose adicional (complementa o item 2 do ADR-0016).
+- ADR-0023: bibliotecas asyncua 2.1.0, paho-mqtt 2.2.0, arduino-mqtt 2.5.2, ArduinoJson 7.2.1, jsonschema 4.26.0.
+- ADR-0024: rede do contêiner de desenvolvimento (`--network=host` com `gai.conf`; complementa o ADR-0015).
+- Pendentes de decisão (sem ADR ainda): nomes de `origem` (ADR-0005 item 6 × contrato), `boot` obrigatório em
+  tel/evt, origem de teste para sessões sem terminal.
 
 ## Evidências coletadas
 
@@ -201,6 +296,18 @@ Destino: `docs/evidencias/`, um arquivo por requisito de SPECS.
 | `docs/evidencias/f0-0.8-replicacoes.md` | 0.8 | 120 turnos, média ± desvio, testes pareados |
 | `dados/amostras/f0-eventos-planta.jsonl`, `f0-0.5-eventos-perfil-reduzido.jsonl` | 0.4, 0.5 | eventos UNS gravados |
 | `dados/analises/f0_m2_cenarios.*`, `f0_replicacoes.*` | 0.7, 0.8 | scripts, CSV, tabelas, gráfico |
+| `docs/evidencias/f1-1.0-devcontainer.md` | 1.0 | build, versões, rede, planta dentro do contêiner |
+| `docs/evidencias/f1-1.1-contrato.md` | 1.1 | 66 testes de contrato, base reduzida no ar |
+| `docs/evidencias/f1-1.2-emulador.md`, `f1-1.9-fontes.md` | 1.2, 1.9 | 3 fontes, Last Will, amostras `dados/amostras/f1-emulador-*.jsonl` |
+| `docs/evidencias/f1-1.3-device-gateway.md` | 1.3 | testes, leitura OPC UA com `uals`/`uaread`, rajada |
+| `docs/evidencias/f1-1.4-aas-sync.md` | 1.4 | banco, AAS, reconexão, reinício |
+| `docs/evidencias/f1-1.5-dashboard.md`, `f1-1.5-visao-geral-*.png` | 1.5 | 4 prints do Andon |
+| `docs/evidencias/f1-1.6-start.md` | 1.6 | 3 rodadas do `start.py`, testes de falha |
+| `docs/evidencias/f1-1.7-firmware.md` | 1.7 | testes nativos, compilação, correção do tamanho |
+| `docs/evidencias/f1-1.8-emulador-firmware.md`, `dados/amostras/f1-firmware-emulado.jsonl` | 1.8 | firmware no QEMU |
+| `docs/evidencias/f1-1.10-troca-l0.md`, `f1-1.10-pagina-*.png`, `dados/amostras/f1-troca-l0-*.jsonl` | 1.10 | 4 fontes, mesmo hash de L2–L4 |
+| `docs/evidencias/f1-1.11-calibracao.md`, `docs/calibracao.md`, `dados/amostras/f1-calibracao-*.jsonl` | 1.11 | 4 testes sobre emulação |
+| `docs/evidencias/f1-1.12-preparo-coleta.md` | 1.12 | preparo da coleta (sem dado medido) |
 
 ## Como registrar uma entrada
 

@@ -19,7 +19,7 @@ flowchart TB
     OP[Operador<br/>bancada virtual]
     RT[Roteiro / replay]
     EM[Emulador de dispositivos<br/>Python]
-    WK[Firmware ESP32<br/>em emulador de firmware]
+    WK["Firmware ESP32<br/>no QEMU da Espressif, ADR-0021"]
     HW[ESP32 real<br/>futuro]
     GD -- estímulo --> EM
     OP -- estímulo --> EM
@@ -128,7 +128,7 @@ flowchart LR
   end
   subgraph Dispositivo
     E[Emulador Python<br/>mesmo contrato]
-    F[Firmware ESP32<br/>emulador de firmware]
+    F["Firmware ESP32<br/>no QEMU, ADR-0021"]
     G[ESP32 físico]
   end
   A --> E
@@ -185,6 +185,11 @@ Endereços: `ns=2;s=LinhaCelulares.Bateria_01.TempoCiclo`, `...Bateria_01.PecasF
 `...Rastreio.UltimaPeca`, `...Rastreio.LeadTimeReal`. Um evento OPC UA por evento de peça (peça, estação, evento,
 valor). Dado rejeitado vai para um contador e um log, nunca para o banco.
 
+Canal das rejeições até o `aas-sync` (ADR-0019, Proposto): `LinhaCelulares.Gateway.UltimaRejeicao` (JSON numerado
+por `n`) e contadores `Rejeitados`, `Duplicatas`, `Lacunas` por objeto; o `aas-sync` assina e grava `rejeitados`.
+Cada objeto também expõe `Origem`, `Boot` e `Firmware` (para `sessoes`) e `UltimoEvento`. Código e variáveis:
+`pipeline/device_gateway/README.md`.
+
 ### 6.2 `aas-sync` (OPC UA → AAS e banco)
 
 Cliente OPC UA com subscription e reconexão. Para cada mudança:
@@ -193,6 +198,13 @@ Cliente OPC UA com subscription e reconexão. Para cada mudança:
 - atualiza no BaSyx o estado do dispositivo e a ficha da peça.
 
 É o único processo que escreve no banco e no AAS: uma fila de escrita, sem disputa de lock.
+
+Implementação (tarefa 1.4, ADR-0020, Proposto): assina todas as variáveis dos objetos declarados e do objeto
+`Gateway` com `StatusValueTimestamp`; variável Double → `leituras` (`node` = `LinhaCelulares.<Objeto>.<Variavel>`,
+`ts` = `SourceTimestamp`); `Gateway.UltimaRejeicao` → `rejeitados`; `Online`/`Origem` → `sessoes`. Índices únicos
+tornam o reinício idempotente. No AAS, shell `urn:lean-manufacture:grupo7:aas:<id>` e submodelo
+`DadosOperacionais`, atualizados a cada `AAS_INTERVALO_S`. `eventos` só recebe linhas a partir da 2.3/2.4. Código:
+`pipeline/aas_sync/README.md`.
 
 ## 7. L1 — dados
 
@@ -248,21 +260,31 @@ Grafana e a AAS Web UI do Virtual-Factory continuam disponíveis como visão de 
 | `plc-comm` (CLP virtual) | 4840, 4841 | Contêiner (Virtual-Factory) — confirmado na Fase 0 (TCP; `edge` ponteia `opc.tcp://localhost:4840/vf/plc01`) |
 | `edge` (CLP → UNS) | — | Contêiner (Virtual-Factory), no perfil reduzido |
 | Postgres do BaSyx (`db`) | 5432 (só interno) | Contêiner (Virtual-Factory), no perfil reduzido |
-| `device-gateway` | 4850 | Contêiner (nosso compose adicional) |
-| `aas-sync` | — | Contêiner |
-| `twin-t2t` | 4851 | Contêiner |
-| Emulador de dispositivos | — | Contêiner ou processo local |
-| Streamlit | 8501 | Processo local ou contêiner |
-| Godot (planta 3D) | — | Nativo no host, opcional |
+| `device-gateway` | 4850 (`/lean/dispositivos`) | Contêiner `lean-m3-servicos:dev` (compose adicional); healthcheck lê `ServerState` no próprio OPC UA — Fase 1 |
+| `aas-sync` | — | Mesma imagem; healthcheck por sinal de vida (`SAUDE_PATH`); banco em `dados/` montado em `/dados` — Fase 1 |
+| `twin-t2t` | 4851 | Contêiner (Fase 3, não existe ainda) |
+| Emulador de dispositivos / firmware no QEMU | — | Processo local iniciado pelo `start.py` |
+| Streamlit | 8501 | Processo local iniciado pelo `start.py`; lê o mesmo `dados/dados.db` em WAL |
+| Godot (planta 3D) | — | Nativo no host, sem janela, iniciado pelo `start.py --fonte godot` |
 
 Na Fase 0 (2026-11-15) as portas 1883, 9001, 4840, 4841, 4850, 4851, 8091, 3001 e 8501 estavam livres no host antes
 da subida (`f0-0.2-ambiente.md`). Não houve sessão OPC UA com cliente na 4840: só abertura TCP e o `edge` conectado.
-O perfil reduzido ainda é uma lista explícita de serviços (`docker compose -f infra/docker-compose.yml up -d <8
-serviços>`); o `start.py` deve reproduzi-la (ADR-0016).
+Perfil reduzido por `profiles` (tarefa 1.6, ADR-0022, que complementa o item 2 do ADR-0016): o
+`infra/docker-compose.lean.yml` põe os 19 serviços da base fora do perfil A no profile `base-completa`; sem
+`--profile`, `docker compose -f base/infra/docker-compose.yml -f infra/docker-compose.lean.yml up` sobe só os 8 da
+base e os 2 do M3. Com vários `-f`, os caminhos relativos partem de `base/infra`, por isso o override usa `../..`.
+Dentro da rede do compose os serviços usam `mqtt`, `aas-env` e `device-gateway` como endereço; fora, os padrões
+`localhost` (variáveis de ambiente). Detalhes: `infra/README.md`.
 
-Subida: `python start.py --fonte <godot|roteiro|operador|replay|hardware>` (ADR-0012) sobe o compose do
-Virtual-Factory com o nosso arquivo adicional, espera os health checks, inicia a fonte escolhida e o dashboard, e
-passa a monitorar: processo vivo, porta respondendo, dado fluindo.
+Subida: `python3 start.py --fonte <roteiro|godot|operador|firmware|hardware>` (ADR-0012) sobe o compose do
+Virtual-Factory com o nosso arquivo adicional, espera os health checks (broker, AAS, gateway, porta 4850, aas-sync),
+inicia o dashboard e a fonte escolhida e passa a monitorar a cada 5 s: processo vivo (reinicia o dashboard até 3
+vezes), porta respondendo e dado fluindo. Ctrl+C derruba o que a execução subiu; `--manter-base` deixa a base no
+ar; `--parar` faz `compose down` sem `-v`. A fonte `replay` ainda não existe. Medido na 1.6: health checks verdes
+em 59,6 s a frio (`docs/evidencias/f1-1.6-start.md`).
+
+Contêiner de desenvolvimento (tarefa 1.0, ADR-0015 e ADR-0024): `.devcontainer/` com as ferramentas fixadas, rede
+`--network=host` e o Docker do hospedeiro pelo socket.
 
 Estrutura-alvo do repositório final (a aula 4 a prescreve):
 
@@ -271,13 +293,14 @@ lean-manufacture/                (github.com/vitorramon/lean-manufacture; local:
   README.md  SPECS.md  ARCHITECTURE.md  PLAN.md  PROGRESS.md  CLAUDE.md
   start.py
   docs/        adr/  relatorio.pdf  arquitetura.png  cartoes_conexao.md  evidencias/
-  hardware/    firmware/  emulador/  leitor_qr/  dispositivos.md (componentes, pinagem, custo)
+  hardware/    firmware/  emulador/  calibracao/  leitor_qr/ (Fase 2)  dispositivos.md (componentes, pinagem, custo)
   pipeline/    device_gateway/  aas_sync/  contrato/ (esquemas e mensagens de referência)
   twin/        t2t/  cadeia/
   app/         Home.py  pages/  nucleo/
   simulador/   (M2: GemeoDigitalCelulares)
   base/        (Virtual-Factory, commit fixado)
-  infra/       docker-compose.lean.yml  config/
+  infra/       docker-compose.lean.yml  lean-servicos.Dockerfile  orquestracao.py
+  config/      dispositivos.yaml
   dados/       amostras/  analises/  etiquetas/
   tests/
 ```
@@ -296,7 +319,7 @@ lean-manufacture/                (github.com/vitorramon/lean-manufacture; local:
 
 | Limitação | Impacto | Proposta |
 |---|---|---|
-| L0 emulada | Sem ruído elétrico, alimentação instável ou cabo real | Firmware em emulador; ESP32 físico quando disponível |
+| L0 emulada (firmware no QEMU desde a 1.8, com Ethernet no lugar do Wi-Fi) | Sem ruído elétrico, alimentação instável, Wi-Fi ou cabo real | ESP32 físico quando disponível (tarefa 5.6) |
 | Planta 3D é de cilindros pneumáticos | Tempos da planta virtual não são os da linha de celulares | Mapeamento explícito; fonte `operador` para tempos humanos |
 | Recorte de 3 pontos em 22 estações | Lead time medido é do trecho, não da linha | Comparar com o mesmo trecho do simulado |
 | Calibração contra modelo, não contra instrumento | Erro de sensor é o que o emulador injeta | Declarar como calibração de procedimento |

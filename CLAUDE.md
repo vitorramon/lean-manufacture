@@ -10,8 +10,8 @@ repositório `vitorramon/lean-manufacture` (remoto `origin`; push só a pedido).
 3. [SPECS.md](SPECS.md): requisito e evidência de aceite da tarefa
 4. [ARCHITECTURE.md](ARCHITECTURE.md) e [docs/adr/](docs/adr/README.md): como e por quê
 
-Em 2026-11-15 só existe documentação. Não presuma que algum serviço, comando ou pasta descritos em ARCHITECTURE já
-existe: confira.
+Em 2026-11-15 a Fase 1 existe em código (contrato, emulador, firmware, gateway, aas-sync, app, `start.py`), com
+várias tarefas parciais: confira o PROGRESS antes de presumir que algo está pronto.
 
 ## Regras do projeto
 
@@ -49,8 +49,8 @@ tem evidência (PLAN, "Definição de pronto").
 ## Ambiente
 
 - Linux em WSL2 com Docker Desktop. Caminhos com espaço (`MOD 3`): use aspas.
-- Instalados na Fase 0: `uv`, Python 3.12 (via uv), Godot 4.7.2 e amqtt em `~/.local`; git-lfs via apt. Falta a
-  ferramenta de build do ESP32. Python do sistema é 3.14; o Virtual-Factory pede 3.12 (use `uv`).
+- Instalados na Fase 0: `uv`, Python 3.12 (via uv), Godot 4.7.2 e amqtt em `~/.local`; git-lfs via apt. PlatformIO 6.1.18
+  via `uv tool` e QEMU da Espressif em `~/.local/opt` (`emular.sh --instalar`). Python do sistema é 3.14; o Virtual-Factory pede 3.12 (use `uv`).
 - Não há `pdftotext`: os PDFs das aulas não abrem com a ferramenta de leitura. O texto das aulas relevantes já está
   resumido em SPECS.
 - O `CLAUDE.md` do Virtual-Factory foi escrito para macOS (`/Applications/Godot.app`); adapte os comandos.
@@ -58,7 +58,15 @@ tem evidência (PLAN, "Definição de pronto").
 
 ## Comandos
 
-Ainda não existem. Preencher esta seção quando `start.py`, os testes e o compose adicional forem criados (Fase 1).
+```bash
+python3 start.py --fonte roteiro --velocidade 4 [--manter-base]   # ou godot | operador --operador OP1 | firmware
+python3 start.py --parar [--manter-base]                           # compose down sem -v
+uv run --project pipeline/contrato pytest tests/contrato           # idem: hardware/emulador tests/emulador,
+uv run --project pipeline/device_gateway pytest tests/device_gateway  # pipeline/aas_sync tests/aas_sync, app tests/app
+(cd hardware/firmware && pio test -e native && pio run -e esp32)   # ./emular.sh roda no QEMU
+```
+
+Cada componente tem `pyproject.toml` e `uv.lock` próprios; detalhes em `infra/README.md` e no README de cada pasta.
 
 ## Fontes
 

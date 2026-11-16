@@ -139,9 +139,24 @@ Convenções fixadas pelas Extras, que valem para o M3:
   estações, e a saída é um roteador ou hotspot da turma.
 - O coordenador sugere, não comanda: cada elo decide se aceita.
 
-### 2.4 Módulo 3 — nada entregue ainda
+### 2.4 Módulo 3 — situação ao fim da Fase 1 (2026-11-15)
 
-A pasta `MOD 3` estava vazia. Tudo o que segue é trabalho a fazer.
+Situação dos requisitos da Aula 1 contra a "Evidência de aceite" de §4, com o status aceito pelo verificador. Todo
+dado desta fase é de teste ou emulado (ADR-0013); nenhum é medição.
+
+| Requisito | Situação | Evidência | O que falta |
+|---|---|---|---|
+| RF-A1-02 / RF-G-05 | Atendido: compila para ESP32 e roda no QEMU (16/16 mensagens válidas, `firmware:emulado`) | `docs/evidencias/f1-1.7-firmware.md`, `f1-1.8-emulador-firmware.md` | Placa física (ADR-0002) |
+| RF-A1-03 | Parcial: variáveis mudando lidas com `uals`/`uaread` | `docs/evidencias/f1-1.3-device-gateway.md` | Print no UaExpert; correção da sequência por `boot` |
+| RF-A1-04 | Atendido em teste: payload com data/hora rejeitado; `SourceTimestamp` do gateway | `f1-1.1-contrato.md`, `f1-1.3-device-gateway.md` | — |
+| RF-A1-05 | Parcial: 4 fontes com o mesmo hash de conteúdo de L2–L4 | `docs/evidencias/f1-1.10-troca-l0.md` | Commit de L2–L4 e fonte `hardware` |
+| RF-A1-06 | Parcial: 4 testes sobre emulação; registro no README §4 | `docs/evidencias/f1-1.11-calibracao.md`, `docs/calibracao.md` | Calibração física |
+| RF-A1-07, RF-A1-08 | Bloqueado: scripts prontos, sem coleta | `docs/evidencias/f1-1.12-preparo-coleta.md` | Sessão com operador (≥ 30 ciclos) |
+| RF-A1-10 | Parcial: 4 prints do Andon (amarelo, vermelho, cinza por prazo e por Last Will) | `docs/evidencias/f1-1.5-dashboard.md` | Vídeo do dashboard atualizando |
+| RF-G-06 | Parcial: `roteiro`, `godot`, `operador`, `firmware`; `hardware` sem placa; `replay` não implementada | `f1-1.9-fontes.md`, `f1-1.10-troca-l0.md` | `replay`; separar sessão de teste do operador |
+| RNF-01 | Parcial: `start.py` com health check e reinício do dashboard | `docs/evidencias/f1-1.6-start.md` | Máquina limpa (tarefa 4.7) |
+| RNF-03 | Atendido em teste: cinza 15,9 s após o último dado (prazo 15 s) | `f1-1.5-dashboard.md`, `f1-1.6-start.md` | — |
+| RNF-06 | Parcial: faixa, tipo, duplicata e lacuna testados (83 testes no gateway) | `f1-1.3-device-gateway.md` | Status online com o mesmo `boot` reinicia a sequência; boot anterior é aceito |
 
 ## 3. Decisões do grupo que moldam o escopo
 
@@ -263,21 +278,30 @@ São os únicos pontos de contato entre camadas. Mudança de contrato exige ADR.
 - `dev/v1/{id}/evt/{evento}` — QoS 1: `{"seq":42,"up_ms":815020,...campos}`; eventos mínimos:
   `ciclo` (`fase`: `inicio`|`fim`, `dur_s` no fim) e `scan` (`qr`, `ponto`)
 - O dispositivo **não** envia data/hora; `seq` detecta lacunas e duplicatas; `up_ms` serve só a diagnóstico.
+- Implementado em `pipeline/contrato/` (esquemas Draft 2020-12, 15 mensagens válidas e 29 inválidas). Valores de
+  `origem` aceitos hoje: `emulador:{roteiro,operador,godot,replay}`, `firmware:emulado` e `hardware`. O ADR-0005
+  (item 6) e `.claude/rules/firmware.md` ainda citam `firmware-emulado`/`esp32`: alinhamento pendente. `boot` é
+  obrigatório só no status; em `tel` e `evt` é opcional (decisão pendente).
 
 ### 6.2 Address space OPC UA dos dispositivos
 
 Um servidor, um objeto por dispositivo: `ns=2;s=LinhaCelulares.<Dispositivo>.<Variavel>` (ex.:
 `LinhaCelulares.Bateria_01.TempoCiclo`), mais `Online` e `UltimaLeitura` por objeto e `LinhaCelulares.Rastreio`.
+Implementado (1.3, ADR-0019 Proposto): servidor em `opc.tcp://<IP>:4850/lean/dispositivos`; cada objeto tem também
+`Origem`, `Boot`, `Firmware`, `UltimoEvento`, `Fase`, `Rejeitados`, `Duplicatas`, `Lacunas`; o objeto
+`LinhaCelulares.Gateway` expõe `UltimaRejeicao`, `Rejeitados`, `MensagensAceitas` e `Inicio`. `Rastreio` é da Fase 2.
 
 ### 6.3 Banco de séries e eventos (SQLite, WAL)
 
 - `leituras(ts TEXT, node TEXT, valor REAL)` — contrato do M2.A3, medidas de processo.
 - `eventos(ts TEXT, peca TEXT, estacao TEXT, evento TEXT, valor REAL)` — contrato do M3.A2, eventos por peça.
 - `sessoes(dispositivo, origem, inicio, fim)` — de onde veio cada período de coleta (ADR-0013).
+- `rejeitados(ts, dispositivo, topico, categoria, motivo, payload, n)` — descartes do gateway (ADR-0019, ADR-0020).
 
 ### 6.4 AAS (BaSyx)
 
 Estado atual de cada dispositivo (submodelo de dados operacionais) e ficha de rastreabilidade por peça.
+Dispositivo: shell `urn:lean-manufacture:grupo7:aas:<id>`, submodelo `DadosOperacionais` (ADR-0020, Proposto).
 
 ### 6.5 T2T (OPC UA)
 
@@ -328,3 +352,4 @@ disciplina); apresentações "na próxima semana", ordem sorteada. **As datas ex
 | R-05 | Escopo grande para o prazo | PLAN em fases com entrega funcional ao fim de cada uma; bônus por último |
 | R-06 | Portas 4840 e 4841 do Virtual-Factory colidem com as do exemplo da disciplina | ADR-0006: portas 4850 e 4851 no cartão de conexão; as Extras já preveem uma porta por gêmeo |
 | R-07 | Rede do laboratório isola estações e impede a federação ao vivo | Testar antes com hotspot próprio; elos emulados locais como reserva (ADR-0011) |
+| R-08 | Sessão de teste da fonte `operador` (teclas injetadas) se declara `emulador:operador` e entra na amostra "Medido" (visto na 1.10: n = 4) | `--desde` obrigatório nas análises da 1.12; origem de teste declarada pela L0, com ADR |

@@ -2,9 +2,10 @@
 
 Projeto final da disciplina PGENE586 — Lean Manufacturing e Qualidade Aplicadas à Indústria 4.0 (PPGEE/UFAM).
 
-> **Estado em 2026-11-15: fase de projeto.** Este repositório contém a especificação, a arquitetura, o plano e as
-> decisões. Ainda não há código do M3 e nada aqui roda. As seções marcadas "a preencher" serão completadas à medida
-> que as fases de [PLAN.md](PLAN.md) forem concluídas; o andamento está em [PROGRESS.md](PROGRESS.md).
+> **Estado em 2026-11-15: Fase 1 em andamento (1 de 14 tarefas aceitas como feitas, 11 parciais, 2 bloqueadas).**
+> O caminho dispositivo emulado → MQTT → OPC UA → SQLite e AAS → dashboard roda pelo `start.py` com quatro fontes de
+> teste; nenhum dado desta fase é medição (ADR-0013): a coleta com operador (tarefa 1.12) ainda não foi feita. O
+> andamento está em [PROGRESS.md](PROGRESS.md).
 
 ## 1. Cenário
 
@@ -25,7 +26,7 @@ Dispositivo → MQTT → gateway → OPC UA → AAS e banco de eventos → gême
 [Virtual-Factory](https://github.com/aaronzi/Virtual-Factory) (planta 3D em Godot, AAS em Eclipse BaSyx, MQTT),
 mantido intocado; o M3 é uma camada por cima.
 
-Detalhes e diagramas: [ARCHITECTURE.md](ARCHITECTURE.md). Diagrama final: `docs/arquitetura.png` (a preencher).
+Detalhes e diagramas: [ARCHITECTURE.md](ARCHITECTURE.md). Diagrama final: `docs/arquitetura.png` (Fase 4).
 
 | Camada | Tecnologia |
 |---|---|
@@ -37,29 +38,74 @@ Detalhes e diagramas: [ARCHITECTURE.md](ARCHITECTURE.md). Diagrama final: `docs/
 
 ## 3. Como rodar
 
-A preencher na Fase 1, depois de testado em máquina limpa. Forma prevista:
+Comandos executados na Fase 1 (2026-11-15) no computador do autor (WSL2, Docker Desktop). Ainda **não** foram
+testados em máquina limpa (tarefa 4.7).
+
+Pré-requisitos: Docker com Compose, git com git-lfs, `uv` e Python 3.12 (via `uv`). Para a fonte `godot`, Godot
+4.7.2; para a fonte `firmware`, PlatformIO 6.x e o QEMU da Espressif (`hardware/firmware/emular.sh --instalar`). Há
+um contêiner de desenvolvimento com todas essas ferramentas em [`.devcontainer/`](.devcontainer/README.md) (ADR-0015,
+ADR-0024); ele foi validado com `docker run`, não pelo "Reopen in Container".
 
 ```bash
 git clone --recurse-submodules https://github.com/vitorramon/lean-manufacture.git
 cd lean-manufacture
-python start.py --fonte roteiro      # ou: godot | operador | replay | hardware
+git -C base lfs pull
+python3 start.py --fonte roteiro --velocidade 4      # roteiro sintético: dado de TESTE
 ```
 
-Pré-requisitos previstos: Docker e git com git-lfs; o resto (Python 3.12, `uv`, Godot 4.7.2, PlatformIO) vem do
-contêiner de desenvolvimento (ADR-0015, tarefa 1.0).
+O `start.py` sobe a base reduzida e os serviços do M3 (`device-gateway` na 4850 e `aas-sync`), espera a saúde de
+cada um, inicia o dashboard em <http://localhost:8501> e a fonte escolhida, e monitora processo, porta e dado. Ctrl+C
+derruba o que ele subiu; `python3 start.py --parar` derruba tudo (sem apagar volumes). Na primeira rodada a frio, os
+health checks ficaram verdes em 59,6 s (`docs/evidencias/f1-1.6-start.md`).
+
+Fontes testadas pelo `start.py` na tarefa 1.10 (`docs/evidencias/f1-1.10-troca-l0.md`), uma por vez:
+
+| Fonte | Comando | O que é |
+|---|---|---|
+| `roteiro` | `python3 start.py --fonte roteiro --velocidade 4 --manter-base` | tempos escritos à mão; teste, nunca Medido |
+| `godot` | `python3 start.py --fonte godot --manter-base` | planta 3D sem janela; ciclos fixos de 12 s; só fluxo |
+| `operador` | `python3 start.py --fonte operador --operador OP1 --manter-base` | Enter = início/fim; a única fonte válida para tempo de ciclo |
+| `firmware` | `python3 start.py --fonte firmware --estimulo bancada/demo.txt --manter-base` | firmware real do ESP32 no QEMU (ADR-0021) |
+
+A fonte `hardware` (ESP32 físico) existe no `start.py`, mas não foi testada: não há placa (ADR-0002). A fonte
+`replay` ainda não foi implementada.
+
+Testes automáticos (sem rede externa; os de integração são pulados se o broker local não estiver no ar):
+
+```bash
+uv run --project pipeline/contrato pytest tests/contrato          # 66 passaram
+uv run --project hardware/emulador pytest tests/emulador          # 30 passaram, 4 de integração
+uv run --project pipeline/device_gateway pytest tests/device_gateway   # 83 passaram, 5 de integração
+uv run --project pipeline/aas_sync pytest tests/aas_sync          # 32 passaram, 2 de integração
+uv run --project app pytest tests/app                             # 21 passaram
+(cd hardware/firmware && pio test -e native && pio run -e esp32)  # 29 passaram; compila para ESP32
+```
 
 ## 4. Hardware
 
-Nenhum hardware físico é usado nesta entrega. O firmware e a lista abaixo descrevem o que seria montado.
+Nenhum hardware físico é usado nesta entrega (ADR-0002). O `esp32-bat01` é **emulado** de duas formas: pelo
+emulador Python (`hardware/emulador/`) e pelo firmware real do ESP32 rodando no QEMU da Espressif
+(`hardware/firmware/`, ADR-0021), que publica com `origem` = `firmware:emulado`. A lista abaixo descreve o que seria
+montado; detalhes e pinagem em [hardware/dispositivos.md](hardware/dispositivos.md).
 
 | Dispositivo | Componentes | Pinagem | Mede | Custo estimado |
 |---|---|---|---|---|
-| `esp32-bat01` | ESP32 DevKit, botão | Botão no GPIO 5 (pull-up interno), GND | Início e fim de ciclo no posto Bateria | R$ 45 |
+| `esp32-bat01` (emulado) | ESP32 DevKit, botão, DHT22 | Botão no GPIO 5 (pull-up interno), GND; DHT22 no GPIO 4, 3V3, GND | Início e fim de ciclo e temperatura no posto Bateria | R$ 90–160 (estimativa sem cotação) |
 | `qr-entrada`, `qr-saida` | Webcam do notebook ou USB, etiquetas QR | USB | Entrada e saída de cada peça | R$ 0 |
 | `esp32-forno01` (opcional) | ESP32 DevKit, DHT22 | Dados no GPIO 4, 3V3, GND | Temperatura | R$ 70 |
 
-Custos são as faixas citadas na aula 1 do M3, não cotações. Alimentação sempre pela USB do computador. Registro de
-calibração: a preencher na Fase 1.
+Custos são estimativas de ordem de grandeza, não cotações. Alimentação sempre pela USB do computador.
+
+**Registro de calibração (RF-A1-06)**, de 2026-11-15. Foi uma calibração de procedimento sobre emulação, com o
+firmware no QEMU e o emulador Python, sem sensor físico (ADR-0002). O procedimento está em
+[docs/calibracao.md](docs/calibracao.md) e a evidência em `docs/evidencias/f1-1.11-calibracao.md`.
+
+| Canal | Referência | Erro encontrado (zero · padrão · repetibilidade · faixa) | Faixa configurada |
+|---|---|---|---|
+| Botão de ciclo (`dur_s`) | Durações nominais do estímulo (QEMU) e relógio do computador (emulador) | offset +0,021 s · erro máx. 0,8 % (ciclo de 2 s) · CV 0,08 % em 10 ciclos · sem corte de 0,25 s a 24 h | 1,0 a 600,0 s |
+| Temperatura (DHT22) | Valor injetado na bancada virtual do QEMU | nada publicado com sensor em falha · 0 % · CV 0 % · 0, 60, −5 e 75 °C sem corte | 0,0 a 60,0 °C |
+
+O erro do DHT22 contra um termômetro e o repique real do botão só podem ser medidos com a placa: estão pendentes.
 
 ## 5. KPIs — três gerações
 
@@ -89,16 +135,29 @@ Limitações desta coluna:
 
 ## 6. Cartão de conexão
 
-| Item | Valor previsto |
+O servidor OPC UA dos dispositivos existe desde a tarefa 1.3 (parcial: falta o print do address space num navegador
+OPC UA). As variáveis abaixo foram lidas com `uals`/`uaread` (`docs/evidencias/f1-1.3-device-gateway.md`). O T2T é
+da Fase 3 e ainda é previsto.
+
+| Item | Valor |
 |---|---|
-| Servidor OPC UA dos dispositivos | `opc.tcp://<IP>:4850/lean/dispositivos` |
-| Servidor T2T do gêmeo | `opc.tcp://<IP>:4851` |
-| Namespace T2T | 2 (`TwinLinhaCelulares`) |
-| `EstadoGemeo.RitmoReal` / `.RitmoProducao` | float, peças/h — peças concluídas nos últimos 10 min × 6 |
-| `EstadoGemeo.UltimaPeca` | string — identificador da última peça concluída |
-| `EstadoGemeo.LeadTimeMedio` | float, min — lead time médio local |
-| `EstadoGemeo.StatusLinha` | string — Normal, Atenção, Parada ou Sem dados |
-| Broker MQTT | `<IP>:1883` |
+| Servidor OPC UA dos dispositivos | `opc.tcp://<IP>:4850/lean/dispositivos` (implementado) |
+| Namespace | 2; objeto por dispositivo: `ns=2;s=LinhaCelulares.Bateria_01.<Variável>` |
+| `TempoCiclo` | Double, s — duração do último ciclo aceito (`dur_s`) |
+| `Temperatura` | Double, °C — última temperatura aceita |
+| `PecasFeitas` | UInt32 — ciclos com fase fim aceitos desde o início do gateway |
+| `Online` | Boolean — status do dispositivo (Last Will = falso) |
+| `UltimaLeitura` | DateTime — instante (do gateway) da última mensagem aceita |
+| `Origem`, `Boot`, `Firmware` | String, UInt32, String — metadados do status (ADR-0013) |
+| `Rejeitados`, `Duplicatas`, `Lacunas` | UInt32 — diagnóstico (ADR-0019) |
+| `LinhaCelulares.Gateway.UltimaRejeicao` | String (JSON) — última rejeição numerada |
+| Variável sem dado | StatusCode `BadWaitingForInitialData` |
+| Broker MQTT | `<IP>:1883`, tópicos `dev/v1/<id>/...` (SPECS §6.1) |
+| Servidor T2T do gêmeo (previsto) | `opc.tcp://<IP>:4851`, namespace 2 (`TwinLinhaCelulares`) |
+| `EstadoGemeo.RitmoReal` / `.RitmoProducao` (previsto) | float, peças/h — peças concluídas nos últimos 10 min × 6 |
+| `EstadoGemeo.UltimaPeca` (previsto) | string — identificador da última peça concluída |
+| `EstadoGemeo.LeadTimeMedio` (previsto) | float, min — lead time médio local |
+| `EstadoGemeo.StatusLinha` (previsto) | string — Normal, Atenção, Parada ou Sem dados |
 
 As portas 4840 e 4841, usuais na disciplina, já são ocupadas pelo CLP virtual do Virtual-Factory.
 
@@ -106,7 +165,8 @@ As portas 4840 e 4841, usuais na disciplina, já são ocupadas pelo CLP virtual 
 
 | Limitação | Impacto no resultado | Proposta |
 |---|---|---|
-| Dispositivos emulados | Ruído elétrico, alimentação e cabeamento reais não são exercitados | Rodar o firmware em emulador de ESP32; substituir um emulador por placa física |
+| Dispositivos emulados; o firmware roda no QEMU com Ethernet emulada no lugar do Wi-Fi e botão e DHT22 pela serial | Ruído elétrico, repique mecânico, Wi-Fi e erro do DHT22 não são exercitados; a calibração da 1.11 é só de procedimento | Substituir um emulador por placa física (tarefa 5.6) e repetir a calibração (`docs/calibracao.md`) |
+| A sessão de teste da fonte `operador` (teclas injetadas) se declara `emulador:operador`, como uma sessão real | O painel mostrou essa sessão como "Medido" (n = 4) | Separar sessões de teste por origem própria (com ADR) e usar `--desde` nas análises da 1.12 |
 | Planta 3D de outro produto (cilindro pneumático) | Tempos da planta virtual não representam a linha de celulares | Mapeamento documentado; tempos humanos pela fonte `operador` |
 | Trecho de 3 pontos de medição em 22 estações | Lead time medido é parcial | Comparar com o mesmo trecho do simulado; ampliar pontos |
 | Uma semente no M2 | Coluna "Simulado" sem intervalo de confiança | 30 replicações (Fase 0) |
