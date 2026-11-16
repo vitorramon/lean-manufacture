@@ -3,10 +3,12 @@ f1_outliers.py; não é executável sozinho).
 
 - Lê o banco **só** por `app/nucleo/dados.py` (mesmas consultas do dashboard, `mode=ro`): o aas-sync é o único
   escritor (ADR-0007) e nenhuma análise faz SQL próprio.
-- Amostra = `Dados.ciclos_medidos()`: tempos de ciclo (`TempoCiclo`) dentro de sessões `emulador:operador`
-  (ADR-0013 itens 1 e 5). Se aparecer qualquer outra origem, o script para: `roteiro` nunca entra em estatística.
-- Sessões de teste com teclas injetadas também se declaram `emulador:operador` (o banco não as distingue). Por isso
-  a seleção exige `--desde` (início da sessão de coleta anotado no roteiro) ou `--todas-sessoes` explícito.
+- Amostra = `Dados.ciclos_medidos()`: tempos de ciclo (`TempoCiclo`) dentro de sessões cujas origens estão em
+  `amostra_ciclo` de `config/origens.yaml` (ADR-0013 itens 1 e 5; ADR-0025). Se aparecer qualquer outra origem, o script para: `roteiro` nunca entra em estatística.
+- Desde o ADR-0025, sessões com teclas injetadas se declaram `emulador:teste` e não entram na amostra; bancos
+  anteriores ainda podem ter testes como `emulador:operador`, e uma sessão mal conduzida também se declararia assim.
+  Por isso a seleção continua exigindo `--desde` (início da sessão de coleta anotado no roteiro) ou
+  `--todas-sessoes` explícito.
 - Ciclos rejeitados pelo gateway (faixa de `dur_s`: repique < 1 s, ciclo esquecido > 600 s) não estão em
   `leituras`, mas aparecem em `rejeitados`; entram na numeração da sessão (o operador vê todos os "fim" no terminal)
   e na análise de outliers como candidatos a falha de medição, nunca na amostra estatística.
@@ -31,7 +33,6 @@ from nucleo.configuracao import dispositivos as ler_dispositivos  # noqa: E402
 from nucleo.dados import ORIGENS_AMOSTRA_CICLO, BancoIndisponivel, Dados, Sessao  # noqa: E402
 
 MINIMO_CICLOS = 30          # RF-A1-07: ≥ 30 leituras
-ORIGEM_OPERADOR = "emulador:operador"
 
 
 @dataclass
@@ -99,7 +100,7 @@ def carregar(a: argparse.Namespace) -> Amostra:
     except BancoIndisponivel as erro:
         sys.exit(f"erro: {erro}")
     with dados:
-        todas = [s for s in dados.sessoes(a.dispositivo) if s.origem == ORIGEM_OPERADOR]
+        todas = [s for s in dados.sessoes(a.dispositivo) if s.origem in ORIGENS_AMOSTRA_CICLO]
         sel = sorted((s for s in todas if (a.desde is None or s.inicio >= a.desde)
                       and (a.ate is None or s.inicio <= a.ate)), key=lambda s: s.inicio)
         ciclos = dados.ciclos_medidos(a.dispositivo)
@@ -117,7 +118,7 @@ def carregar(a: argparse.Namespace) -> Amostra:
 
     brutos = [(c.ts, c.valor, True, "") for c in ciclos]
     brutos += [(r.ts, d, False, r.motivo) for r in rejeicoes
-               if r.origem == ORIGEM_OPERADOR and (d := _ciclo_rejeitado(r)) is not None]
+               if r.origem in ORIGENS_AMOSTRA_CICLO and (d := _ciclo_rejeitado(r)) is not None]
     contagem: dict[int, int] = {}
     for ts, dur, aceito, motivo in sorted(brutos, key=lambda x: x[0]):
         if (k := sessao_de(ts)) is None:

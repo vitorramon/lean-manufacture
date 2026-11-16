@@ -40,8 +40,10 @@ código local quanto num contêiner.
 - `up_ms`: `millis()` desde o boot, 0 a 2³²−1. Só diagnóstico. O teto também barra uma época Unix em ms.
 - `boot`: obrigatório no status `online`; **opcional** em tel e evt (o SPECS §6.1 não o traz). Emulador e
   firmware deste projeto o enviam sempre; quando ausente, o gateway usa o `boot` do último status.
-- `origem` (ADR-0013), lista fechada: `emulador:roteiro`, `emulador:operador`, `emulador:godot`,
-  `emulador:replay`, `firmware:emulado` (firmware real num emulador de ESP32), `hardware` (ESP32 físico).
+- `origem` (ADR-0013, ADR-0025), lista fechada: `emulador:roteiro`, `emulador:operador`, `emulador:godot`,
+  `emulador:replay`, `emulador:teste` (sessão de teste: teclas injetadas, `--teste`), `firmware:emulado` (firmware
+  real num emulador de ESP32), `hardware` (ESP32 físico). Quais origens valem como medição está em
+  `config/origens.yaml`, não no código (ADR-0025).
   É metadado: o gateway o grava em `sessoes`; nenhuma regra depende dele. Dado de `emulador:roteiro` nunca entra
   na geração "Medido (M3)".
 - Todos os objetos têm `additionalProperties: false`: o dispositivo não manda peça, unidade nem nada fora do
@@ -148,6 +150,8 @@ isso, esta tabela é a referência). O `.env` real fica fora do Git.
 | `AAS_URL` | `http://localhost:8091` | aas-sync |
 | `DB_PATH` | `dados/dados.db` | aas-sync (escrita), `app/nucleo/dados.py` (leitura) |
 | `DISPOSITIVOS_PATH` | `config/dispositivos.yaml` | gateway, emulador, aas-sync (via `carregar_dispositivos`) |
+| `ORIGENS_PATH` | `config/origens.yaml` | `app/nucleo` (origens que valem como Medido, ADR-0025); lido na partida do dashboard |
+| `SAUDE_MAX_FALHAS_BANCO` | `5` | healthcheck do aas-sync: falhas seguidas do SQLite toleradas |
 | `LOG_LEVEL` | `INFO` | todos |
 | `UNS_MQTT_HOST` / `UNS_MQTT_PORT` | iguais a `MQTT_HOST` / `MQTT_PORT` | emulador, fonte `godot` (broker da UNS da planta) |
 | `UNS_PREFIXO` | `vf/plant01/final-assembly/line01` | emulador, fonte `godot` |

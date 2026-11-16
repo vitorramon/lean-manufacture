@@ -195,6 +195,7 @@ source = { editable = "." }
 dependencies = [
     { name = "lean-contrato" },
     { name = "pandas" },
+    { name = "pyyaml" },
     { name = "streamlit" },
 ]
 
@@ -208,6 +209,7 @@ dev = [
 requires-dist = [
     { name = "lean-contrato", editable = "../pipeline/contrato" },
     { name = "pandas", specifier = ">=3.1.1" },
+    { name = "pyyaml", specifier = ">=6.0" },
     { name = "streamlit", specifier = ">=1.67.0" },
 ]
 
@@ -233,7 +235,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8.3" }]
+dev = [
+    { name = "pytest", specifier = ">=8.3" },
+    { name = "ruff", specifier = ">=0.17.5" },
+]
 
 [[package]]
 name = "markupsafe"

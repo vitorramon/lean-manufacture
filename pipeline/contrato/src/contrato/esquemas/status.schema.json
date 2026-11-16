@@ -21,9 +21,9 @@
       "maximum": 4294967295
     },
     "origem": {
-      "description": "Quem publica: emulador:<fonte> (roteiro, operador, godot, replay), firmware:emulado (firmware real num emulador de ESP32) ou hardware (ESP32 físico).",
+      "description": "Quem publica: emulador:<fonte> (roteiro, operador, godot, replay, teste), firmware:emulado (firmware real num emulador de ESP32) ou hardware (ESP32 físico).",
       "type": "string",
-      "pattern": "^(emulador:(roteiro|operador|godot|replay)|firmware:emulado|hardware)$"
+      "pattern": "^(emulador:(roteiro|operador|godot|replay|teste)|firmware:emulado|hardware)$"
     }
   },
   "required": ["v"],

@@ -192,5 +192,8 @@ def test_fonte_operador_por_pipe(ambiente):
     ciclos = [d for t, d, _ in col.msgs if t.endswith("/evt/ciclo")]
     assert [c["fase"] for c in ciclos] == ["inicio", "fim"]
     assert 1.1 < ciclos[1]["dur_s"] < 1.6
-    assert "TESTE, não medição" in err and "debounce" in err
-    assert next(d for t, d, _ in col.msgs if t == STATUS)["origem"] == "emulador:operador"
+    assert "dados de TESTE" in err and "debounce" in err
+    # Teclas por pipe: a L0 declara a sessão como teste (ADR-0025), nunca emulador:operador.
+    origens = {d.get("origem") for t, d, _ in col.msgs if t.endswith("/status") and d.get("v") == "online"}
+    assert origens == {"emulador:teste"}
+    assert next(d for t, d, _ in col.msgs if t == STATUS)["origem"] == "emulador:teste"

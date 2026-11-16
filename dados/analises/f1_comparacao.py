@@ -5,7 +5,7 @@
 # ///
 """Tarefa 1.12 (RF-A1-07): tempo de ciclo do posto Bateria, Medido (fonte `operador`) × Simulado (M2).
 
-Medido: `Dados.ciclos_medidos()` de app/nucleo/dados.py — só sessões `emulador:operador` (ADR-0013). Recusa rodar
+Medido: `Dados.ciclos_medidos()` de app/nucleo/dados.py — só sessões das origens de `amostra_ciclo` em `config/origens.yaml` (ADR-0013, ADR-0025). Recusa rodar
 com menos de 30 ciclos aceitos.
 Simulado: distribuição POR PEÇA (ADR-0017 item 5) do tempo de processamento na Bateria (saída − entrada), da função
 `simulate()` do simulador do M2 (submódulo `simulador/`, lido como está, sem gravar nada nele), cenário escolhido,

@@ -20,7 +20,7 @@ falha em vez de publicar.
 | --- | --- | --- | --- | --- |
 | `roteiro` | `emulador:roteiro` | Arquivo YAML (`roteiros/`) com toques de botão, leituras e falhas injetadas | Virtual e determinístico; `--velocidade` acelera | Desenvolvimento, testes, demo de reserva. **Nunca** estatística |
 | `godot` | `emulador:godot` | Eventos da planta virtual na UNS (`vf/plant01/final-assembly/line01/+/event/#`), conforme ADR-0009 | Real (monotônico) | Fluxo, rastreio, lead time de trecho. A planta é determinística (takt fixo de 12 s): **não** serve para a amostra de tempo de ciclo |
-| `operador` | `emulador:operador` | Uma pessoa aperta Enter no terminal (início/fim do ciclo), com debounce; identificada por código (`OP1`) | Real | Amostra de tempo de ciclo (tarefa 1.12). Teclas injetadas por pipe são **teste**, não medição |
+| `operador` | `emulador:operador` | Uma pessoa aperta Enter no terminal (início/fim do ciclo), com debounce; identificada por código (`OP1`) | Real | Amostra de tempo de ciclo (tarefa 1.12). Teclas injetadas por pipe (ou `--teste`) declaram `emulador:teste` (ADR-0025): **teste**, não medição |
 
 ## Como rodar (da raiz do repositório)
 

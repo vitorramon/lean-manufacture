@@ -29,6 +29,17 @@ log = logging.getLogger("emulador")
 PASTA_ROTEIROS = Path(__file__).resolve().parents[2] / "roteiros"
 
 
+ORIGEM_TESTE = "emulador:teste"
+
+
+def origem_declarada(fonte: str, teste: bool, entrada_e_terminal: bool) -> str:
+    """Origem do status (ADR-0013, ADR-0025). A fonte `operador` sem terminal (teclas injetadas por pipe) é teste:
+    a L0 declara isso, para que nenhuma camada acima precise adivinhar."""
+    if teste or (fonte == "operador" and not entrada_e_terminal):
+        return ORIGEM_TESTE
+    return f"emulador:{fonte}"
+
+
 def _argumentos(argv: list[str] | None) -> argparse.Namespace:
     p = argparse.ArgumentParser(prog="emulador", description="Emulador de dispositivo da L0 (contrato dev/v1)")
     p.add_argument("--fonte", required=True, choices=FONTES, help="de onde vem o estímulo")
@@ -40,6 +51,8 @@ def _argumentos(argv: list[str] | None) -> argparse.Namespace:
     p.add_argument("--telemetria", type=Path,
                    help="godot/operador: roteiro cujos valores de telemetria serão publicados (SINTÉTICOS)")
     p.add_argument("--duracao", type=float, help="godot/operador: encerra após N segundos")
+    p.add_argument("--teste", action="store_true",
+                   help="declara origem emulador:teste (sessão de teste, nunca medição; ADR-0025)")
     return p.parse_args(argv)
 
 
@@ -54,7 +67,9 @@ def main(argv: list[str] | None = None) -> int:
                   ", ".join(sorted(dispositivos)))
         return 2
     cfg = dispositivos[args.dispositivo]
-    origem = f"emulador:{args.fonte}"
+    origem = origem_declarada(args.fonte, args.teste, sys.stdin.isatty())
+    if origem == ORIGEM_TESTE:
+        log.warning("sessão declarada como %s: dados de TESTE, fora da geração Medido (M3) (ADR-0025)", origem)
 
     roteiro = None
     if args.fonte == "roteiro":

@@ -6,8 +6,8 @@
   payload (o contrato dev/v1 não tem esse campo): fica no log do emulador e no registro da sessão de coleta.
 
 Tempo e variabilidade são humanos; só o botão é emulado. Quando a entrada **não é um terminal** (teclas
-injetadas por pipe, testes automatizados), o emulador avisa que os dados são de **teste, não medição**, e eles não
-podem entrar na geração "Medido (M3)".
+injetadas por pipe, testes automatizados), o emulador declara a origem `emulador:teste` (ADR-0025): os dados são de
+**teste, não medição**, e ficam fora da geração "Medido (M3)" sem depender de filtro nas camadas de cima.
 """
 
 from __future__ import annotations
@@ -57,8 +57,8 @@ def executar_operador(
         log.info("sessão do operador %s: Enter marca início/fim do ciclo; q + Enter encerra", codigo)
     else:
         log.warning(
-            "entrada não é um terminal: teclas injetadas. Dados desta sessão (operador %s) são de TESTE, "
-            "não medição (ADR-0013); não usar na geração Medido (M3)", codigo
+            "entrada não é um terminal: teclas injetadas. Sessão do operador %s declarada como emulador:teste "
+            "(ADR-0025): dados de TESTE, fora da geração Medido (M3)", codigo
         )
     leitor = threading.Thread(target=_ler_teclas, args=(entrada, dispositivo, parar), name="teclas", daemon=True)
     leitor.start()

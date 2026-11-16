@@ -1,0 +1,21 @@
+# Origens que valem para a geração "Medido (M3)" (ADR-0013, ADR-0025).
+# Lido por app/nucleo/dados.py (variável ORIGENS_PATH para outro arquivo). Trocar a L0 (ex.: ESP32 físico) muda só
+# este arquivo e o status do dispositivo, nunca código de L2–L4 (RF-G-04, "só a L0 troca").
+#
+# Nunca podem aparecer aqui (o carregador recusa): emulador:roteiro (parametrizado por nós, ADR-0013 item 2) e
+# emulador:teste (teclas injetadas, ADR-0025).
+
+versao: 1
+
+# Fontes cujos números entram na coluna "Medido (M3)": fluxo, rastreio, lead time do trecho, FPY de demonstração.
+medida:
+  - emulador:operador   # pessoa no botão virtual (ADR-0013 item 1)
+  - emulador:godot      # planta virtual de terceiros (ADR-0013 item 1; restrição do item 5 abaixo)
+  - hardware            # ESP32 físico com pessoa no botão (ADR-0002, Fase 5.6)
+
+# Amostra de tempo de ciclo (≥ 30 leituras, comparação de distribuições, outliers, Ishikawa).
+# Sem emulador:godot: a planta é determinística (ADR-0013 item 5).
+# Sem firmware:emulado: no QEMU o estímulo vem de arquivo de bancada, não de uma pessoa (ADR-0021).
+amostra_ciclo:
+  - emulador:operador
+  - hardware

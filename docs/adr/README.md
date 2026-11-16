@@ -31,6 +31,7 @@ vale como direção de trabalho até o grupo confirmar ou recusar. *Substituído
 | [0022](0022-perfil-reduzido-por-profiles-no-compose-adicional.md) | Perfil reduzido da base por `profiles` no compose adicional (complementa o item 2 do 0016) | Proposto | Tarefa 1.6 |
 | [0023](0023-bibliotecas-de-comunicacao-e-validacao.md) | Bibliotecas: asyncua, paho-mqtt, arduino-mqtt, ArduinoJson, jsonschema | Proposto | Tarefas 1.1 a 1.7 |
 | [0024](0024-rede-do-conteiner-de-desenvolvimento.md) | Rede do contêiner de desenvolvimento: `--network=host` com `gai.conf` (complementa o 0015) | Proposto | Tarefa 1.0 |
+| [0025](0025-origem-de-teste-e-origens-medidas-em-configuracao.md) | Origem `emulador:teste` declarada pela L0 e origens medidas em `config/origens.yaml` | Proposto | Revisão da Fase 1 |
 
 ## Modelo
 

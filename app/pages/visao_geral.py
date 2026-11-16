@@ -11,7 +11,7 @@ import pandas as pd
 import streamlit as st
 
 from nucleo.configuracao import dispositivos, ler_configuracao
-from nucleo.dados import ORIGEM_ROTEIRO, BancoIndisponivel, Dados
+from nucleo.dados import ORIGENS_MEDIDAS, BancoIndisponivel, Dados
 from nucleo.painel import EstadoPosto, estado_posto
 from nucleo.regras import Nivel
 
@@ -27,7 +27,7 @@ def hora(ts: datetime | None) -> str:
 def origem_txt(origem: str | None) -> str:
     if origem is None:
         return "desconhecida (fora de sessão)"
-    return f"{origem} (teste, não é medição)" if origem == ORIGEM_ROTEIRO else origem
+    return origem if origem in ORIGENS_MEDIDAS else f"{origem} (não é medição; config/origens.yaml)"
 
 
 def posto(e: EstadoPosto) -> None:
@@ -58,11 +58,11 @@ def posto(e: EstadoPosto) -> None:
         dir_.line_chart(tabela.iloc[::-1].set_index("hora")["tempo de ciclo (s)"])
 
     if e.medida.n:
-        st.info(f"Tempo de ciclo medido (fonte operador, ADR-0013): n = {e.medida.n}, média "
+        st.info(f"Tempo de ciclo medido (origens de config/origens.yaml, ADR-0025): n = {e.medida.n}, média "
                 f"{e.medida.media_s:.1f} s" + (f", desvio {e.medida.desvio_s:.1f} s" if e.medida.desvio_s else ""))
     else:
-        st.info("Tempo de ciclo medido (geração M3): pendente. Nenhum ciclo da fonte operador no banco; dados de "
-                "roteiro não entram (ADR-0013). Coleta na tarefa 1.12.")
+        st.info("Tempo de ciclo medido (geração M3): pendente. Nenhum ciclo das origens de amostra em "
+                "config/origens.yaml; roteiro e teste não entram (ADR-0013, ADR-0025). Coleta na tarefa 1.12.")
 
     with st.expander("Últimas leituras, origem dos dados e rejeições"):
         st.dataframe(pd.DataFrame([{"variável": l.variavel, "valor": l.valor, "unidade": e.unidades.get(l.variavel),

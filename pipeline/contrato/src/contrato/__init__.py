@@ -16,7 +16,13 @@ from contrato.topicos import (
     topico_status,
     topico_tel,
 )
-from contrato.validacao import EVENTOS_CONHECIDOS, TAMANHO_MAXIMO, Resultado, esquema, validar
+from contrato.validacao import (
+    EVENTOS_CONHECIDOS,
+    TAMANHO_MAXIMO,
+    Resultado,
+    esquema,
+    validar,
+)
 
 __all__ = [
     "ASSINATURAS",

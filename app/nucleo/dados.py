@@ -5,8 +5,8 @@
 - A origem de cada número é **metadado** (ADR-0013): uma leitura pertence à sessão de coleta (`sessoes`) do
   dispositivo cujo intervalo [inicio, fim] contém o seu `ts`. Leitura fora de qualquer sessão tem origem `None`
   ("desconhecida") e nunca é tratada como medida.
-- As funções de KPI "medido" filtram por origem: `roteiro` nunca entra (ADR-0013); a amostra de tempo de ciclo usa
-  só `operador` (ADR-0013 item 5: a planta `godot` é determinística).
+- As funções de KPI "medido" filtram por origem, com as listas de `config/origens.yaml` (ADR-0025): `roteiro` e
+  `teste` nunca entram (o carregador recusa); a amostra de tempo de ciclo exclui `godot` (ADR-0013 item 5).
 """
 
 from __future__ import annotations
@@ -18,14 +18,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Self
 
+from nucleo.configuracao import carregar_origens
+
 RAIZ_OPCUA = "LinhaCelulares"
 
 ORIGEM_ROTEIRO = "emulador:roteiro"
-# Fontes que valem para a geração "Medido (M3)" (ADR-0013 item 1; camadas.md). `hardware` entra quando houver
-# ESP32 físico, por ADR.
-ORIGENS_MEDIDAS = frozenset({"emulador:operador", "emulador:godot"})
-# Amostra de tempo de ciclo (≥ 30 leituras, outliers, Ishikawa): só a fonte operador (ADR-0013 item 5).
-ORIGENS_AMOSTRA_CICLO = frozenset({"emulador:operador"})
+# Origens que valem como medição: configuração, não código (ADR-0025; RF-G-04). Lidas uma vez na importação.
+_ORIGENS = carregar_origens()
+ORIGENS_MEDIDAS = _ORIGENS.medida
+ORIGENS_AMOSTRA_CICLO = _ORIGENS.amostra_ciclo
 
 
 class BancoIndisponivel(RuntimeError):
@@ -173,7 +174,7 @@ class Dados:
         return self.serie(dispositivo, var, limite) if var else []
 
     def ciclos_medidos(self, dispositivo: str, limite: int | None = None) -> list[Leitura]:
-        """Amostra de tempo de ciclo para KPI "medido": só `operador` (ADR-0013); `roteiro` nunca entra."""
+        """Amostra de tempo de ciclo para KPI "medido": origens de `amostra_ciclo` em config/origens.yaml (ADR-0025)."""
         var = self.variavel_ciclo(dispositivo)
         return self.serie(dispositivo, var, limite, ORIGENS_AMOSTRA_CICLO) if var else []
 
