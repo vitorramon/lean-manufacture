@@ -15,5 +15,7 @@ st.set_page_config(page_title="Linha de celulares — Grupo 7", page_icon=":mate
 
 navegacao = st.navigation([
     st.Page(PAGINAS / "visao_geral.py", title="Visão geral", default=True),
+    st.Page(PAGINAS / "rastreio.py", title="Rastreio"),
+    st.Page(PAGINAS / "dispositivos.py", title="Dispositivos"),
 ])
 navegacao.run()

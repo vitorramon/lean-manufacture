@@ -88,3 +88,60 @@ def avaliar(agora: datetime, online: bool, ultimo_dado: datetime | None, prazo_s
                            f"acima da referência {limites.referencia_s:.1f} s", idade, prazo_s)
     return EstadoAndon(Nivel.VERDE, f"último ciclo {ultimo:.1f} s dentro da referência "
                        f"{limites.referencia_s:.1f} s", idade, prazo_s)
+
+
+# --- Referências do M1 para FPY e RTY (SPECS §2.1; ADR-0010 item 6) ----------------------------------------------
+# Valores do M1 (PPGEE_Grupo_7_Cen_8.pptx), projeção em 90 dias, para a LINHA INTEIRA. O trecho instrumentado do M3
+# é só montagem -> teste -> embalagem (ADR-0009): a comparação declara o recorte. Lead time e espera não têm
+# baseline no M1. A tarefa 4.2 liga estes valores aos limites do Andon.
+
+FONTE_M1 = "M1 (SPECS §2.1, PPGEE_Grupo_7_Cen_8.pptx), linha inteira"
+
+
+@dataclass(frozen=True)
+class ReferenciaM1:
+    nome: str
+    baseline: float
+    meta: float
+    fonte: str = FONTE_M1
+
+    def situacao(self, valor: float | None) -> str:
+        """Faixas do ADR-0010 item 6: abaixo do baseline, entre baseline e meta, na meta."""
+        if valor is None:
+            return "sem valor"
+        if valor < self.baseline:
+            return "abaixo do baseline do M1"
+        if valor < self.meta:
+            return "entre o baseline e a meta do M1"
+        return "na meta do M1 ou acima"
+
+
+REFERENCIAS_M1 = {
+    "FPY": ReferenciaM1("FPY", 0.78, 0.92),
+    "RTY": ReferenciaM1("RTY", 0.82, 0.90),
+}
+
+
+# --- Geração "Simulado" do M2 para FPY e RTY (tarefa 2.10; SPECS §2.2; tarefa 0.8) --------------------------------
+# Simulador do M2, cenário Atual, 30 replicações (sementes 1–30, turno de 8 h): dados/analises/f0_replicacoes.md.
+# É modelo (SimPy), não medição: fica ao lado do baseline/meta do M1 e do valor do trecho, nunca no lugar deles.
+
+FONTE_M2 = "M2 simulado, cenário Atual, n = 30 replicações (tarefa 0.8, dados/analises/f0_replicacoes.md)"
+
+
+@dataclass(frozen=True)
+class SimuladoM2:
+    nome: str
+    media: float
+    desvio: float
+    n: int = 30
+    fonte: str = FONTE_M2
+
+    def texto(self) -> str:
+        return f"{self.media:.2%} ± {self.desvio:.2%} (n = {self.n})".replace(".", ",")
+
+
+SIMULADO_M2 = {
+    "FPY": SimuladoM2("FPY", 0.9418, 0.0077),   # FPY do teste funcional
+    "RTY": SimuladoM2("RTY", 0.9418, 0.0077),   # no cenário Atual o RTY do M2 = FPY do teste (só ele reprova)
+}

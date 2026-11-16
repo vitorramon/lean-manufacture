@@ -9,6 +9,8 @@
 | `ANDON_PRAZO_PADRAO_S` | `60` | Prazo para dispositivo sem canal periódico (só eventos) |
 | `APP_ATUALIZACAO_S` | `2` | Intervalo de atualização da página (RNF-02 pede < 3 s ponta a ponta) |
 | `ORIGENS_PATH` | `config/origens.yaml` | Origens que valem como "Medido (M3)" e para a amostra de ciclo (ADR-0025) |
+| `RASTREIO_PATH` | `config/rastreio.yaml` | Início/fim do trecho e normalização do QR para a busca (via `contrato`) |
+| `AAS_URL` | `http://localhost:8091` | AAS (só leitura): contadores `Lacunas`/`Duplicatas` do gateway na página Dispositivos |
 """
 
 from __future__ import annotations
@@ -100,6 +102,7 @@ class Configuracao:
     fator_prazo: float
     prazo_padrao_s: float
     atualizacao_s: float
+    aas_url: str = "http://localhost:8091"
 
 
 def ler_configuracao() -> Configuracao:
@@ -109,6 +112,7 @@ def ler_configuracao() -> Configuracao:
         fator_prazo=_float("ANDON_FATOR_PRAZO", 3.0),
         prazo_padrao_s=_float("ANDON_PRAZO_PADRAO_S", 60.0),
         atualizacao_s=_float("APP_ATUALIZACAO_S", 2.0),
+        aas_url=os.environ.get("AAS_URL", "http://localhost:8091").rstrip("/"),
     )
 
 

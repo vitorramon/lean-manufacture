@@ -82,7 +82,7 @@ st.caption("Todos os dispositivos são **emulados** (ADR-0002). A origem de cada
 @st.fragment(run_every=conf.atualizacao_s)
 def painel() -> None:
     try:
-        with Dados(conf.db_path, cfg_disp) as dados:
+        with Dados(conf.db_path, cfg_disp, aas_url=conf.aas_url) as dados:
             agora = datetime.now(UTC)
             for disp in cfg_disp:
                 posto(estado_posto(dados, disp, conf, agora))

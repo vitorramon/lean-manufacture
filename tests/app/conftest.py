@@ -55,15 +55,35 @@ class Escritor:
             self.con.execute("INSERT INTO sessoes VALUES (?, ?, ?, ?)",
                              (disp, origem, iso(s(inicio)), iso(s(fim)) if fim is not None else None))
 
-    def rejeitado(self, t: float, n: int, disp: str = "esp32-bat01") -> None:
+    def rejeitado(self, t: float, n: int, disp: str = "esp32-bat01", categoria: str = "faixa") -> None:
         with self.con:
             self.con.execute("INSERT INTO rejeitados VALUES (?, ?, ?, ?, ?, ?, ?)",
-                             (iso(s(t)), disp, f"dev/v1/{disp}/evt/ciclo", "faixa", "fora da faixa", "{}", n))
+                             (iso(s(t)), disp, f"dev/v1/{disp}/evt/ciclo", categoria, "fora da faixa", "{}", n))
+
+    def evento(self, t: float, peca: str, estacao: str, evento: str, valor: float | None = None) -> None:
+        """Linha de `eventos(ts, peca, estacao, evento, valor)`, colunas da aula (ADR-0007)."""
+        with self.con:
+            self.con.execute("INSERT INTO eventos(ts, peca, estacao, evento, valor) VALUES (?, ?, ?, ?, ?)",
+                             (iso(s(t)), peca, estacao, evento, valor))
 
 
 @pytest.fixture
 def dispositivos() -> dict:
     return carregar_dispositivos(CONFIG)
+
+
+# Leitor do ponto `teste` como a tarefa 2.10 o declara (só configuração; convenções §1, ADR-0026).
+QR_TESTE = {
+    "id": "qr-teste", "objeto_opcua": "QR_Teste", "estacao": "Teste", "tipo": "leitor_qr", "canais": {},
+    "eventos": {"scan": {"pontos": ["teste"],
+                         "campos": {"resultado": {"variavel_opcua": "ResultadoTeste"}}}},
+}
+
+
+@pytest.fixture
+def dispositivos_trecho(dispositivos) -> dict:
+    """Configuração real + o leitor qr-teste (entra na 2.10 só por config/dispositivos.yaml)."""
+    return {**dispositivos, "qr-teste": QR_TESTE}
 
 
 @pytest.fixture
