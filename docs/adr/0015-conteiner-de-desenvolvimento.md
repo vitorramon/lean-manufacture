@@ -1,6 +1,6 @@
 # ADR-0015: Ferramentas de desenvolvimento num contêiner de desenvolvimento
 
-- Estado: Aceito (grupo, 2026-11-15)
+- Estado: Aceito (grupo, 2026-11-15); rede complementada pelo ADR-0024 (Proposto)
 - Data: 2026-11-15
 - Origem: tarefa 0.2 da Fase 0; escolha do grupo entre "espaço de usuário", "apt" e "contêiner de desenvolvimento"
 

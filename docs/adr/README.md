@@ -25,6 +25,12 @@ vale como direção de trabalho até o grupo confirmar ou recusar. *Substituído
 | [0016](0016-perfil-reduzido-da-base.md) | Perfil reduzido da base com 8 serviços | Aceito | Grupo, 2026-11-15 |
 | [0017](0017-metodo-da-geracao-simulada.md) | Método da geração "Simulado": 30 replicações, t pareado, distribuição por peça | Aceito | Grupo, 2026-11-15 |
 | [0018](0018-platformio-para-o-firmware.md) | PlatformIO como ferramenta de build do firmware ESP32 | Aceito | Grupo, 2026-11-15 |
+| [0019](0019-diagnostico-e-rejeicoes-do-gateway-no-address-space.md) | Rejeições e diagnóstico do gateway chegam ao aas-sync pelo address space OPC UA | Proposto | Tarefa 1.3 |
+| [0020](0020-aas-e-banco-do-aas-sync.md) | Modelo do estado do dispositivo no AAS e regras do banco escrito pelo aas-sync | Proposto | Tarefa 1.4 |
+| [0021](0021-qemu-espressif-como-emulador-do-firmware.md) | QEMU da Espressif como emulador do firmware ESP32, com camada `hal` para placa e QEMU | Proposto | Tarefa 1.8 |
+| [0022](0022-perfil-reduzido-por-profiles-no-compose-adicional.md) | Perfil reduzido da base por `profiles` no compose adicional (complementa o item 2 do 0016) | Proposto | Tarefa 1.6 |
+| [0023](0023-bibliotecas-de-comunicacao-e-validacao.md) | Bibliotecas: asyncua, paho-mqtt, arduino-mqtt, ArduinoJson, jsonschema | Proposto | Tarefas 1.1 a 1.7 |
+| [0024](0024-rede-do-conteiner-de-desenvolvimento.md) | Rede do contêiner de desenvolvimento: `--network=host` com `gai.conf` (complementa o 0015) | Proposto | Tarefa 1.0 |
 
 ## Modelo
 
