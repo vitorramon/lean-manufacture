@@ -22,6 +22,10 @@ class Ambiente:
     uns_prefixo: str
     estado_dir: Path
     log_level: str
+    # QR da peça da planta virtual (fonte godot): GS1 Digital Link <domínio>/01/<GTIN>/21/<serial>, como a
+    # plaqueta da peça na base (cylinder_workpiece.gd; vf_common.digital_link). A UNS só traz o serial.
+    planta_dominio: str = "https://virtual-factory.example"
+    planta_gtin: str = "04099999032808"
 
 
 def ler_ambiente(env: dict[str, str] | None = None) -> Ambiente:
@@ -38,4 +42,6 @@ def ler_ambiente(env: dict[str, str] | None = None) -> Ambiente:
         uns_prefixo=e.get("UNS_PREFIXO", "vf/plant01/final-assembly/line01").rstrip("/"),
         estado_dir=Path(e.get("EMULADOR_ESTADO_DIR", "dados/estado/emulador")),
         log_level=e.get("LOG_LEVEL", "INFO"),
+        planta_dominio=e.get("PLANTA_DIGITAL_LINK_DOMINIO", "https://virtual-factory.example").rstrip("/"),
+        planta_gtin=e.get("PLANTA_GTIN", "04099999032808"),
     )

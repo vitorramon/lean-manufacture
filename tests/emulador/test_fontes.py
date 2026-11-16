@@ -88,10 +88,12 @@ def test_traducao_conforme_adr_0009(cfg_bat01, cfg_teste):
     assert traduzir(rel, p, cfg_bat01, PREFIXO) == [Acionamento("ciclo")]
     assert traduzir(ins, p, cfg_bat01, PREFIXO) == []
     assert traduzir(sor, p, cfg_bat01, PREFIXO) == []
-    # Dispositivo que declara scan nos três pontos: entrada, teste, saída com o serial bruto como QR.
-    assert traduzir(rel, p, cfg_teste, PREFIXO) == [Acionamento("ciclo"), Acionamento("scan", p["serial"], "entrada")]
-    assert traduzir(ins, p, cfg_teste, PREFIXO) == [Acionamento("scan", p["serial"], "teste")]
-    assert traduzir(sor, p, cfg_teste, PREFIXO) == [Acionamento("scan", p["serial"], "saida")]
+    # Dispositivo que declara scan nos três pontos: entrada, teste, saída com o QR da plaqueta (GS1 Digital Link,
+    # tarefa 2.2). part_inspected sem `result` vira scan teste sem resultado.
+    qr = "https://virtual-factory.example/01/04099999032808/21/PC3280-2026-000004"
+    assert traduzir(rel, p, cfg_teste, PREFIXO) == [Acionamento("ciclo"), Acionamento("scan", qr, "entrada")]
+    assert traduzir(ins, p, cfg_teste, PREFIXO) == [Acionamento("scan", qr, "teste")]
+    assert traduzir(sor, p, cfg_teste, PREFIXO) == [Acionamento("scan", qr, "saida")]
     # Fora do mapa ou do prefixo: nada.
     assert traduzir(f"{PREFIXO}/cv01/event/motor_fault", p, cfg_teste, PREFIXO) == []
     assert traduzir("outra/planta/ac01/event/part_released", p, cfg_teste, PREFIXO) == []

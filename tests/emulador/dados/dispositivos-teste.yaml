@@ -20,3 +20,12 @@ dispositivos:
           dur_s: {unidade: s, variavel_opcua: TempoCiclo, faixa: {min: 1.0, max: 600.0, estado: a_calibrar}}
       scan:
         pontos: [entrada, teste, saida]
+  - id: teste-qr01
+    objeto_opcua: TesteQr_01
+    estacao: Embalagem
+    descricao: Leitor de QR de teste (tarefa 2.2), um ponto só
+    tipo: leitor_qr
+    canais: {}
+    eventos:
+      scan:
+        pontos: [saida]

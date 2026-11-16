@@ -1,0 +1,65 @@
+# Roteiro do trecho instrumentado com os leitores de QR (tarefa 2.2). DADOS SINTÉTICOS, escritos à mão: servem
+# a desenvolvimento, testes e demonstração; nunca a medição nem a estatística (ADR-0013, origem emulador:roteiro).
+#
+#   uv run --project hardware/emulador emulador --fonte roteiro \
+#       --dispositivo qr-entrada,esp32-bat01,qr-saida --roteiro hardware/emulador/roteiros/trecho-qr-demo.yaml --velocidade 10
+#
+# 10 peças com etiqueta P0001..P0010 (dados/etiquetas/). Cada uma: scan na entrada (posto Bateria), ciclo no botão
+# do posto (~27 s) e scan na saída 14 s depois do fim do ciclo. Casos que o GATEWAY (tarefa 2.3) deve tratar; o
+# leitor publica tudo, como uma câmera faria:
+#   - P0002: lida 3 vezes na entrada em 0,4 s (repetição de quadros)      -> 1 evento `entrada`, 2 descartes
+#   - P0005: lida 2 vezes na saída com 0,5 s                               -> 1 evento `saida`, 1 descarte
+#   - P0008: relida na saída 10 s depois (dentro de janela_dedup_s = 30 s) -> 1 evento `saida`, 1 descarte
+#   - P0007: entra e tem ciclo, mas NUNCA sai (peça esquecida)             -> expira após expiracao_s (7200 s)
+# Esperado: 12 scans de entrada, 11 de saída, 10 ciclos (20 evt/ciclo); 9 peças concluídas, 1 aberta (P0007).
+# A expiração não cabe no roteiro: o gateway carimba o tempo de parede; ela é provada no teste do gateway com
+# expiracao_s curto (2.3).
+descricao: "trecho com 10 peças P0001-P0010, repetições de leitura e uma peça esquecida (sintético)"
+dispositivos: [qr-entrada, esp32-bat01, qr-saida]
+fim_apos_s: 2
+telemetria:
+  temperatura: [24.6, 24.8, 25.1, 24.9]
+passos:
+  - {apos_s: 2, dispositivo: qr-entrada, scan: P0001, ponto: entrada}            # P0001 chega ao posto Bateria
+  - {apos_s: 0.6, dispositivo: esp32-bat01, ciclo: inicio}
+  - {apos_s: 27.4, dispositivo: esp32-bat01, ciclo: fim}                         # dur_s = 27.4
+  - {apos_s: 1.5, dispositivo: qr-entrada, scan: P0002, ponto: entrada}          # P0002 chega ao posto Bateria
+  - {apos_s: 0.2, dispositivo: qr-entrada, scan: P0002, ponto: entrada}          # repetição: a câmera lê o mesmo código em quadros seguidos
+  - {apos_s: 0.2, dispositivo: qr-entrada, scan: P0002, ponto: entrada}          # repetição
+  - {apos_s: 0.2, dispositivo: esp32-bat01, ciclo: inicio}
+  - {apos_s: 11.9, dispositivo: qr-saida, scan: P0001, ponto: saida}             # P0001 sai do trecho
+  - {apos_s: 14.9, dispositivo: esp32-bat01, ciclo: fim}                         # dur_s = 26.8
+  - {apos_s: 1.5, dispositivo: qr-entrada, scan: P0003, ponto: entrada}          # P0003 chega ao posto Bateria
+  - {apos_s: 0.6, dispositivo: esp32-bat01, ciclo: inicio}
+  - {apos_s: 11.9, dispositivo: qr-saida, scan: P0002, ponto: saida}             # P0002 sai do trecho
+  - {apos_s: 16, dispositivo: esp32-bat01, ciclo: fim}                           # dur_s = 27.9
+  - {apos_s: 1.5, dispositivo: qr-entrada, scan: P0004, ponto: entrada}          # P0004 chega ao posto Bateria
+  - {apos_s: 0.6, dispositivo: esp32-bat01, ciclo: inicio}
+  - {apos_s: 11.9, dispositivo: qr-saida, scan: P0003, ponto: saida}             # P0003 sai do trecho
+  - {apos_s: 14.6, dispositivo: esp32-bat01, ciclo: fim}                         # dur_s = 26.5
+  - {apos_s: 1.5, dispositivo: qr-entrada, scan: P0005, ponto: entrada}          # P0005 chega ao posto Bateria
+  - {apos_s: 0.6, dispositivo: esp32-bat01, ciclo: inicio}
+  - {apos_s: 11.9, dispositivo: qr-saida, scan: P0004, ponto: saida}             # P0004 sai do trecho
+  - {apos_s: 16.4, dispositivo: esp32-bat01, ciclo: fim}                         # dur_s = 28.3
+  - {apos_s: 1.5, dispositivo: qr-entrada, scan: P0006, ponto: entrada}          # P0006 chega ao posto Bateria
+  - {apos_s: 0.6, dispositivo: esp32-bat01, ciclo: inicio}
+  - {apos_s: 11.9, dispositivo: qr-saida, scan: P0005, ponto: saida}             # P0005 sai do trecho
+  - {apos_s: 0.5, dispositivo: qr-saida, scan: P0005, ponto: saida}              # repetição imediata na saída
+  - {apos_s: 14.7, dispositivo: esp32-bat01, ciclo: fim}                         # dur_s = 27.1
+  - {apos_s: 1.5, dispositivo: qr-entrada, scan: P0007, ponto: entrada}          # P0007 chega ao posto Bateria
+  - {apos_s: 0.6, dispositivo: esp32-bat01, ciclo: inicio}
+  - {apos_s: 11.9, dispositivo: qr-saida, scan: P0006, ponto: saida}             # P0006 sai do trecho
+  - {apos_s: 15, dispositivo: esp32-bat01, ciclo: fim}                           # dur_s = 26.9
+  - {apos_s: 1.5, dispositivo: qr-entrada, scan: P0008, ponto: entrada}          # P0008 chega ao posto Bateria
+  - {apos_s: 0.6, dispositivo: esp32-bat01, ciclo: inicio}
+  - {apos_s: 27.6, dispositivo: esp32-bat01, ciclo: fim}                         # dur_s = 27.6
+  - {apos_s: 1.5, dispositivo: qr-entrada, scan: P0009, ponto: entrada}          # P0009 chega ao posto Bateria
+  - {apos_s: 0.6, dispositivo: esp32-bat01, ciclo: inicio}
+  - {apos_s: 11.9, dispositivo: qr-saida, scan: P0008, ponto: saida}             # P0008 sai do trecho
+  - {apos_s: 10, dispositivo: qr-saida, scan: P0008, ponto: saida}               # releitura 10 s depois (dentro da janela de 30 s)
+  - {apos_s: 5.3, dispositivo: esp32-bat01, ciclo: fim}                          # dur_s = 27.2
+  - {apos_s: 1.5, dispositivo: qr-entrada, scan: P0010, ponto: entrada}          # P0010 chega ao posto Bateria
+  - {apos_s: 0.6, dispositivo: esp32-bat01, ciclo: inicio}
+  - {apos_s: 11.9, dispositivo: qr-saida, scan: P0009, ponto: saida}             # P0009 sai do trecho
+  - {apos_s: 14.8, dispositivo: esp32-bat01, ciclo: fim}                         # dur_s = 26.7
+  - {apos_s: 14, dispositivo: qr-saida, scan: P0010, ponto: saida}               # P0010 sai do trecho

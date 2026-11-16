@@ -133,11 +133,17 @@ class Dispositivo:
     def ciclo_aberto(self) -> bool:
         return self._inicio_ciclo_ms is not None
 
-    def scan(self, qr: str, ponto: str) -> dict[str, Any] | None:
+    def scan(self, qr: str, ponto: str, resultado: int | None = None) -> dict[str, Any] | None:
+        """Leitura de QR: publica o conteúdo BRUTO e o ponto, sem normalizar nem deduplicar (ADR-0008 item 2;
+        a câmera lê o mesmo código várias vezes e o gateway descarta as repetições). `resultado` (1/0) só no
+        ponto `teste` (ADR-0026); fora dele, o contrato recusa e o emulador falha alto."""
         pontos = self.config.get("eventos", {}).get("scan", {}).get("pontos")
         if pontos is None or ponto not in pontos:
             raise ValueError(f"scan no ponto {ponto!r} não declarado para {self.id}")
-        return self._publicar_evt("scan", {"qr": qr, "ponto": ponto}, None)
+        campos: dict[str, Any] = {"qr": qr, "ponto": ponto}
+        if resultado is not None:
+            campos["resultado"] = resultado
+        return self._publicar_evt("scan", campos, None)
 
     def declara_evento(self, evento: str) -> bool:
         return evento in self.config.get("eventos", {})
