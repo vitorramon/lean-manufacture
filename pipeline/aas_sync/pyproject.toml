@@ -1,0 +1,33 @@
+[project]
+name = "lean-aas-sync"
+version = "0.1.0"
+description = "aas-sync (L2): subscription OPC UA do device-gateway → SQLite WAL (leituras, eventos, sessoes, rejeitados) e estado do dispositivo no AAS (BaSyx)"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "asyncua>=2.1.0",
+    "lean-contrato>=1.0.0",
+]
+
+[tool.uv.sources]
+lean-contrato = { path = "../contrato", editable = true }
+lean-device-gateway = { path = "../device_gateway", editable = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "lean-device-gateway>=0.1.0",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
+    "pyyaml>=6.0.3",
+    "ruff>=0.17.5",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aas_sync"]
+
+[tool.ruff]
+line-length = 120
