@@ -142,6 +142,85 @@ def test_status_online_abre_nova_base_de_sequencia(admissao):
     assert d.aceita and d.lacunas == 0
 
 
+def _status_online(boot):
+    st = exemplo("status-online-operador")
+    return st["topico"], com(st, boot=boot)
+
+
+def test_reconexao_com_mesmo_boot_mantem_a_deteccao_de_duplicata(admissao):
+    """Achado da revisão da Fase 1: reconectar ao broker sem reiniciar não pode zerar a base da sequência."""
+    ex = exemplo("tel-temperatura-com-boot")  # boot 3
+    assert admissao.processar(*_status_online(3), AGORA).aceita
+    assert admissao.processar(ex["topico"], com(ex, seq=20, boot=3), AGORA).aceita
+    assert admissao.processar(*_status_online(3), AGORA).aceita  # reconexão (sessão MQTT nova, mesmo boot)
+    d = admissao.processar(ex["topico"], com(ex, seq=20, boot=3), AGORA)  # QoS 1 reenviado
+    assert not d.aceita and d.categoria == SEQUENCIA and "duplicata" in d.motivo
+    d = admissao.processar(ex["topico"], com(ex, seq=23, boot=3), AGORA)
+    assert d.aceita and d.lacunas == 2  # a lacuna atravessa a reconexão e continua contada
+
+
+def test_reinicio_sem_incrementar_o_boot_nao_emudece_o_dispositivo(admissao):
+    """Achado da revisão das correções: boot repetido (NVS apagada, estado do emulador apagado) não pode fazer as
+    mensagens da nova sessão virarem "duplicata"."""
+    ex = exemplo("tel-temperatura-com-boot")
+    assert admissao.processar(*_status_online(1), AGORA).aceita
+    for seq in range(10):
+        assert admissao.processar(ex["topico"], com(ex, seq=seq, boot=1, up_ms=1000 + seq * 5000), AGORA).aceita
+    assert admissao.processar(*_status_online(1), AGORA).aceita  # reiniciou e o boot não subiu
+    for seq in range(10):
+        d = admissao.processar(ex["topico"], com(ex, seq=seq, boot=1, up_ms=800 + seq * 5000), AGORA)
+        assert d.aceita and d.lacunas == 0, d.motivo
+
+
+def test_reenvio_fora_de_ordem_apos_reconexao_continua_duplicata(admissao):
+    """Segunda passada da revisão (achado A): evt QoS 1 reenviado na reconexão, mais antigo que a última tel."""
+    ex = exemplo("tel-temperatura-com-boot")
+    assert admissao.processar(*_status_online(1), AGORA).aceita
+    for seq in (18, 19, 20):
+        assert admissao.processar(ex["topico"], com(ex, seq=seq, boot=1, up_ms=seq * 1000), AGORA).aceita
+    assert admissao.processar(*_status_online(1), AGORA).aceita  # reconexão
+    d = admissao.processar(ex["topico"], com(ex, seq=18, boot=1, up_ms=18000), AGORA)
+    assert not d.aceita and d.categoria == SEQUENCIA  # reenvio rejeitado, não confundido com reinício
+    d = admissao.processar(ex["topico"], com(ex, seq=21, boot=1, up_ms=21000), AGORA)
+    assert d.aceita and d.lacunas == 0
+
+
+def test_sessao_anterior_curta_com_boot_repetido_nao_emudece(admissao):
+    """Achado B: sessão anterior terminou em up_ms 3000; a nova começa em up_ms 5000 com seq 0."""
+    ex = exemplo("tel-temperatura-com-boot")
+    assert admissao.processar(*_status_online(1), AGORA).aceita
+    for seq in (0, 1, 2):
+        assert admissao.processar(ex["topico"], com(ex, seq=seq, boot=1, up_ms=1000 + seq * 1000), AGORA).aceita
+    assert admissao.processar(*_status_online(1), AGORA).aceita
+    for seq in (0, 1, 2):
+        d = admissao.processar(ex["topico"], com(ex, seq=seq, boot=1, up_ms=5000 + seq * 1000), AGORA)
+        assert d.aceita and d.lacunas == 0, d.motivo
+
+
+def test_volta_do_millis_sem_status_nao_zera_a_sequencia(admissao):
+    ex = exemplo("tel-temperatura-com-boot")
+    assert admissao.processar(ex["topico"], com(ex, seq=7, boot=3, up_ms=4294960000), AGORA).aceita
+    d = admissao.processar(ex["topico"], com(ex, seq=7, boot=3, up_ms=1000), AGORA)  # sem status no meio
+    assert not d.aceita and "duplicata" in d.motivo
+
+
+def test_mensagem_de_boot_anterior_e_rejeitada(admissao):
+    ex = exemplo("tel-temperatura-com-boot")
+    assert admissao.processar(ex["topico"], com(ex, seq=0, boot=4), AGORA).aceita
+    d = admissao.processar(ex["topico"], com(ex, seq=900, boot=3), AGORA)
+    assert not d.aceita and d.categoria == SEQUENCIA and "boot 3 atrasada" in d.motivo
+    assert admissao.estado["esp32-bat01"].boot == 4
+
+
+def test_status_com_boot_menor_e_renascimento(admissao):
+    """Contador de boot apagado (NVS ou arquivo zerado): o status online redefine a base, sem travar o dispositivo."""
+    ex = exemplo("tel-temperatura-com-boot")
+    assert admissao.processar(ex["topico"], com(ex, seq=5, boot=7), AGORA).aceita
+    assert admissao.processar(*_status_online(1), AGORA).aceita
+    d = admissao.processar(ex["topico"], com(ex, seq=0, boot=1), AGORA)
+    assert d.aceita and d.lacunas == 0
+
+
 # --- status, Online e Last Will -----------------------------------------------------------------------------
 
 def test_online_vai_a_falso_com_o_last_will(admissao):

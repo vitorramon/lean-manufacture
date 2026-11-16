@@ -25,7 +25,12 @@ from typing import Any
 
 from asyncua import Server, ua
 
-from device_gateway.admissao import Admissao, Decisao, nome_variavel_texto, variaveis_texto_do_evento
+from device_gateway.admissao import (
+    Admissao,
+    Decisao,
+    nome_variavel_texto,
+    variaveis_texto_do_evento,
+)
 
 log = logging.getLogger(__name__)
 
