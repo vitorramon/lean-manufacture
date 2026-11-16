@@ -1,0 +1,5 @@
+dispositivo,origem,inicio,fim
+qr-entrada,emulador:godot,2026-11-16T21:21:28.101811+00:00,
+esp32-bat01,emulador:godot,2026-11-16T21:21:28.104092+00:00,
+qr-teste,emulador:godot,2026-11-16T21:21:28.106720+00:00,
+qr-saida,emulador:godot,2026-11-16T21:21:28.109536+00:00,

@@ -54,6 +54,7 @@ services:
       MQTT_PORT: "1883"
       OPCUA_ENDPOINT: opc.tcp://0.0.0.0:4850/lean/dispositivos
       DISPOSITIVOS_PATH: /app/config/dispositivos.yaml
+      RASTREIO_PATH: /app/config/rastreio.yaml
       LOG_LEVEL: ${LEAN_LOG_LEVEL:-INFO}
     ports:
       - "4850:4850"
@@ -76,8 +77,9 @@ services:
     environment:
       OPCUA_URL: opc.tcp://device-gateway:4850/lean/dispositivos
       AAS_URL: http://aas-env:8091
-      DB_PATH: /dados/dados.db
+      DB_PATH: /dados/${LEAN_DB_ARQUIVO:-dados.db}   # o start.py preenche a partir do DB_PATH (tarefa 2.8)
       DISPOSITIVOS_PATH: /app/config/dispositivos.yaml
+      RASTREIO_PATH: /app/config/rastreio.yaml
       SAUDE_PATH: /tmp/aas_sync.saude
       LOG_LEVEL: ${LEAN_LOG_LEVEL:-INFO}
     volumes:

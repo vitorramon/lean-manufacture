@@ -2,9 +2,9 @@
 """Entrada única do M3 (ADR-0012, tarefa 1.6): sobe a base reduzida e os serviços do M3, espera a saúde, inicia a
 fonte de estímulo e o dashboard e passa a monitorar (processo vivo, porta respondendo, dado fluindo).
 
-    python3 start.py --fonte roteiro            # dado de TESTE (ADR-0013); --velocidade 10 acelera
+    python3 start.py --fonte roteiro            # dado de TESTE (ADR-0013), trecho com 4 dispositivos; --velocidade 10
     python3 start.py --fonte operador           # Enter = início/fim do ciclo; q = sair
-    python3 start.py --fonte godot              # planta Godot sem janela + fonte godot
+    python3 start.py --fonte godot              # planta Godot sem janela + fonte godot (botão e 3 leitores de QR)
     python3 start.py --fonte firmware           # firmware real no QEMU (hardware/firmware/emular.sh)
     python3 start.py --fonte hardware           # nenhuma fonte local: espera o ESP32 publicar no broker
     python3 start.py --parar                    # derruba tudo o que o start.py sobe (sem apagar volumes)
@@ -46,17 +46,25 @@ from orquestracao import (
 FONTES = ("roteiro", "godot", "operador", "firmware", "hardware")
 ESTADO = RAIZ / "dados" / "estado" / "start"
 ARQ_PIDS = ESTADO / "pids.json"
-DB = Path(os.environ.get("DB_PATH", RAIZ / "dados" / "dados.db"))
+DB = (RAIZ / os.environ.get("DB_PATH", "dados/dados.db")).resolve()   # relativo à raiz; precisa ficar em dados/
 MQTT_PORT = int(os.environ.get("MQTT_PORT", "1883"))
 AAS_URL = os.environ.get("AAS_URL", "http://localhost:8091").rstrip("/")
 PORTA_APP = int(os.environ.get("APP_PORTA", "8501"))
 SEM_DADO_S = float(os.environ.get("START_SEM_DADO_S", "20"))   # fonte viva e banco parado além disto → alerta
+# Dispositivos que a fonte emula por padrão (tarefas 2.8 e 2.10): o trecho instrumentado inteiro, leitores antes do
+# botão (a mesma liberação da planta gera o scan de entrada e o ciclo). `--dispositivo` troca a lista.
+TRECHO = "qr-entrada,esp32-bat01,qr-teste,qr-saida"
+DISPOSITIVOS_PADRAO = {"roteiro": TRECHO, "godot": TRECHO}
+ROTEIRO_TRECHO = "hardware/emulador/roteiros/trecho-qr-teste-demo.yaml"   # 4 dispositivos, sintético
 
 
 def argumentos() -> argparse.Namespace:
     p = argparse.ArgumentParser(prog="start.py", description=__doc__.split("\n\n")[0])
     p.add_argument("--fonte", choices=FONTES, help="de onde vem o estímulo da L0")
-    p.add_argument("--dispositivo", default="esp32-bat01", help="id em config/dispositivos.yaml")
+    p.add_argument("--dispositivo",
+                   help="id(s) em config/dispositivos.yaml; roteiro/godot aceitam vários (a,b,c). Padrão: "
+                        f"{TRECHO} em roteiro e godot, esp32-bat01 nas demais")
+    p.add_argument("--roteiro", help=f"roteiro: arquivo (padrão com o trecho: {ROTEIRO_TRECHO})")
     p.add_argument("--velocidade", type=float, default=1.0, help="roteiro: fator de aceleração do relógio")
     p.add_argument("--operador", default="OP1", help="operador: código (OP1, OP2...), nunca o nome")
     p.add_argument("--estimulo", help="firmware: arquivo de estímulo da bancada (ex.: bancada/demo.txt)")
@@ -68,6 +76,10 @@ def argumentos() -> argparse.Namespace:
     a = p.parse_args()
     if not a.parar and not a.fonte:
         p.error("informe --fonte ou --parar")
+    if a.dispositivo is None:
+        a.dispositivo = DISPOSITIVOS_PADRAO.get(a.fonte, "esp32-bat01")
+    if a.roteiro is None and a.fonte == "roteiro" and a.dispositivo == TRECHO:
+        a.roteiro = ROTEIRO_TRECHO
     return a
 
 
@@ -129,7 +141,8 @@ def iniciar_processos(a: argparse.Namespace, t0: float) -> list[Processo]:
                               ESTADO / "dashboard.log", reiniciar=True))
     emul = [u, "run", "--project", "hardware/emulador", "emulador", "--dispositivo", a.dispositivo]
     if a.fonte == "roteiro":
-        procs.append(Processo("fonte", emul + ["--fonte", "roteiro", "--velocidade", str(a.velocidade)],
+        extra = ["--roteiro", a.roteiro] if a.roteiro else []
+        procs.append(Processo("fonte", emul + ["--fonte", "roteiro", "--velocidade", str(a.velocidade), *extra],
                               ESTADO / "fonte.log"))
     elif a.fonte == "godot":
         procs.append(Processo("planta", [godot(), "--headless", "--max-fps", "60", "--path", "base/godot"],
@@ -227,9 +240,21 @@ def parar_tudo(manter_base: bool) -> None:
     log(t0, "parado")
 
 
+def banco_compartilhado() -> None:
+    """O aas-sync (contêiner) e o dashboard (computador) usam o mesmo banco: DB_PATH do computador vira
+    LEAN_DB_ARQUIVO para o compose (`/dados/<arquivo>`), por isso o banco precisa ficar dentro de dados/."""
+    try:
+        relativo = DB.relative_to(RAIZ / "dados")
+    except ValueError:
+        sys.exit(f"start.py: DB_PATH={DB} precisa ficar dentro de {RAIZ / 'dados'} (montado em /dados no aas-sync)")
+    os.environ["DB_PATH"] = str(DB)
+    os.environ["LEAN_DB_ARQUIVO"] = relativo.as_posix()
+
+
 def main() -> int:
     a = argumentos()
     os.chdir(RAIZ)
+    banco_compartilhado()
     if a.parar:
         parar_tudo(a.manter_base)
         return 0

@@ -18,7 +18,15 @@ python3 start.py --parar [--manter-base]         # derruba tudo (docker compose 
 ```
 
 `--fonte replay` ainda não existe e falha com mensagem. Opções: `--manter-base` (ao sair, derruba só
-`device-gateway` e `aas-sync`), `--sem-dashboard`, `--intervalo` (s entre verificações), `--dispositivo`.
+`device-gateway` e `aas-sync`), `--sem-dashboard`, `--intervalo` (s entre verificações), `--dispositivo`,
+`--roteiro`.
+
+Dispositivos emulados (tarefas 2.8 e 2.10): com `--fonte godot` ou `--fonte roteiro`, o padrão é o trecho inteiro
+`qr-entrada,esp32-bat01,qr-teste,qr-saida` (um processo do emulador, uma conexão MQTT por dispositivo). A fonte
+`godot` traduz `part_released`, `part_inspected` (com `resultado`) e `part_sorted` da planta virtual; a `roteiro`
+usa `hardware/emulador/roteiros/trecho-qr-teste-demo.yaml` (sintético). As demais fontes continuam com
+`esp32-bat01`. Banco: `DB_PATH=dados/<arquivo>.db python3 start.py ...` usa outro banco nos dois lados (o
+`start.py` passa `LEAN_DB_ARQUIVO` ao compose e `DB_PATH` absoluto ao dashboard); o banco precisa ficar em `dados/`.
 
 O `start.py` (só biblioteca padrão):
 
@@ -42,7 +50,7 @@ O `start.py` (só biblioteca padrão):
 
 - Dentro da rede do compose: `MQTT_HOST=mqtt`, `OPCUA_URL=opc.tcp://device-gateway:4850/...`,
   `AAS_URL=http://aas-env:8091`. Os mesmos componentes rodam fora do contêiner com os padrões `localhost`.
-- Volumes: `config/` só leitura em `/app/config`; `dados/` em `/dados` (`DB_PATH=/dados/dados.db`). O contêiner
+- Volumes: `config/` só leitura em `/app/config`; `dados/` em `/dados` (`DB_PATH=/dados/${LEAN_DB_ARQUIVO:-dados.db}`). O contêiner
   roda com o UID/GID de quem chama (`LEAN_UID`/`LEAN_GID`, o `start.py` preenche), para o banco ter o dono certo.
 - O Streamlit roda no computador e lê o mesmo `dados/dados.db` em WAL (testado: leitura concorrente com o
   escritor no contêiner, tarefa 1.6).
