@@ -1,0 +1,8 @@
+{
+  "descricao": "Tópico do UNS da base (vf/...), fora da árvore dev/v1",
+  "topico": "vf/ac01/event/part_released",
+  "payload": {
+    "serial": "123"
+  },
+  "motivo_contem": "tópico"
+}

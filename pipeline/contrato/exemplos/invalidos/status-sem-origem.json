@@ -1,0 +1,10 @@
+{
+  "descricao": "Status online sem origem (ADR-0013)",
+  "topico": "dev/v1/esp32-bat01/status",
+  "payload": {
+    "v": "online",
+    "fw": "1.0.0",
+    "boot": 3
+  },
+  "motivo_contem": "origem"
+}

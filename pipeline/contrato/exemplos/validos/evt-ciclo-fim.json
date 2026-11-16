@@ -1,0 +1,11 @@
+{
+  "descricao": "Fim do ciclo com dur_s medido no dispositivo",
+  "topico": "dev/v1/esp32-bat01/evt/ciclo",
+  "payload": {
+    "seq": 43,
+    "up_ms": 815020,
+    "boot": 3,
+    "fase": "fim",
+    "dur_s": 27.42
+  }
+}

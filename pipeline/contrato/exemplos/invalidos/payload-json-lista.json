@@ -1,0 +1,6 @@
+{
+  "descricao": "JSON que não é objeto",
+  "topico": "dev/v1/esp32-bat01/tel/temperatura",
+  "payload_bruto": "[41, 812345, 24.6]",
+  "motivo_contem": "objeto"
+}

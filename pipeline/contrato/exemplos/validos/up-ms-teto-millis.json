@@ -1,0 +1,9 @@
+{
+  "descricao": "up_ms no teto do millis() de 32 bits do ESP32",
+  "topico": "dev/v1/esp32-bat01/tel/temperatura",
+  "payload": {
+    "seq": 4294967295,
+    "up_ms": 4294967295,
+    "v": 24.6
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "descricao": "Duração zero",
+  "topico": "dev/v1/esp32-bat01/evt/ciclo",
+  "payload": {
+    "seq": 43,
+    "up_ms": 815020,
+    "fase": "fim",
+    "dur_s": 0
+  },
+  "motivo_contem": "dur_s"
+}

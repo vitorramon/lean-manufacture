@@ -1,0 +1,10 @@
+{
+  "descricao": "ESP32 físico",
+  "topico": "dev/v1/esp32-bat01/status",
+  "payload": {
+    "v": "online",
+    "fw": "1.0.0",
+    "boot": 12,
+    "origem": "hardware"
+  }
+}

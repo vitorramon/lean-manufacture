@@ -1,0 +1,12 @@
+{
+  "descricao": "Payload com data/hora disfarçada num campo de texto",
+  "topico": "dev/v1/esp32-bat01/evt/scan",
+  "payload": {
+    "seq": 7,
+    "up_ms": 120500,
+    "qr": "P0042",
+    "ponto": "entrada",
+    "lote": "2026-11-15"
+  },
+  "motivo_contem": "data/hora"
+}

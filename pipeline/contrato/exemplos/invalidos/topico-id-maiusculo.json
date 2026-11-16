@@ -1,0 +1,8 @@
+{
+  "descricao": "Identificador com maiúsculas",
+  "topico": "dev/v1/ESP32-BAT01/status",
+  "payload": {
+    "v": "offline"
+  },
+  "motivo_contem": "tópico"
+}

@@ -1,0 +1,10 @@
+{
+  "descricao": "Scan sem ponto de leitura",
+  "topico": "dev/v1/qr-entrada/evt/scan",
+  "payload": {
+    "seq": 7,
+    "up_ms": 120500,
+    "qr": "P0042"
+  },
+  "motivo_contem": "ponto"
+}

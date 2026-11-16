@@ -1,0 +1,10 @@
+{
+  "descricao": "Fim de ciclo sem dur_s",
+  "topico": "dev/v1/esp32-bat01/evt/ciclo",
+  "payload": {
+    "seq": 43,
+    "up_ms": 815020,
+    "fase": "fim"
+  },
+  "motivo_contem": "dur_s"
+}

@@ -1,0 +1,52 @@
+# Dispositivos da L0 (contrato dev/v1, ADR-0005; address space, ADR-0006).
+# Esquema: pipeline/contrato/src/contrato/esquemas/dispositivos.schema.json
+# Leitura: contrato.carregar_dispositivos() (variável DISPOSITIVOS_PATH para outro arquivo).
+#
+# Acrescentar um dispositivo = acrescentar uma entrada aqui (RF-A2-02); nenhum código de L2–L4 muda.
+# O gateway cria o objeto OPC UA ns=2;s=LinhaCelulares.<objeto_opcua>.<Variavel> com as variáveis abaixo,
+# mais Online e UltimaLeitura (sempre presentes), e rejeita valor fora da faixa (vai para 'rejeitados').
+#
+# Todos os dispositivos são EMULADOS hoje (ADR-0002); 'tipo' diz o que o firmware real seria.
+# Faixas calibradas em 2026-11-15 (tarefa 1.11, RF-A1-06) pelo procedimento dos 4 testes de docs/calibracao.md.
+# Calibração de PROCEDIMENTO sobre emulação (ADR-0002): no ESP32 real, refazer zero e padrão com referência física.
+
+versao: 1
+contrato: dev/v1
+
+dispositivos:
+  - id: esp32-bat01
+    objeto_opcua: Bateria_01
+    estacao: Bateria
+    descricao: >-
+      Posto Bateria, saída da montagem manual (gargalo de 27 s no M2; célula AC01 da planta virtual, ADR-0009).
+      Botão de início/fim de ciclo e temperatura ambiente do posto.
+    tipo: esp32
+    kpis: [OEE (tempo de ciclo do posto), "causa-raiz Medida do M1 (coleta em tempo real na estação manual)"]
+    pinagem:
+      botao_ciclo: GPIO 5 (INPUT_PULLUP)
+      dht22: GPIO 4 (3V3)
+      alimentacao: USB do computador
+    canais:
+      temperatura:
+        descricao: Temperatura ambiente do posto (DHT22), leitura periódica (RF-A1-02)
+        unidade: "°C"
+        variavel_opcua: Temperatura
+        periodo_s: 5
+        faixa: {min: 0.0, max: 60.0, estado: calibrada, calibrar_em: "1.11",
+                nota: "2026-11-15: posto fechado; fora disso é falha de medição. DHT22 mede -40 a 80 °C, então
+                  a faixa não satura o sensor. Cadeia firmware(QEMU)->MQTT sem corte de 0, 60, -5 e 75 °C.
+                  Erro do sensor físico ainda não calibrado (sem hardware): ver docs/calibracao.md"}
+    eventos:
+      ciclo:
+        descricao: Botão de início e fim do ciclo; dur_s medido no dispositivo, só no fim
+        campos:
+          dur_s:
+            unidade: s
+            variavel_opcua: TempoCiclo
+            faixa: {min: 1.0, max: 600.0, estado: calibrada, calibrar_em: "1.11",
+                    nota: "2026-11-15: abaixo de 1 s é toque duplo/repique; acima de 10 min é ciclo esquecido
+                      aberto. Entre 40 s e 600 s fica no banco como outlier a classificar (Muda x medição).
+                      Cronômetro sem saturação de 0,25 s a 24 h; erro <= 0,8 % (docs/calibracao.md)"}
+        contador_opcua:
+          variavel_opcua: PecasFeitas
+          quando: {fase: fim}

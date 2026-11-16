@@ -1,0 +1,10 @@
+{
+  "descricao": "Desligamento gracioso com metadados",
+  "topico": "dev/v1/esp32-bat01/status",
+  "payload": {
+    "v": "offline",
+    "fw": "1.0.0",
+    "boot": 3,
+    "origem": "emulador:godot"
+  }
+}

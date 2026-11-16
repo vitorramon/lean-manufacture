@@ -1,0 +1,7 @@
+{
+  "descricao": "Last Will publicado pelo broker quando o dispositivo cai",
+  "topico": "dev/v1/esp32-bat01/status",
+  "payload": {
+    "v": "offline"
+  }
+}

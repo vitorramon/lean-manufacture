@@ -1,0 +1,11 @@
+{
+  "descricao": "Payload com data/hora: timestamp numérico (época Unix)",
+  "topico": "dev/v1/esp32-bat01/tel/temperatura",
+  "payload": {
+    "seq": 41,
+    "up_ms": 812345,
+    "v": 24.6,
+    "timestamp": 1794784219
+  },
+  "motivo_contem": "data/hora"
+}

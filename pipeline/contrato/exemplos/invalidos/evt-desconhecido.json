@@ -1,0 +1,10 @@
+{
+  "descricao": "Evento sem esquema no contrato",
+  "topico": "dev/v1/esp32-bat01/evt/alarme",
+  "payload": {
+    "seq": 44,
+    "up_ms": 815100,
+    "codigo": 3
+  },
+  "motivo_contem": "sem esquema"
+}

@@ -1,0 +1,10 @@
+{
+  "descricao": "Fase desconhecida",
+  "topico": "dev/v1/esp32-bat01/evt/ciclo",
+  "payload": {
+    "seq": 42,
+    "up_ms": 787600,
+    "fase": "meio"
+  },
+  "motivo_contem": "fase"
+}

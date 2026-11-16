@@ -1,0 +1,11 @@
+{
+  "descricao": "Estado diferente de online/offline",
+  "topico": "dev/v1/esp32-bat01/status",
+  "payload": {
+    "v": "ligado",
+    "fw": "1.0.0",
+    "boot": 3,
+    "origem": "hardware"
+  },
+  "motivo_contem": "v"
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vitorramon/lean-manufacture/pipeline/contrato/dev/v1/evt.scan.schema.json",
+  "title": "dev/v1/{id}/evt/scan",
+  "description": "Leitura de QR Code. QoS 1, não retido. 'qr' é o conteúdo bruto do código (ID curto P0042 ou GS1 Digital Link da planta); a normalização para ID de peça, a deduplicação e a expiração são do gateway (ADR-0008). Sem data/hora.",
+  "type": "object",
+  "properties": {
+    "seq": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "up_ms": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "boot": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "qr": {
+      "description": "Conteúdo bruto do QR, texto imprimível sem espaços nas pontas.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[\\x21-\\x7E](?:[\\x20-\\x7E]*[\\x21-\\x7E])?$"
+    },
+    "ponto": {
+      "description": "Ponto de leitura declarado em config/dispositivos.yaml (ex.: entrada, saida).",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,31}$"
+    }
+  },
+  "required": ["seq", "up_ms", "qr", "ponto"],
+  "additionalProperties": false
+}

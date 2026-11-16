@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vitorramon/lean-manufacture/pipeline/contrato/dev/v1/status.schema.json",
+  "title": "dev/v1/{id}/status",
+  "description": "Estado do dispositivo. QoS 1, retido. Last Will = {\"v\":\"offline\"}. Sem data/hora (ADR-0005). 'origem' declara quem publica (ADR-0013); é metadado, nenhuma regra depende dele.",
+  "type": "object",
+  "properties": {
+    "v": {
+      "description": "Estado declarado pelo dispositivo.",
+      "enum": ["online", "offline"]
+    },
+    "fw": {
+      "description": "Versão do firmware ou do emulador (semver).",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "boot": {
+      "description": "Contador de inicializações; distingue reinícios (seq volta a 0 a cada boot).",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "origem": {
+      "description": "Quem publica: emulador:<fonte> (roteiro, operador, godot, replay), firmware:emulado (firmware real num emulador de ESP32) ou hardware (ESP32 físico).",
+      "type": "string",
+      "pattern": "^(emulador:(roteiro|operador|godot|replay)|firmware:emulado|hardware)$"
+    }
+  },
+  "required": ["v"],
+  "additionalProperties": false,
+  "if": {
+    "properties": { "v": { "const": "online" } }
+  },
+  "then": {
+    "required": ["v", "fw", "boot", "origem"]
+  }
+}

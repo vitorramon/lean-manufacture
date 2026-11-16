@@ -1,0 +1,10 @@
+{
+  "descricao": "Início do ciclo (botão)",
+  "topico": "dev/v1/esp32-bat01/evt/ciclo",
+  "payload": {
+    "seq": 42,
+    "up_ms": 787600,
+    "boot": 3,
+    "fase": "inicio"
+  }
+}

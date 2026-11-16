@@ -1,0 +1,11 @@
+{
+  "descricao": "Leitura do QR da peça da planta virtual (GS1 Digital Link bruto)",
+  "topico": "dev/v1/qr-saida/evt/scan",
+  "payload": {
+    "seq": 8,
+    "up_ms": 121000,
+    "boot": 1,
+    "qr": "https://id.virtual-factory.local/01/04012345000010/21/SN000123",
+    "ponto": "saida"
+  }
+}

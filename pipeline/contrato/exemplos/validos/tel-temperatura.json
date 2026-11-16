@@ -1,0 +1,9 @@
+{
+  "descricao": "Telemetria (exemplo do SPECS §6.1, valor dentro do tipo)",
+  "topico": "dev/v1/esp32-bat01/tel/temperatura",
+  "payload": {
+    "seq": 41,
+    "up_ms": 812345,
+    "v": 24.6
+  }
+}

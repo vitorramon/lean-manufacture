@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vitorramon/lean-manufacture/pipeline/contrato/dev/v1/evt.ciclo.schema.json",
+  "title": "dev/v1/{id}/evt/ciclo",
+  "description": "Início ou fim de um ciclo do posto (botão). QoS 1, não retido. 'dur_s' só no fim, medido no próprio dispositivo. O dispositivo não conhece a peça (ADR-0005, item 5). Sem data/hora.",
+  "type": "object",
+  "properties": {
+    "seq": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "up_ms": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "boot": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "fase": {
+      "description": "inicio = botão de início do ciclo; fim = botão de fim.",
+      "enum": ["inicio", "fim"]
+    },
+    "dur_s": {
+      "description": "Duração do ciclo em segundos (fim − início, relógio local do dispositivo). Obrigatório no fim, proibido no início. A faixa aceitável é do gateway (config/dispositivos.yaml).",
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  },
+  "required": ["seq", "up_ms", "fase"],
+  "additionalProperties": false,
+  "if": {
+    "properties": { "fase": { "const": "fim" } }
+  },
+  "then": {
+    "required": ["dur_s"]
+  },
+  "else": {
+    "not": { "required": ["dur_s"] }
+  }
+}

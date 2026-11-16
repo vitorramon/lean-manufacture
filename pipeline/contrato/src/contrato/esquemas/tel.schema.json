@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vitorramon/lean-manufacture/pipeline/contrato/dev/v1/tel.schema.json",
+  "title": "dev/v1/{id}/tel/{canal}",
+  "description": "Telemetria periódica de um canal. QoS 0, não retida. Sem data/hora (ADR-0005). Unidade e faixa válida do canal vêm de config/dispositivos.yaml, não do payload.",
+  "type": "object",
+  "properties": {
+    "seq": {
+      "description": "Contador crescente por dispositivo desde a inicialização (compartilhado entre tel e evt).",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "up_ms": {
+      "description": "Milissegundos desde a inicialização (millis() do ESP32). Só diagnóstico. O teto 2^32-1 também barra um epoch em ms disfarçado.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "boot": {
+      "description": "Opcional: o mesmo contador do status. Emulador e firmware deste projeto o enviam sempre; o gateway usa o do status quando ausente.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "v": {
+      "description": "Valor medido, na unidade declarada para o canal.",
+      "type": "number"
+    }
+  },
+  "required": ["seq", "up_ms", "v"],
+  "additionalProperties": false
+}

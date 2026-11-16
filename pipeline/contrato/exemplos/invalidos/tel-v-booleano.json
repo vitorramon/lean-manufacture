@@ -1,0 +1,10 @@
+{
+  "descricao": "Valor booleano não é número",
+  "topico": "dev/v1/esp32-bat01/tel/temperatura",
+  "payload": {
+    "seq": 41,
+    "up_ms": 812345,
+    "v": true
+  },
+  "motivo_contem": "tipo"
+}

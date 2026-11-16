@@ -1,0 +1,12 @@
+{
+  "descricao": "Payload com data/hora: campo ts",
+  "topico": "dev/v1/esp32-bat01/evt/ciclo",
+  "payload": {
+    "seq": 43,
+    "up_ms": 815020,
+    "fase": "fim",
+    "dur_s": 27.4,
+    "ts": "2026-11-15T10:42:07Z"
+  },
+  "motivo_contem": "data/hora"
+}

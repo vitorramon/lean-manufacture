@@ -1,0 +1,6 @@
+{
+  "descricao": "Linha de texto como na serial da aula",
+  "topico": "dev/v1/esp32-bat01/evt/ciclo",
+  "payload_bruto": "CICLO:6.2",
+  "motivo_contem": "JSON"
+}

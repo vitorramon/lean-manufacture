@@ -1,0 +1,10 @@
+{
+  "descricao": "Firmware real rodando num emulador de ESP32",
+  "topico": "dev/v1/esp32-bat01/status",
+  "payload": {
+    "v": "online",
+    "fw": "1.0.0",
+    "boot": 7,
+    "origem": "firmware:emulado"
+  }
+}

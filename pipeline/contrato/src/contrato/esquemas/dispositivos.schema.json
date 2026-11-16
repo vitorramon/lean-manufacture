@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vitorramon/lean-manufacture/pipeline/contrato/dispositivos.schema.json",
+  "title": "config/dispositivos.yaml",
+  "description": "Declaração dos dispositivos da L0. O gateway cria um objeto OPC UA por entrada (ADR-0006) e aplica as faixas; acrescentar um dispositivo é acrescentar uma entrada (RF-A2-02).",
+  "type": "object",
+  "properties": {
+    "versao": { "const": 1 },
+    "contrato": { "const": "dev/v1" },
+    "dispositivos": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/dispositivo" }
+    }
+  },
+  "required": ["versao", "contrato", "dispositivos"],
+  "additionalProperties": false,
+  "$defs": {
+    "faixa": {
+      "type": "object",
+      "description": "Faixa válida. Valor fora dela é rejeitado pelo gateway e vai para 'rejeitados'.",
+      "properties": {
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "estado": { "enum": ["a_calibrar", "calibrada"] },
+        "calibrar_em": { "type": "string", "description": "Tarefa do PLAN que calibra a faixa." },
+        "nota": { "type": "string" }
+      },
+      "required": ["min", "max", "estado"],
+      "additionalProperties": false
+    },
+    "nome_opcua": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9_]{0,63}$"
+    },
+    "canal": {
+      "type": "object",
+      "properties": {
+        "descricao": { "type": "string" },
+        "unidade": { "type": "string" },
+        "variavel_opcua": { "$ref": "#/$defs/nome_opcua" },
+        "periodo_s": { "type": "number", "exclusiveMinimum": 0 },
+        "faixa": { "$ref": "#/$defs/faixa" }
+      },
+      "required": ["unidade", "variavel_opcua", "faixa"],
+      "additionalProperties": false
+    },
+    "campo": {
+      "type": "object",
+      "properties": {
+        "unidade": { "type": "string" },
+        "variavel_opcua": { "$ref": "#/$defs/nome_opcua" },
+        "faixa": { "$ref": "#/$defs/faixa" }
+      },
+      "required": ["variavel_opcua"],
+      "additionalProperties": false
+    },
+    "evento": {
+      "type": "object",
+      "properties": {
+        "descricao": { "type": "string" },
+        "campos": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[a-z][a-z0-9_]{0,31}$" },
+          "additionalProperties": { "$ref": "#/$defs/campo" }
+        },
+        "contador_opcua": {
+          "type": "object",
+          "description": "Variável OPC UA incrementada a cada evento que casa com 'quando'.",
+          "properties": {
+            "variavel_opcua": { "$ref": "#/$defs/nome_opcua" },
+            "quando": { "type": "object" }
+          },
+          "required": ["variavel_opcua"],
+          "additionalProperties": false
+        },
+        "pontos": {
+          "type": "array",
+          "description": "Só para 'scan': pontos de leitura aceitos.",
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "dispositivo": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,31}$" },
+        "objeto_opcua": { "$ref": "#/$defs/nome_opcua" },
+        "estacao": { "type": "string", "minLength": 1 },
+        "descricao": { "type": "string" },
+        "tipo": { "enum": ["esp32", "leitor_qr"] },
+        "kpis": { "type": "array", "items": { "type": "string" } },
+        "pinagem": { "type": "object", "additionalProperties": { "type": "string" } },
+        "canais": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[a-z][a-z0-9_]{0,31}$" },
+          "additionalProperties": { "$ref": "#/$defs/canal" }
+        },
+        "eventos": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[a-z][a-z0-9_]{0,31}$" },
+          "additionalProperties": { "$ref": "#/$defs/evento" }
+        }
+      },
+      "required": ["id", "objeto_opcua", "estacao", "tipo", "canais", "eventos"],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "descricao": "Valor inteiro também é number",
+  "topico": "dev/v1/esp32-bat01/tel/temperatura",
+  "payload": {
+    "seq": 0,
+    "up_ms": 0,
+    "v": 25
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "descricao": "Leitura de QR com ID curto (ADR-0008)",
+  "topico": "dev/v1/qr-entrada/evt/scan",
+  "payload": {
+    "seq": 7,
+    "up_ms": 120500,
+    "boot": 1,
+    "qr": "P0042",
+    "ponto": "entrada"
+  }
+}
