@@ -1,0 +1,49 @@
+// Contêiner de desenvolvimento do Módulo 3 (ADR-0015, tarefa 1.0). Ver .devcontainer/README.md.
+{
+  "name": "lean-manufacture M3",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".",
+    "args": {
+      // GID do /var/run/docker.sock visto de dentro de um contêiner (Docker Desktop/WSL2: 1001).
+      "DOCKER_GID": "${localEnv:DOCKER_GID:1001}"
+    }
+  },
+  // Rede do hospedeiro do Docker: broker (1883/9001), OPC UA do CLP (4840/4841) e AAS (8091) da base respondem
+  // em localhost, e a planta Godot da base roda sem argumentos extras. Medido na tarefa 1.0
+  // (docs/evidencias/f1-1.0-devcontainer.md); alternativa em bridge com host.docker.internal descrita no README.
+  "runArgs": ["--network=host"],
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "workspaceFolder": "/workspace",
+  "mounts": [
+    // docker-outside-of-docker: o daemon é o do hospedeiro.
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+    // Toolchain do ESP32 baixada pelo PlatformIO (ADR-0018), preservada entre recriações do contêiner.
+    "source=lean-m3-platformio,target=/home/dev/.platformio,type=volume"
+  ],
+  "remoteUser": "dev",
+  "containerUser": "dev",
+  "updateRemoteUserUID": false,
+  // Endereços padrão (locais). Os componentes leem estas variáveis e usam o mesmo valor por padrão.
+  "containerEnv": {
+    "MQTT_HOST": "localhost",
+    "MQTT_PORT": "1883",
+    "AAS_URL": "http://localhost:8091"
+  },
+  "forwardPorts": [4850, 4851, 8501],
+  "portsAttributes": {
+    "4850": { "label": "OPC UA dos dispositivos" },
+    "4851": { "label": "OPC UA T2T" },
+    "8501": { "label": "Dashboard Streamlit" }
+  },
+  "postCreateCommand": "git lfs version && godot --version && uv --version",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "platformio.platformio-ide"
+      ]
+    }
+  }
+}
