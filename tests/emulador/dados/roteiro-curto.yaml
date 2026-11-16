@@ -1,0 +1,12 @@
+# Roteiro curto e sintético dos testes (fonte roteiro).
+descricao: "teste: 2 ciclos, 1 scan, telemetria a cada 1 s"
+dispositivo: teste-emu01
+fim_apos_s: 1
+telemetria:
+  temperatura: [24.0, 24.5]
+passos:
+  - {apos_s: 0.5, ciclo: inicio}
+  - {apos_s: 3.25, ciclo: fim}
+  - {apos_s: 0.5, scan: P0042, ponto: entrada}
+  - {apos_s: 0.25, ciclo: inicio}
+  - {apos_s: 2.0, ciclo: fim}

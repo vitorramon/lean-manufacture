@@ -1,0 +1,29 @@
+[project]
+name = "lean-emulador"
+version = "1.0.0"
+description = "Emulador Python dos dispositivos da L0 (contrato dev/v1) com fontes de estímulo roteiro, godot e operador"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "lean-contrato",
+    "paho-mqtt>=2.2.0",
+]
+
+[project.scripts]
+emulador = "emulador.__main__:main"
+
+[tool.uv.sources]
+lean-contrato = { path = "../../pipeline/contrato", editable = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.17.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/emulador"]

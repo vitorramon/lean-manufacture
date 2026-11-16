@@ -1,0 +1,22 @@
+# Configuração SÓ PARA TESTES do emulador: dispositivo fictício teste-emu01, para os testes de integração não
+# tocarem no status retido do esp32-bat01 no broker compartilhado. Segue o esquema de config/dispositivos.yaml.
+versao: 1
+contrato: dev/v1
+dispositivos:
+  - id: teste-emu01
+    objeto_opcua: TesteEmu_01
+    estacao: Bateria
+    descricao: Dispositivo de teste (ciclo, scan e temperatura) com período curto de telemetria
+    tipo: esp32
+    canais:
+      temperatura:
+        unidade: "°C"
+        variavel_opcua: Temperatura
+        periodo_s: 1
+        faixa: {min: 0.0, max: 60.0, estado: a_calibrar}
+    eventos:
+      ciclo:
+        campos:
+          dur_s: {unidade: s, variavel_opcua: TempoCiclo, faixa: {min: 1.0, max: 600.0, estado: a_calibrar}}
+      scan:
+        pontos: [entrada, teste, saida]

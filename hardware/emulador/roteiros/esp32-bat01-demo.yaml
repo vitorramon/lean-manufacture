@@ -1,0 +1,33 @@
+# Roteiro de demonstração e teste do esp32-bat01 (fonte roteiro, origem emulador:roteiro).
+# Valores ESCRITOS À MÃO, sintéticos: servem a desenvolvimento, testes e demo de reserva.
+# Nunca entram em estatística nem na geração "Medido (M3)" (ADR-0013).
+#
+# apos_s = tempo desde o passo anterior, no relógio do dispositivo (virtual: determinístico).
+# Telemetria de temperatura: um valor a cada periodo_s do canal (5 s em config/dispositivos.yaml), em rodízio.
+
+descricao: "Posto Bateria: 8 ciclos em torno de 27 s, uma pausa longa, um repique de botão e uma temperatura fora da faixa"
+dispositivo: esp32-bat01
+repetir: 1
+fim_apos_s: 6
+
+telemetria:
+  temperatura: [24.6, 24.7, 24.9, 25.0, 25.2, 25.1, 24.9, 24.8]
+
+passos:
+  - {apos_s: 2.0,   ciclo: inicio}
+  - {apos_s: 27.42, ciclo: fim}
+  - {apos_s: 1.20,  ciclo: inicio}
+  - {apos_s: 26.85, ciclo: fim}
+  - {apos_s: 0.90,  ciclo: inicio}
+  - {apos_s: 28.10, ciclo: fim}
+  - {apos_s: 1.10,  ciclo: inicio}
+  - {apos_s: 0.40,  ciclo: fim}       # repique de botão: dur_s 0,4 s fica abaixo da faixa (1 s) e o gateway rejeita
+  - {apos_s: 1.00,  ciclo: inicio}
+  - {apos_s: 27.05, ciclo: fim}
+  - {apos_s: 0,     tel: temperatura, v: 75.0}   # fora da faixa 0–60 °C: o gateway deve rejeitar
+  - {apos_s: 1.30,  ciclo: inicio}
+  - {apos_s: 41.70, ciclo: fim}       # ciclo longo (pausa do operador simulada)
+  - {apos_s: 1.00,  ciclo: inicio}
+  - {apos_s: 26.60, ciclo: fim}
+  - {apos_s: 1.20,  ciclo: inicio}
+  - {apos_s: 27.90, ciclo: fim}
