@@ -1,0 +1,84 @@
+# Estímulo de CALIBRAÇÃO do esp32-bat01 (tarefa 1.11, RF-A1-06; procedimento em docs/calibracao.md).
+# Sintético e escrito à mão: serve para calibrar o PROCEDIMENTO sobre emulação, não é medição (ADR-0013).
+# Mesmo formato da bancada do QEMU (hardware/firmware/bancada/): uma linha por comando; "espera <s>" pausa.
+#   - firmware no QEMU: ./emular.sh --estimulo ../calibracao/estimulo-calibracao.txt --duracao 330
+#   - emulador Python (fonte operador): python hardware/calibracao/alimentar_operador.py ... | emulador --fonte operador
+#     (o alimentador traduz "toque" em Enter e ignora "temp" e "estado")
+# A duração nominal de cada ciclo é a soma das "espera" entre dois toques: é a referência do teste de padrão.
+espera 10       # boot, DHCP e conexão MQTT (QEMU); conexão (emulador)
+# --- Teste 1, zero: 30 s sem toque e com o sensor em falha (nada de evento, nada de telemetria)
+temp nan
+espera 30
+# --- Repetibilidade da temperatura: 30 s com o mesmo estímulo (~6 leituras de 24.6 °C)
+temp 24.6
+espera 30
+# --- Teste 3, repetibilidade do botão: 10 ciclos do mesmo estímulo, 10 s cada
+toque
+espera 10
+toque
+espera 2
+toque
+espera 10
+toque
+espera 2
+toque
+espera 10
+toque
+espera 2
+toque
+espera 10
+toque
+espera 2
+toque
+espera 10
+toque
+espera 2
+toque
+espera 10
+toque
+espera 2
+toque
+espera 10
+toque
+espera 2
+toque
+espera 10
+toque
+espera 2
+toque
+espera 10
+toque
+espera 2
+toque
+espera 10
+toque
+espera 2
+# --- Teste 2, padrão conhecido: 2 s, 5 s, 27 s (tempo do posto no M2) e 40 s
+toque
+espera 2
+toque
+espera 2
+toque
+espera 5
+toque
+espera 2
+toque
+espera 27
+toque
+espera 2
+toque
+espera 40
+toque
+espera 2
+# --- Teste 4, faixa da temperatura: extremos do processo e fora deles (a cadeia não pode saturar nem cortar)
+temp 0
+espera 6
+temp 60
+espera 6
+temp -5
+espera 6
+temp 75
+espera 6
+temp 24.6
+espera 6
+estado

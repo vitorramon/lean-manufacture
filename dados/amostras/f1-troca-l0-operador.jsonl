@@ -1,0 +1,12 @@
+{"_meta": {"fonte": "operador", "tarefa": "1.10", "filtro": "dev/v1/esp32-bat01/#", "gravado_em": "2026-11-16T00:33:30+00:00"}}
+{"rx": "2026-11-16T00:33:30.618+00:00", "topic": "dev/v1/esp32-bat01/status", "retain": true, "qos": 1, "payload": {"v": "offline", "fw": "1.0.0", "boot": 13, "origem": "emulador:godot"}, "valido": true, "motivo": null}
+{"rx": "2026-11-16T00:34:10.833+00:00", "topic": "dev/v1/esp32-bat01/status", "retain": false, "qos": 1, "payload": {"v": "online", "fw": "1.0.0", "boot": 14, "origem": "emulador:operador"}, "valido": true, "motivo": null}
+{"rx": "2026-11-16T00:34:15.697+00:00", "topic": "dev/v1/esp32-bat01/evt/ciclo", "retain": false, "qos": 1, "payload": {"seq": 0, "up_ms": 4865, "boot": 14, "fase": "inicio"}, "valido": true, "motivo": null}
+{"rx": "2026-11-16T00:34:18.896+00:00", "topic": "dev/v1/esp32-bat01/evt/ciclo", "retain": false, "qos": 1, "payload": {"seq": 1, "up_ms": 8073, "boot": 14, "fase": "fim", "dur_s": 3.208}, "valido": true, "motivo": null}
+{"rx": "2026-11-16T00:34:20.904+00:00", "topic": "dev/v1/esp32-bat01/evt/ciclo", "retain": false, "qos": 1, "payload": {"seq": 2, "up_ms": 10081, "boot": 14, "fase": "inicio"}, "valido": true, "motivo": null}
+{"rx": "2026-11-16T00:34:25.470+00:00", "topic": "dev/v1/esp32-bat01/evt/ciclo", "retain": false, "qos": 1, "payload": {"seq": 3, "up_ms": 14648, "boot": 14, "fase": "fim", "dur_s": 4.567}, "valido": true, "motivo": null}
+{"rx": "2026-11-16T00:34:27.479+00:00", "topic": "dev/v1/esp32-bat01/evt/ciclo", "retain": false, "qos": 1, "payload": {"seq": 4, "up_ms": 16656, "boot": 14, "fase": "inicio"}, "valido": true, "motivo": null}
+{"rx": "2026-11-16T00:34:30.187+00:00", "topic": "dev/v1/esp32-bat01/evt/ciclo", "retain": false, "qos": 1, "payload": {"seq": 5, "up_ms": 19364, "boot": 14, "fase": "fim", "dur_s": 2.708}, "valido": true, "motivo": null}
+{"rx": "2026-11-16T00:34:32.196+00:00", "topic": "dev/v1/esp32-bat01/evt/ciclo", "retain": false, "qos": 1, "payload": {"seq": 6, "up_ms": 21373, "boot": 14, "fase": "inicio"}, "valido": true, "motivo": null}
+{"rx": "2026-11-16T00:34:34.004+00:00", "topic": "dev/v1/esp32-bat01/evt/ciclo", "retain": false, "qos": 1, "payload": {"seq": 7, "up_ms": 23182, "boot": 14, "fase": "fim", "dur_s": 1.809}, "valido": true, "motivo": null}
+{"rx": "2026-11-16T00:34:47.158+00:00", "topic": "dev/v1/esp32-bat01/status", "retain": false, "qos": 1, "payload": {"v": "offline", "fw": "1.0.0", "boot": 14, "origem": "emulador:operador"}, "valido": true, "motivo": null}
