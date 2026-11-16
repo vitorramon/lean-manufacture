@@ -3,7 +3,8 @@
 Três tarefas no mesmo laço asyncio:
 - cliente OPC UA (subscription + reconexão) → Processador → fila de escrita;
 - escritor do banco: único escritor do SQLite (ADR-0007), aplica a fila em lotes numa transação (to_thread);
-- sincronizador do AAS: a cada `AAS_INTERVALO_S`, envia o último estado dos dispositivos alterados.
+- sincronizador do AAS: a cada `AAS_INTERVALO_S`, envia o último estado dos dispositivos alterados e a ficha
+  (`Rastreabilidade`) de cada peça com evento novo gravado, refeita a partir da tabela `eventos` (tarefa 2.5).
 """
 
 from __future__ import annotations
@@ -17,59 +18,100 @@ import signal
 import sqlite3
 from pathlib import Path
 
-from contrato import carregar_dispositivos
+from contrato import carregar_dispositivos, carregar_rastreio
 
 from aas_sync.aas import ClienteAas, montar_submodelo
-from aas_sync.banco import Banco, Operacao
+from aas_sync.banco import Banco, Evento, Operacao, vazio
 from aas_sync.cliente_opcua import manter_conexao
 from aas_sync.configuracao import Configuracao
-from aas_sync.processador import Notificacao, Processador
+from aas_sync.ficha import montar_shell_peca, montar_submodelo_peca, qr_do_submodelo
+from aas_sync.processador import MarcaNumeracao, Notificacao, Processador
 from aas_sync.saude import INTERVALO_S, escrever
 
 log = logging.getLogger("aas_sync")
 LOTE_MAXIMO = 500
 RETENTATIVA_INICIAL_S = 0.5
 RETENTATIVA_MAXIMA_S = 10.0
+FICHAS_POR_CICLO = 200          # fichas de peça enviadas ao AAS por ciclo; o resto fica para o próximo
 
 
 class Sincronizador:
     def __init__(self, cfg: Configuracao):
         self.cfg = cfg
         self.dispositivos = carregar_dispositivos(cfg.dispositivos_path)
+        self.rastreio = carregar_rastreio(cfg.rastreio_path)
         self.processador = Processador(self.dispositivos)
         self.banco = Banco(cfg.db_path)
         self.fila: asyncio.Queue[list[Operacao]] = asyncio.Queue()
         self.aas = ClienteAas(cfg.aas_url) if cfg.aas_ativo else None
         self.aas_garantidos: set[str] = set()
-        self.totais = {"leituras": 0, "rejeitados": 0, "sessoes_abertas": 0, "sessoes_fechadas": 0,
-                       "aas_atualizacoes": 0, "falhas_banco": 0,
-                       "falhas_banco_consecutivas": 0, "lotes_em_quarentena": 0}
+        self.pecas_alteradas: set[str] = set()   # peças com evento gravado e ficha ainda não enviada ao AAS
+        self.pecas_garantidas: set[str] = set()
+        self.totais = {**vazio(), "aas_atualizacoes": 0, "fichas_aas": 0, "falhas_banco": 0,
+                       "falhas_banco_consecutivas": 0, "lotes_em_quarentena": 0, "eventos_perdidos": 0}
         self.gravado = asyncio.Event()   # sinaliza cada lote gravado (testes esperam por ele)
+        # um arquivo por banco: dados.db e dados.f2.db na mesma pasta não misturam a numeração
+        banco = Path(cfg.db_path)
+        self.numeracao_path = banco.parent / "estado" / "aas-sync" / f"numeracao-{banco.stem}.json"
+        self._restaurar_numeracao()
+
+    def _restaurar_numeracao(self) -> None:
+        """Numeração gravada antes do reinício (revisão da Fase 2, achado 3): sem ela, o primeiro evento depois de
+        voltar viraria a nova base e os eventos publicados com o aas-sync fora do ar sumiriam sem ser contados."""
+        try:
+            estado = json.loads(self.numeracao_path.read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            return
+        except (OSError, ValueError) as erro:
+            log.warning("numeração do aas-sync ilegível em %s (%s): começa sem base", self.numeracao_path, erro)
+            return
+        self.processador.restaurar_numeracao(estado)
+        log.info("numeração restaurada de %s: gateway iniciado em %s, último evento de peça n=%s",
+                 self.numeracao_path, estado.get("inicio_gateway"), estado.get("ultimo_n_evento"))
+
+    def _gravar_numeracao(self, numeracao: dict) -> None:
+        self.numeracao_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self.numeracao_path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(numeracao), encoding="utf-8")
+        os.replace(tmp, self.numeracao_path)       # atômico: o arquivo nunca fica pela metade
 
     def entregar(self, n: Notificacao) -> None:
         ops = self.processador.processar(n)
         if ops:
-            self.fila.put_nowait(ops)
+            # a numeração vai junto com as operações: só é gravada depois que o lote delas foi gravado
+            self.fila.put_nowait([*ops, MarcaNumeracao(self.processador.numeracao())])
 
     async def escrever_banco(self) -> None:
         while True:
-            lote = list(await self.fila.get())
+            bruto = list(await self.fila.get())
             itens = 1
-            while not self.fila.empty() and len(lote) < LOTE_MAXIMO:
-                lote += self.fila.get_nowait()
+            while not self.fila.empty() and len(bruto) < LOTE_MAXIMO:
+                bruto += self.fila.get_nowait()
                 itens += 1
-            cont = await self._gravar_com_retentativa(lote)
+            marcas = [op for op in bruto if isinstance(op, MarcaNumeracao)]
+            lote = [op for op in bruto if not isinstance(op, MarcaNumeracao)]
+            cont = await self._gravar_com_retentativa(lote) if lote else vazio()
+            if marcas:                  # lote gravado (ou em quarentena): a numeração pode avançar
+                try:
+                    await asyncio.to_thread(self._gravar_numeracao, marcas[-1].numeracao)
+                except OSError as erro:
+                    log.warning("não consegui gravar a numeração em %s: %s", self.numeracao_path, erro)
             for _ in range(itens):
                 self.fila.task_done()
+            if cont is None:            # lote em quarentena: nada gravado
+                cont = vazio()
+            elif self.aas is not None:
+                self.pecas_alteradas.update(op.peca for op in lote if isinstance(op, Evento))
             for k, v in cont.items():
                 self.totais[k] += v
+            self.totais["eventos_perdidos"] = self.processador.eventos_perdidos
             if cont["sessoes_abertas"] or cont["sessoes_fechadas"]:
                 log.info("sessões: +%d abertas, %d fechadas", cont["sessoes_abertas"], cont["sessoes_fechadas"])
             if cont["rejeitados"]:
                 log.info("%d rejeição(ões) gravada(s) em rejeitados", cont["rejeitados"])
             self.gravado.set()
 
-    async def _gravar_com_retentativa(self, lote: list[Operacao]) -> dict[str, int]:
+    async def _gravar_com_retentativa(self, lote: list[Operacao]) -> dict[str, int] | None:
         """Grava o lote sem descartar leituras já aceitas pelo gateway (RF-A2-09).
 
         - Erro transitório do SQLite (`OperationalError`: banco travado, disco cheio, E/S): repete com backoff
@@ -77,7 +119,9 @@ class Sincronizador:
           duplica linhas. Enquanto isso, a fila segura o que chega.
         - Qualquer outro erro (banco corrompido, operação malformada) não passa repetindo: o lote vai para o arquivo
           de quarentena (JSON Lines, ao lado do banco) e o escritor segue, para um lote envenenado não travar tudo.
-        - `falhas_banco_consecutivas` vai para o arquivo de saúde: acima do limite, o healthcheck acusa falha."""
+        - `falhas_banco_consecutivas` vai para o arquivo de saúde: acima do limite, o healthcheck acusa falha.
+
+        Devolve as contagens do lote gravado, ou None se ele foi para a quarentena."""
         espera = RETENTATIVA_INICIAL_S
         tentativa = 1
         while True:
@@ -102,7 +146,7 @@ class Sincronizador:
                 else:
                     self.totais["lotes_em_quarentena"] += 1
                     log.error("lote de %d operação(ões) em quarentena em %s", len(lote), caminho)
-                return {"leituras": 0, "rejeitados": 0, "sessoes_abertas": 0, "sessoes_fechadas": 0}
+                return None
             self.totais["falhas_banco"] += 1
             self.totais["falhas_banco_consecutivas"] += 1
             await asyncio.sleep(espera)
@@ -141,6 +185,41 @@ class Sincronizador:
                     self.processador.alterados.add(disp)
                     self.aas_garantidos.discard(disp)
                     log.warning("AAS indisponível em %s para %s: %s", self.cfg.aas_url, disp, erro)
+            await self.sincronizar_fichas()
+
+    async def sincronizar_fichas(self) -> None:
+        """Ficha `Rastreabilidade` de cada peça com evento novo, montada a partir de `eventos` (a tabela é a fonte;
+        a ficha é projeção, como o submodelo dos dispositivos). Falha do AAS devolve a peça para o próximo ciclo."""
+        if self.aas is None:
+            return
+        lote = sorted(self.pecas_alteradas)[:FICHAS_POR_CICLO]
+        self.pecas_alteradas.difference_update(lote)
+        planta = self.rastreio.get("planta")
+        for peca in lote:
+            try:
+                linhas = await asyncio.to_thread(self.banco.eventos_da_peca, peca)
+                if not linhas:
+                    continue
+                qr = self.processador.qr_por_peca.get(peca)
+                sm = montar_submodelo_peca(linhas, self.rastreio["trecho"], planta, qr)
+                if peca not in self.pecas_garantidas:
+                    resultado, existente = await asyncio.to_thread(self.aas.garantir_par,
+                                                                   montar_shell_peca(peca, planta), sm)
+                    self.pecas_garantidas.add(peca)
+                    if qr is None and (qr := qr_do_submodelo(existente)) is not None:
+                        self.processador.qr_por_peca[peca] = qr     # reinício: mantém o QR que já estava
+                        sm = montar_submodelo_peca(linhas, self.rastreio["trecho"], planta, qr)
+                    if resultado == "criado":
+                        log.info("ficha da peça %s criada no AAS", peca)
+                await asyncio.to_thread(self.aas.atualizar, sm)
+                self.totais["fichas_aas"] += 1
+            except (OSError, RuntimeError) as erro:
+                self.pecas_alteradas.add(peca)
+                self.pecas_garantidas.discard(peca)
+                log.warning("AAS indisponível em %s para a ficha da peça %s: %s", self.cfg.aas_url, peca, erro)
+            except sqlite3.Error as erro:
+                self.pecas_alteradas.add(peca)
+                log.warning("não consegui ler os eventos da peça %s para a ficha: %s", peca, erro)
 
 
 async def sinal_de_vida(caminho: Path, s: Sincronizador, conectado: asyncio.Event, parar: asyncio.Event) -> None:
@@ -190,7 +269,8 @@ async def principal(cfg: Configuracao, parar: asyncio.Event | None = None,
         for t in tarefas:
             t.cancel()
         await asyncio.gather(*tarefas, return_exceptions=True)
-        log.info("encerrando: %s; rejeições perdidas %d", s.totais, s.processador.rejeicoes_perdidas)
+        log.info("encerrando: %s; rejeições perdidas %d; eventos de peça perdidos %d, malformados %d", s.totais,
+                 s.processador.rejeicoes_perdidas, s.processador.eventos_perdidos, s.processador.eventos_malformados)
         s.banco.fechar()
 
 

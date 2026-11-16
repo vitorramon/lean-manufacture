@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 import threading
 
-from aas_sync.banco import AbrirSessao, Banco, FecharSessoes, Leitura, Rejeicao
+from aas_sync.banco import AbrirSessao, Banco, Evento, FecharSessoes, Leitura, Rejeicao
 
 ESPERADO = {
     "leituras": [("ts", "TEXT"), ("node", "TEXT"), ("valor", "REAL")],
@@ -106,3 +106,22 @@ def test_escrita_e_leitura_concorrentes_sem_lock(tmp_path):
     t.join()
     assert not erros
     assert b.con.execute("SELECT COUNT(*) FROM leituras").fetchone()[0] == 200
+
+
+def test_evento_de_peca_e_idempotente_e_valor_nulo_fica_nulo(tmp_path):
+    """ADR-0026 item 5 / tarefa 2.5: índice único (ts, peca, estacao, evento) + INSERT OR IGNORE."""
+    caminho = tmp_path / "d.db"
+    b = Banco(caminho)
+    entrada = Evento(TS, "P0042", "Bateria", "entrada", None)
+    fim = Evento(TS.replace("00.123456", "27.600000"), "P0042", "Bateria", "fim", 27.42)
+    assert b.aplicar([entrada, fim, entrada])["eventos"] == 2
+    b.fechar()
+    b = Banco(caminho)   # reinício: a notificação inicial repete o último evento
+    assert b.aplicar([fim])["eventos"] == 0
+    assert b.con.execute("SELECT ts, peca, estacao, evento, valor FROM eventos ORDER BY ts").fetchall() == [
+        (TS, "P0042", "Bateria", "entrada", None), (fim.ts, "P0042", "Bateria", "fim", 27.42)]
+    indices = {r[1]: r[2] for r in b.con.execute("PRAGMA index_list(eventos)")}
+    assert indices["ux_eventos_ts_peca_estacao_evento"] == 1
+    assert b.eventos_da_peca("P0042") == [(TS, "P0042", "Bateria", "entrada", None),
+                                          (fim.ts, "P0042", "Bateria", "fim", 27.42)]
+    assert b.eventos_da_peca("P9999") == []

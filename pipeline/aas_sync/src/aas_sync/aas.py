@@ -147,6 +147,43 @@ class ClienteAas:
             raise RuntimeError(f"GET /shells {sid}: HTTP {st}")
         return "criado" if criado else "existente"
 
+    def garantir_par(self, shell: dict[str, Any], submodelo: dict[str, Any]) -> tuple[str, dict[str, Any] | None]:
+        """Cria shell e submodelo (já montados) se faltarem, como `garantir`. Devolve ('criado' | 'existente', o
+        submodelo que já estava no AAS ou None). Usado pela ficha da peça (tarefa 2.5)."""
+        self._guarda(shell["id"])
+        self._guarda(submodelo["id"])
+        criado, existente = False, None
+        st, corpo = self._req("GET", f"/submodels/{b64url(submodelo['id'])}")
+        if st == 404:
+            st, corpo = self._req("POST", "/submodels", submodelo)
+            if st not in (200, 201):
+                raise RuntimeError(f"POST /submodels {submodelo['id']}: HTTP {st}: {str(corpo)[:300]}")
+            criado = True
+        elif st == 200:
+            existente = corpo if isinstance(corpo, dict) else None
+        else:
+            raise RuntimeError(f"GET /submodels {submodelo['id']}: HTTP {st}")
+        st, _ = self._req("GET", f"/shells/{b64url(shell['id'])}")
+        if st == 404:
+            st, corpo = self._req("POST", "/shells", shell)
+            if st not in (200, 201):
+                raise RuntimeError(f"POST /shells {shell['id']}: HTTP {st}: {str(corpo)[:300]}")
+            criado = True
+        elif st != 200:
+            raise RuntimeError(f"GET /shells {shell['id']}: HTTP {st}")
+        return ("criado" if criado else "existente"), existente
+
+    def ler(self, caminho: str) -> dict[str, Any] | None:
+        """GET genérico (só leitura): /shells/{id} ou /submodels/{id} com o id em base64url."""
+        st, corpo = self._req("GET", caminho)
+        return corpo if st == 200 and isinstance(corpo, dict) else None
+
+    def apagar(self, identificador: str, tipo: str) -> int:
+        """DELETE de um shell ou submodelo do prefixo do grupo (testes limpam o que criaram)."""
+        self._guarda(identificador)
+        st, _ = self._req("DELETE", f"/{tipo}/{b64url(identificador)}")
+        return st
+
     def atualizar(self, submodelo: dict[str, Any]) -> None:
         self._guarda(submodelo["id"])
         st, corpo = self._req("PUT", f"/submodels/{b64url(submodelo['id'])}", submodelo)

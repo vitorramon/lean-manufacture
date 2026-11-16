@@ -3,15 +3,17 @@
 Colunas exatamente como nas aulas e no SPECS:
 
     leituras(ts TEXT, node TEXT, valor REAL)                               -- M2.A3, medidas de processo
-    eventos(ts TEXT, peca TEXT, estacao TEXT, evento TEXT, valor REAL)     -- M3.A2, eventos por peça (Fase 2)
+    eventos(ts TEXT, peca TEXT, estacao TEXT, evento TEXT, valor REAL)     -- M3.A2, eventos por peça (2.5)
     sessoes(dispositivo TEXT, origem TEXT, inicio TEXT, fim TEXT)          -- ADR-0013
     rejeitados(ts, dispositivo, topico, categoria, motivo, payload, n)     -- descartes do gateway (ADR-0019)
 
 `ts`, `inicio` e `fim` são ISO 8601 com fuso, sempre do relógio do gateway (SourceTimestamp OPC UA).
-Idempotência ao reiniciar: índices únicos (sem colunas novas) fazem `INSERT OR IGNORE` descartar a mesma leitura ou
-rejeição entregue de novo pela notificação inicial de uma subscription.
+Idempotência ao reiniciar: índices únicos (sem colunas novas) fazem `INSERT OR IGNORE` descartar a mesma leitura,
+rejeição ou evento de peça entregue de novo pela notificação inicial de uma subscription. Em `eventos` o índice é
+`(ts, peca, estacao, evento)` (ADR-0026 item 5; tarefa 2.5).
 
-Uma conexão, usada por uma tarefa de cada vez (o chamador serializa as escritas numa fila).
+Uma conexão de escrita, usada por uma tarefa de cada vez (o chamador serializa as escritas numa fila), e uma de
+leitura (somente leitura, `mode=ro`) para a ficha da peça no AAS, que lê `eventos` sem disputar a escrita (WAL).
 """
 
 from __future__ import annotations
@@ -31,6 +33,7 @@ CREATE TABLE IF NOT EXISTS rejeitados(
     ts TEXT, dispositivo TEXT, topico TEXT, categoria TEXT, motivo TEXT, payload TEXT, n INTEGER);
 CREATE UNIQUE INDEX IF NOT EXISTS ux_leituras_node_ts ON leituras(node, ts);
 CREATE INDEX IF NOT EXISTS ix_eventos_peca ON eventos(peca, ts);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_eventos_ts_peca_estacao_evento ON eventos(ts, peca, estacao, evento);
 CREATE UNIQUE INDEX IF NOT EXISTS ux_sessoes_disp_inicio ON sessoes(dispositivo, inicio);
 CREATE UNIQUE INDEX IF NOT EXISTS ux_rejeitados_ts_topico_n ON rejeitados(ts, topico, n);
 """
@@ -55,6 +58,17 @@ class Rejeicao:
 
 
 @dataclass(frozen=True)
+class Evento:
+    """Uma linha de `eventos` (colunas da aula M3.A2). `ts` vem do gateway, dentro do JSON de UltimoEventoPeca."""
+
+    ts: str
+    peca: str
+    estacao: str
+    evento: str
+    valor: float | None
+
+
+@dataclass(frozen=True)
 class AbrirSessao:
     dispositivo: str
     origem: str
@@ -69,7 +83,12 @@ class FecharSessoes:
     fim: str
 
 
-Operacao = Leitura | Rejeicao | AbrirSessao | FecharSessoes
+Operacao = Leitura | Rejeicao | Evento | AbrirSessao | FecharSessoes
+
+
+def vazio() -> dict[str, int]:
+    """Contagem zerada de um lote (as chaves somam em `Sincronizador.totais`)."""
+    return {"leituras": 0, "eventos": 0, "rejeitados": 0, "sessoes_abertas": 0, "sessoes_fechadas": 0}
 
 
 class Banco:
@@ -84,13 +103,25 @@ class Banco:
         self.con.execute("PRAGMA synchronous=NORMAL")
         self.con.executescript(ESQUEMA)
         self.con.commit()
+        self._leitor: sqlite3.Connection | None = None
 
     def fechar(self) -> None:
+        if self._leitor is not None:
+            self._leitor.close()
         self.con.close()
+
+    def eventos_da_peca(self, peca: str) -> list[tuple[str, str, str, str, float | None]]:
+        """Linhas (ts, peca, estacao, evento, valor) da peça em ordem de ts, pela conexão de leitura (para a ficha
+        no AAS). Roda em outra thread que a escrita; o WAL deixa ler enquanto o escritor grava."""
+        if self._leitor is None:
+            self._leitor = sqlite3.connect(f"{self.caminho.resolve().as_uri()}?mode=ro", uri=True,
+                                           check_same_thread=False, timeout=10)
+        return self._leitor.execute("SELECT ts, peca, estacao, evento, valor FROM eventos WHERE peca = ? "
+                                    "ORDER BY ts, rowid", (peca,)).fetchall()
 
     def aplicar(self, ops: list[Operacao]) -> dict[str, int]:
         """Aplica um lote numa transação. Devolve quantas linhas cada tipo de operação inseriu/alterou."""
-        cont = {"leituras": 0, "rejeitados": 0, "sessoes_abertas": 0, "sessoes_fechadas": 0}
+        cont = vazio()
         with self.con:
             for op in ops:
                 match op:
@@ -98,6 +129,10 @@ class Banco:
                         cont["leituras"] += self.con.execute(
                             "INSERT OR IGNORE INTO leituras(ts, node, valor) VALUES (?, ?, ?)",
                             (op.ts, op.node, op.valor)).rowcount
+                    case Evento():
+                        cont["eventos"] += self.con.execute(
+                            "INSERT OR IGNORE INTO eventos(ts, peca, estacao, evento, valor) VALUES (?, ?, ?, ?, ?)",
+                            (op.ts, op.peca, op.estacao, op.evento, op.valor)).rowcount
                     case Rejeicao():
                         cont["rejeitados"] += self.con.execute(
                             "INSERT OR IGNORE INTO rejeitados(ts, dispositivo, topico, categoria, motivo, payload, n)"
