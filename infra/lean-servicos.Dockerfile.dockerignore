@@ -1,0 +1,8 @@
+# Contexto = raiz do repositório; só o pipeline entra na imagem (base/ e simulador/ têm GBs com LFS).
+*
+!pipeline/contrato/
+!pipeline/device_gateway/
+!pipeline/aas_sync/
+**/.venv
+**/__pycache__
+**/*.pyc

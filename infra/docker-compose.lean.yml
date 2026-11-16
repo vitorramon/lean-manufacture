@@ -1,0 +1,95 @@
+# Serviços do M3 sobre o compose da base Virtual-Factory (ADR-0012), sem editá-lo (ADR-0001).
+#
+# Uso (da raiz do repositório; o start.py faz isto):
+#   docker compose -f base/infra/docker-compose.yml -f infra/docker-compose.lean.yml up -d --build --wait
+#
+# ATENÇÃO aos caminhos: com vários -f, o Compose resolve os caminhos relativos a partir da pasta do PRIMEIRO
+# arquivo (base/infra). Por isso "../.." aqui é a raiz deste repositório.
+#
+# Perfil reduzido (ADR-0016, perfil A): os 19 serviços da base que o M3 não usa recebem o profile
+# "base-completa". Sem --profile, sobem só mqtt, db, basyx-config, provisioner, aas-env, aas-ui, plc-comm, edge e os
+# serviços do M3. A pilha completa volta com --profile base-completa. (nodered já tem o profile "sandbox" na base.)
+
+x-fora-do-perfil: &fora-do-perfil
+  profiles: [base-completa]
+
+x-lean-servico: &lean-servico
+  image: lean-m3-servicos:dev
+  build:
+    context: ../..
+    dockerfile: infra/lean-servicos.Dockerfile
+  user: "${LEAN_UID:-1000}:${LEAN_GID:-1000}"
+  volumes:
+    - ../../config:/app/config:ro
+  restart: unless-stopped
+
+services:
+  # --- serviços da base fora do perfil reduzido (ADR-0016) ---
+  dpp-api: *fora-do-perfil
+  influxdb3: *fora-do-perfil
+  historian: *fora-do-perfil
+  grafana: *fora-do-perfil
+  bpmn: *fora-do-perfil
+  bridge: *fora-do-perfil
+  mes: *fora-do-perfil
+  ops-gateway: *fora-do-perfil
+  sustainability: *fora-do-perfil
+  erp: *fora-do-perfil
+  alarms-db: *fora-do-perfil
+  alarms: *fora-do-perfil
+  maintenance: *fora-do-perfil
+  resolver: *fora-do-perfil
+  supplier-db: *fora-do-perfil
+  supplier-config: *fora-do-perfil
+  supplier-provisioner: *fora-do-perfil
+  supplier-aas-env: *fora-do-perfil
+  supplier: *fora-do-perfil
+
+  # --- serviços do M3 ---
+  device-gateway:
+    <<: *lean-servico
+    command: ["/opt/device_gateway/bin/python", "-m", "device_gateway"]
+    environment:
+      MQTT_HOST: mqtt
+      MQTT_PORT: "1883"
+      OPCUA_ENDPOINT: opc.tcp://0.0.0.0:4850/lean/dispositivos
+      DISPOSITIVOS_PATH: /app/config/dispositivos.yaml
+      LOG_LEVEL: ${LEAN_LOG_LEVEL:-INFO}
+    ports:
+      - "4850:4850"
+    healthcheck:
+      test: ["CMD", "/opt/device_gateway/bin/python", "-m", "device_gateway.saude"]
+      interval: 10s
+      timeout: 8s
+      retries: 3
+      start_period: 20s
+      start_interval: 1s
+    depends_on:
+      mqtt:
+        condition: service_started
+
+  aas-sync:
+    <<: *lean-servico
+    command: ["/opt/aas_sync/bin/python", "-m", "aas_sync"]
+    environment:
+      OPCUA_URL: opc.tcp://device-gateway:4850/lean/dispositivos
+      AAS_URL: http://aas-env:8091
+      DB_PATH: /dados/dados.db
+      DISPOSITIVOS_PATH: /app/config/dispositivos.yaml
+      SAUDE_PATH: /tmp/aas_sync.saude
+      LOG_LEVEL: ${LEAN_LOG_LEVEL:-INFO}
+    volumes:
+      - ../../config:/app/config:ro
+      - ../../dados:/dados
+    healthcheck:
+      test: ["CMD", "/opt/aas_sync/bin/python", "-m", "aas_sync.saude"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+      start_interval: 1s
+    depends_on:
+      device-gateway:
+        condition: service_healthy
+      aas-env:
+        condition: service_started
