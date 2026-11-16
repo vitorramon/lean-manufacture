@@ -4,6 +4,7 @@ Fonte da verdade: os esquemas em contrato/esquemas/ e as mensagens de referênci
 """
 
 from contrato.dispositivos import ConfigInvalida, carregar_dispositivos
+from contrato.rastreio import carregar_rastreio
 from contrato.topicos import (
     ASSINATURAS,
     LAST_WILL,
@@ -37,6 +38,7 @@ __all__ = [
     "Topico",
     "analisar_topico",
     "carregar_dispositivos",
+    "carregar_rastreio",
     "esquema",
     "topico_evt",
     "topico_status",

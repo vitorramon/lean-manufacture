@@ -5,7 +5,8 @@ escrever no address space. O servidor OPC UA só aplica a Decisao (servidor_opcu
 
 Regras (ARCHITECTURE §6.1, regra contratos-l2):
 - forma e ausência de data/hora: pacote `contrato` (validar);
-- dispositivo, canal e evento precisam estar declarados em config/dispositivos.yaml;
+- dispositivo, canal e evento precisam estar declarados em config/dispositivos.yaml; no `scan`, o `ponto` precisa
+  estar em `pontos` do evento, quando declarado (tarefa 2.3);
 - valor fora da faixa do canal/campo é rejeitado;
 - sequência por (boot, seq): seq já visto no mesmo boot = duplicata (rejeitada, descartada); salto = lacuna
   (contada, a mensagem entra); tel/evt de boot anterior ao vigente = atrasada (rejeitada). A base da sequência só
@@ -17,6 +18,11 @@ Regras (ARCHITECTURE §6.1, regra contratos-l2):
 - o timestamp é o `agora` passado pelo chamador (datetime.now(timezone.utc) na chegada), carimbado só depois de
   aceita a mensagem. Nenhum campo do payload vira timestamp.
 - nenhuma regra depende de `origem` (ADR-0013): é só repassada à variável Origem.
+
+Depois da admissão, o rastreio por peça (pecas.py) pode recusar um `scan` aceito no contrato (QR sem regra, leitura
+repetida, peça já fechada): `recusar_no_rastreio` registra a recusa na mesma numeração de `UltimaRejeicao`
+(categoria `rastreio`, ADR-0026 item 4) e tira da escrita os campos numéricos do evento (ex.: ResultadoTeste), para
+o valor repetido não chegar a `leituras`. A sequência do dispositivo continua avançada: a mensagem chegou.
 """
 
 from __future__ import annotations
@@ -37,6 +43,7 @@ CONTRATO = "contrato"          # tópico, JSON, esquema, tipo, data/hora no payl
 CONFIGURACAO = "configuracao"  # dispositivo, canal ou evento não declarado em config/dispositivos.yaml
 FAIXA = "faixa"                # valor fora da faixa calibrada
 SEQUENCIA = "sequencia"        # duplicata ou mensagem atrasada no mesmo boot
+RASTREIO = "rastreio"          # scan aceito no contrato mas recusado no rastreio por peça (ADR-0026 item 4)
 JANELA_RECENTES = 64           # pares (seq, up_ms) aceitos guardados para separar reenvio de reinício
 
 
@@ -90,6 +97,9 @@ class Decisao:
     lacunas: int = 0
     rejeicao: dict[str, Any] | None = None  # JSON de UltimaRejeicao
     ignorada: bool = False  # status vazio = status retido apagado no broker: não é dado, não é rejeição
+    tipo: str | None = None   # status | tel | evt (só nas aceitas)
+    nome: str | None = None   # canal ou evento (só nas aceitas)
+    dados: dict[str, Any] = field(default_factory=dict)  # payload validado (só nas aceitas)
 
 
 class Admissao:
@@ -124,6 +134,11 @@ class Admissao:
             return self._rejeitar(topico, payload, agora, disp,
                                   f"{'canal' if t.tipo == 'tel' else 'evento'} não declarado para {disp}: {t.nome!r}",
                                   CONFIGURACAO)
+        pontos = declarado[t.nome].get("pontos")
+        if t.tipo == "evt" and pontos is not None and "ponto" in dados and dados["ponto"] not in pontos:
+            return self._rejeitar(topico, payload, agora, disp,
+                                  f"ponto {dados['ponto']!r} não declarado para {disp}/{t.nome} (pontos: "
+                                  f"{', '.join(pontos)})", CONFIGURACAO)
         motivo = self._fora_da_faixa(t.tipo, declarado[t.nome], dados)
         if motivo:
             return self._rejeitar(topico, payload, agora, disp, motivo, FAIXA)
@@ -242,10 +257,27 @@ class Admissao:
                 valores[var] = e.contadores[var]
             valores["UltimoEvento"] = json.dumps(
                 {"ts": agora.isoformat(), "evento": nome, "boot": e.boot, **dados}, ensure_ascii=False)
-        return Decisao(True, agora, topico, disp, self.dispositivos[disp]["objeto_opcua"], valores, lacunas=lacunas)
+        return Decisao(True, agora, topico, disp, self.dispositivos[disp]["objeto_opcua"], valores, lacunas=lacunas,
+                       tipo=tipo, nome=nome, dados=dados)
+
+    def recusar_no_rastreio(self, d: Decisao, payload: bytes | str, motivo: str) -> None:
+        """Mensagem aceita no contrato e recusada pelo rastreio por peça: vira rejeição `rastreio` numerada."""
+        cfg = self.dispositivos[d.dispositivo]["eventos"].get(d.nome, {})
+        for c in cfg.get("campos", {}).values():
+            d.valores.pop(c["variavel_opcua"], None)
+        d.motivo, d.categoria = motivo, RASTREIO
+        d.rejeicao = self._registrar_rejeicao(d.topico, payload, d.ts, d.dispositivo, motivo, RASTREIO, d.valores)
 
     def _rejeitar(self, topico: str, payload: bytes | str, agora: datetime, disp: str | None,
                   motivo: str, categoria: str) -> Decisao:
+        valores: dict[str, Any] = {}
+        rejeicao = self._registrar_rejeicao(topico, payload, agora, disp, motivo, categoria, valores)
+        objeto = self.dispositivos[disp]["objeto_opcua"] if disp in self.estado else None
+        return Decisao(False, agora, topico, disp, objeto, valores, motivo, categoria, rejeicao=rejeicao)
+
+    def _registrar_rejeicao(self, topico: str, payload: bytes | str, agora: datetime, disp: str | None,
+                            motivo: str, categoria: str, valores: dict[str, Any]) -> dict[str, Any]:
+        """Conta a rejeição (total e por dispositivo, em `valores`) e devolve o JSON de UltimaRejeicao."""
         self.rejeitados_total += 1
         bruto = payload.decode("utf-8", "replace") if isinstance(payload, (bytes, bytearray)) else str(payload)
         rejeicao = {
@@ -257,8 +289,6 @@ class Admissao:
             "motivo": motivo,
             "payload": bruto[:TAMANHO_MAXIMO],
         }
-        valores: dict[str, Any] = {}
-        objeto = None
         if disp in self.estado:
             e = self.estado[disp]
             e.rejeitados += 1
@@ -266,5 +296,4 @@ class Admissao:
             if categoria == SEQUENCIA:
                 e.duplicatas += 1
                 valores["Duplicatas"] = e.duplicatas
-            objeto = self.dispositivos[disp]["objeto_opcua"]
-        return Decisao(False, agora, topico, disp, objeto, valores, motivo, categoria, rejeicao=rejeicao)
+        return rejeicao

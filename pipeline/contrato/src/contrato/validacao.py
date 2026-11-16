@@ -59,7 +59,7 @@ def _rejeitar(motivo: str, topico: Topico | None = None) -> Resultado:
 
 @cache
 def esquema(nome: str) -> dict[str, Any]:
-    """Carrega um esquema do pacote: 'status', 'tel', 'evt.ciclo', 'evt.scan', 'dispositivos'."""
+    """Carrega um esquema do pacote: 'status', 'tel', 'evt.ciclo', 'evt.scan', 'dispositivos', 'rastreio'."""
     arquivo = resources.files("contrato").joinpath("esquemas", f"{nome}.schema.json")
     return json.loads(arquivo.read_text(encoding="utf-8"))
 

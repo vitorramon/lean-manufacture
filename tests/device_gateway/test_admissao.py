@@ -11,7 +11,8 @@ import json
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from conftest import AGORA, EXEMPLOS, bruto, com, exemplo
+from conftest import AGORA, EXEMPLOS, RAIZ, bruto, com, exemplo
+from contrato import carregar_rastreio
 from device_gateway.admissao import CONFIGURACAO, CONTRATO, FAIXA, SEQUENCIA, Admissao
 
 INVALIDOS = sorted((EXEMPLOS / "invalidos").glob("*.json"))
@@ -259,10 +260,23 @@ def test_ciclo_inicio_e_fim(admissao):
 
 
 def test_dispositivo_nao_declarado_e_rejeitado(admissao):
-    ex = exemplo("evt-scan-id-curto")  # qr-entrada ainda não está em config/dispositivos.yaml (tarefa 2.1)
-    d = admissao.processar(ex["topico"], bruto(ex), AGORA)
+    ex = exemplo("evt-scan-id-curto")
+    topico = ex["topico"].replace("/qr-entrada/", "/qr-inexistente/")  # qr-entrada foi declarado na tarefa 2.1
+    d = admissao.processar(topico, bruto(ex), AGORA)
     assert not d.aceita and d.categoria == CONFIGURACAO and d.objeto is None
-    assert d.rejeicao["dispositivo"] == "qr-entrada"
+    assert d.rejeicao["dispositivo"] == "qr-inexistente"
+
+
+@pytest.mark.parametrize(("nome", "objeto", "ponto"), [("evt-scan-id-curto", "QR_Entrada", "entrada"),
+                                                       ("evt-scan-digital-link", "QR_Saida", "saida")])
+def test_leitores_de_qr_declarados_so_por_configuracao(admissao, nome, objeto, ponto):
+    """Tarefa 2.1 (RF-A2-02): qr-entrada e qr-saida entram só por config/dispositivos.yaml."""
+    ex = exemplo(nome)
+    d = admissao.processar(ex["topico"], bruto(ex), AGORA)
+    assert d.aceita, d.motivo
+    assert d.objeto == objeto and d.valores["LeiturasQr"] == 1
+    ultimo = json.loads(d.valores["UltimoEvento"])
+    assert ultimo["evento"] == "scan" and ultimo["qr"] == ex["payload"]["qr"] and ultimo["ponto"] == ponto
 
 
 def test_canal_nao_declarado_e_rejeitado(admissao):
@@ -283,3 +297,44 @@ def test_status_retido_apagado_e_ignorado(admissao):
     assert d.ignorada and d.valores == {} and admissao.rejeitados_total == 0
     d = admissao.processar("dev/v1/esp32-bat01/tel/temperatura", b"", AGORA)
     assert not d.aceita and d.categoria == CONTRATO  # vazio fora do status é payload inválido
+
+
+def test_resultado_do_teste_entra_so_por_configuracao(dispositivos):
+    """ADR-0026: um leitor no ponto 'teste' que declara o campo 'resultado' ganha a variável Double ResultadoTeste
+    sem mudar o gateway (caminho previsto para a tarefa 2.10)."""
+    from device_gateway.servidor_opcua import variaveis_do_dispositivo
+
+    qr_teste = {"id": "qr-teste", "objeto_opcua": "QR_Teste", "estacao": "Teste", "tipo": "leitor_qr", "canais": {},
+                "eventos": {"scan": {"pontos": ["teste"],
+                                     "campos": {"resultado": {"variavel_opcua": "ResultadoTeste"}}}}}
+    adm = Admissao({**dispositivos, "qr-teste": qr_teste})
+    assert "ResultadoTeste" in variaveis_do_dispositivo(qr_teste)
+    for nome, esperado in (("evt-scan-teste-aprovada", 1.0), ("evt-scan-teste-reprovada", 0.0)):
+        ex = exemplo(nome)
+        d = adm.processar(ex["topico"], bruto(ex), AGORA)
+        assert d.aceita, d.motivo
+        assert d.objeto == "QR_Teste" and d.valores["ResultadoTeste"] == esperado
+
+
+def test_scan_recusado_no_rastreio_continua_aceito_no_contrato(admissao, dispositivos):
+    """Revisão de contratos da Fase 2, achado 7 (semântica declarada no README do gateway): a mensagem recusada no
+    rastreio conta em `MensagensAceitas` (aceita no contrato) **e** em `Rejeitados` (categoria `rastreio`); então
+    aceitas + rejeitadas = recebidas + recusas no rastreio. `UltimaLeitura` avança: o Andon do leitor diz que o
+    dispositivo está vivo, não que houve peça nova."""
+    from device_gateway.pecas import Rastreio
+
+    regras = carregar_rastreio(RAIZ / "config" / "rastreio.yaml")
+    r = Rastreio(regras, dispositivos)
+    ex = exemplo("evt-scan-id-curto")
+    recebidas = recusas = 0
+    for seq in (1, 2):                                       # a segunda é a mesma peça no mesmo ponto
+        d = admissao.processar(ex["topico"], com(ex, seq=seq), AGORA)
+        recebidas += 1
+        res = r.processar(d.dispositivo, d.nome, d.dados, d.ts)
+        if res.recusa:
+            admissao.recusar_no_rastreio(d, com(ex, seq=seq), res.recusa)
+            recusas += 1
+    assert recusas == 1 and d.aceita and d.categoria == "rastreio"
+    assert "UltimaLeitura" in d.valores and d.valores["LeiturasQr"] == 2
+    assert admissao.aceitas_total == 2 and admissao.rejeitados_total == 1
+    assert admissao.aceitas_total + admissao.rejeitados_total == recebidas + recusas

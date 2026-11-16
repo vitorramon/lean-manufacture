@@ -31,7 +31,7 @@ código local quanto num contêiner.
 | Last Will do mesmo tópico | 1 | sim | `{"v":"offline"}` | `v` |
 | `dev/v1/{id}/tel/{canal}` | 0 | não | `{"seq":41,"up_ms":812345,"v":24.6}` | `seq`, `up_ms`, `v` (número) |
 | `dev/v1/{id}/evt/ciclo` | 1 | não | `{"seq":42,"up_ms":787600,"fase":"inicio"}` / `{"seq":43,"up_ms":815020,"fase":"fim","dur_s":27.42}` | `seq`, `up_ms`, `fase`; `dur_s` (> 0) só e sempre no fim |
-| `dev/v1/{id}/evt/scan` | 1 | não | `{"seq":7,"up_ms":120500,"qr":"P0042","ponto":"entrada"}` | `seq`, `up_ms`, `qr` (bruto), `ponto` |
+| `dev/v1/{id}/evt/scan` | 1 | não | `{"seq":7,"up_ms":120500,"qr":"P0042","ponto":"entrada"}`; no teste: `{...,"ponto":"teste","resultado":1}` | `seq`, `up_ms`, `qr` (bruto), `ponto`; `resultado` (0/1) opcional e só com `ponto` = `teste` (ADR-0026) |
 
 - `{id}`: minúsculas, `[a-z0-9][a-z0-9-]{0,31}`, igual ao `id` em `config/dispositivos.yaml` (ex.: `esp32-bat01`).
 - `{canal}` e `{evento}`: `[a-z][a-z0-9_]{0,31}`. Só `ciclo` e `scan` têm esquema; outro evento é rejeitado até
@@ -46,6 +46,10 @@ código local quanto num contêiner.
   `config/origens.yaml`, não no código (ADR-0025).
   É metadado: o gateway o grava em `sessoes`; nenhuma regra depende dele. Dado de `emulador:roteiro` nunca entra
   na geração "Medido (M3)".
+- `resultado` (ADR-0026, aditivo, continua `dev/v1`): resultado do teste funcional da peça lida, 1 = aprovada,
+  0 = reprovada; só com `ponto` = `teste`. Sem `enum` de propósito: o gateway cria variável de texto para
+  propriedade com `enum`; `resultado` só vira variável (Double) no dispositivo que o declarar em `campos`. O código
+  da planta virtual (`result` 1/2) é traduzido na L0 (1 → 1, 2 → 0).
 - Todos os objetos têm `additionalProperties: false`: o dispositivo não manda peça, unidade nem nada fora do
   contrato. Unidade e faixa de cada canal estão na configuração.
 - Payload: UTF-8, objeto JSON, no máximo 1024 bytes, sem `NaN`/`Infinity`, sem chave repetida.
@@ -147,15 +151,19 @@ isso, esta tabela é a referência). O `.env` real fica fora do Git.
 | `MQTT_USER` / `MQTT_PASSWORD` | vazios (o broker da base aceita anônimo) | emulador, gateway |
 | `OPCUA_ENDPOINT` | `opc.tcp://0.0.0.0:4850/lean/dispositivos` | gateway (onde o servidor escuta) |
 | `OPCUA_URL` | `opc.tcp://localhost:4850/lean/dispositivos` | aas-sync, testes (onde o cliente conecta) |
-| `AAS_URL` | `http://localhost:8091` | aas-sync |
-| `DB_PATH` | `dados/dados.db` | aas-sync (escrita), `app/nucleo/dados.py` (leitura) |
+| `AAS_URL` | `http://localhost:8091` | aas-sync; `app/nucleo` (só leitura dos contadores `Lacunas`/`Duplicatas` na página Dispositivos) |
+| `DB_PATH` | `dados/dados.db` | aas-sync (escrita), `app/nucleo/dados.py` (leitura); `start.py` (relativo à raiz, precisa ficar em `dados/`; vira `LEAN_DB_ARQUIVO` para o contêiner, tarefa 2.8) |
+| `LEAN_DB_ARQUIVO` | `dados.db` | compose do M3: arquivo do banco do aas-sync em `/dados` (= `dados/` do computador); o `start.py` preenche a partir do `DB_PATH` |
 | `DISPOSITIVOS_PATH` | `config/dispositivos.yaml` | gateway, emulador, aas-sync (via `carregar_dispositivos`) |
+| `RASTREIO_PATH` | `config/rastreio.yaml` | gateway (normalização do QR, deduplicação, expiração, associação ciclo ↔ peça); aas-sync (início/fim do trecho e `planta`, inclusive `planta.padrao_peca`, para a ficha da peça no AAS, tarefa 2.5); esquema `esquemas/rastreio.schema.json`, lido por `contrato.carregar_rastreio()` desde a tarefa 2.3 (`docs/convencoes-fase-2.md`); `app/nucleo` (início/fim do trecho e normalização do QR na busca, tarefa 2.6) |
 | `ORIGENS_PATH` | `config/origens.yaml` | `app/nucleo` (origens que valem como Medido, ADR-0025); lido na partida do dashboard |
 | `SAUDE_MAX_FALHAS_BANCO` | `5` | healthcheck do aas-sync: falhas seguidas do SQLite toleradas |
 | `LOG_LEVEL` | `INFO` | todos |
 | `UNS_MQTT_HOST` / `UNS_MQTT_PORT` | iguais a `MQTT_HOST` / `MQTT_PORT` | emulador, fonte `godot` (broker da UNS da planta) |
 | `UNS_PREFIXO` | `vf/plant01/final-assembly/line01` | emulador, fonte `godot` |
 | `EMULADOR_ESTADO_DIR` | `dados/estado/emulador` | emulador (contador de `boot` persistido; fora do Git) |
+| `PLANTA_DIGITAL_LINK_DOMINIO` | `https://virtual-factory.example` | emulador, fonte `godot`: domínio do GS1 Digital Link do QR da peça da planta (tarefa 2.2; o mesmo da base) |
+| `PLANTA_GTIN` | `04099999032808` | emulador, fonte `godot`: GTIN do QR da peça da planta (`<domínio>/01/<GTIN>/21/<serial>`) |
 
 Caminhos relativos (`DB_PATH`, `DISPOSITIVOS_PATH`) são relativos ao diretório de trabalho: rode os componentes
 a partir da raiz do repositório, como nos comandos acima. Dentro de um contêiner, use caminho absoluto.

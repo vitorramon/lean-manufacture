@@ -1,0 +1,55 @@
+# Regras de rastreabilidade por peça (ADR-0008, ADR-0026; convenções em docs/convencoes-fase-2.md).
+# Criado na tarefa 2.1 (2026-11-16) para fixar os valores que as tarefas 2.3 a 2.5 usam em paralelo.
+# Lido pelo device-gateway desde a tarefa 2.3 (variável RASTREIO_PATH, padrão config/rastreio.yaml) por
+# contrato.carregar_rastreio(), contra pipeline/contrato/src/contrato/esquemas/rastreio.schema.json
+# (teste de contrato: tests/contrato/test_rastreio.py). Mudar um valor aqui não exige código.
+#
+# Nenhuma regra daqui depende da origem do dado (ADR-0013): as mesmas valem para emulador, firmware e ESP32.
+
+versao: 1
+
+# 1. Normalização do QR bruto -> identificador de peça (ADR-0008 itens 1 e 2).
+#    Testadas em ordem; vale a primeira que casar. O grupo nomeado `peca` é o identificador gravado em `eventos.peca`.
+#    QR que não casa com nenhuma regra é rejeitado (categoria `rastreio`, ADR-0026) e não vira peça.
+normalizacao:
+  - nome: gs1-digital-link          # QR da peça da planta virtual: <domínio>/01/<GTIN>[/10/<lote>]/21/<serial>
+    padrao: '^https?://[^/]+/01/\d{8,14}(?:/10/[^/]+)?/21/(?P<peca>[A-Za-z0-9-]{1,20})/?$'
+  - nome: serial-planta             # serial cru, como a fonte godot publica hoje (ex.: PC3280-2026-000004)
+    padrao: '^(?P<peca>PC\d{4}-\d{4}-\d{6})$'
+  - nome: id-curto                  # etiqueta do grupo (dados/etiquetas/, tarefa 2.2): P0001 ... P9999
+    padrao: '^(?P<peca>P\d{4})$'
+
+# 2. Pontos de leitura -> evento gravado em `eventos.evento` (o nome do ponto é o nome do evento).
+#    O trecho começa no ponto `inicio_trecho` e termina no `fim_trecho` (ADR-0009: montagem -> teste -> embalagem).
+trecho:
+  inicio_trecho: entrada
+  fim_trecho: saida
+  pontos: [entrada, teste, saida]
+
+# 3. Deduplicação (ADR-0008 item 3): o mesmo (peça, ponto) só é registrado uma vez enquanto a peça está aberta;
+#    depois de fechada (saída ou expiração), repetições dentro de `janela_dedup_s` também são descartadas.
+#    Descarte vai para `rejeitados` (categoria `rastreio`) e para o contador Rastreio.LeiturasRepetidas.
+janela_dedup_s: 30
+
+# 4. Expiração (ADR-0008 item 3, RF-A2-05): peça com entrada e sem saída há mais de `expiracao_s` é fechada com o
+#    evento `expirada` e sai do cálculo de lead time. Verificada a cada `verificar_expiracao_s`.
+expiracao_s: 7200
+verificar_expiracao_s: 60
+
+# 5. Associação ciclo <-> peça por posto (tarefa 2.4). O posto é a `estacao` de config/dispositivos.yaml: o ciclo
+#    do esp32-bat01 (estacao Bateria) é associado a peças lidas por dispositivos da mesma estacao (qr-entrada).
+#    Regra: no `inicio` do ciclo, a peça mais antiga na fila do posto (entrou e ainda não teve ciclo iniciado ali);
+#    fila vazia: espera até `tolerancia_associacao_s` por uma leitura no posto (leitor e botão são processos
+#    separados e chegam fora de ordem por milissegundos); sem leitura, o ciclo fica sem peça.
+associacao:
+  tolerancia_associacao_s: 2.0
+
+# 6. Ligação com o AAS da peça da planta virtual (tarefa 2.5, ADR-0008 item 6). Valores do blueprint da base
+#    (base/aas/data/blueprints/workpiece_instance.yaml; base/services/vf_common/src/vf_common/ids.py).
+planta:
+  dominio_digital_link: https://virtual-factory.example
+  gtin: "04099999032808"
+  prefixo_aas: https://virtual-factory.example/ids/aas/WP_   # + serial com '-' trocado por '_'
+  # Quais peças são da planta (tarefa 2.5, lido pelo aas-sync): fullmatch sobre o id da peça. Só essas ganham o
+  # Digital Link <dominio>/01/<gtin>/21/<peca> como globalAssetId da ficha e a referência ao AAS WP_ da base.
+  padrao_peca: '^PC\d{4}-\d{4}-\d{6}$'

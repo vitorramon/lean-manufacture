@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vitorramon/lean-manufacture/pipeline/contrato/dev/v1/rastreio.schema.json",
+  "title": "config/rastreio.yaml",
+  "description": "Regras de rastreabilidade por peça aplicadas pelo device-gateway (ADR-0008, ADR-0026; docs/convencoes-fase-2.md): normalização do QR bruto, trecho, deduplicação, expiração e associação ciclo <-> peça. Nenhuma regra depende da origem do dado (ADR-0013).",
+  "type": "object",
+  "properties": {
+    "versao": { "const": 1 },
+    "normalizacao": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,39}$" },
+          "padrao": {
+            "description": "Expressão regular (sintaxe do Python, re.fullmatch) com o grupo nomeado 'peca'.",
+            "type": "string",
+            "pattern": "\\(\\?P<peca>"
+          }
+        },
+        "required": ["nome", "padrao"],
+        "additionalProperties": false
+      }
+    },
+    "trecho": {
+      "type": "object",
+      "properties": {
+        "inicio_trecho": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$" },
+        "fim_trecho": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$" },
+        "pontos": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$" }
+        }
+      },
+      "required": ["inicio_trecho", "fim_trecho", "pontos"],
+      "additionalProperties": false
+    },
+    "janela_dedup_s": { "type": "number", "minimum": 0 },
+    "expiracao_s": { "type": "number", "exclusiveMinimum": 0 },
+    "verificar_expiracao_s": { "type": "number", "exclusiveMinimum": 0 },
+    "associacao": {
+      "type": "object",
+      "properties": {
+        "tolerancia_associacao_s": { "type": "number", "minimum": 0, "maximum": 60 }
+      },
+      "required": ["tolerancia_associacao_s"],
+      "additionalProperties": false
+    },
+    "planta": {
+      "type": "object",
+      "properties": {
+        "dominio_digital_link": { "type": "string", "pattern": "^https?://" },
+        "gtin": { "type": "string", "pattern": "^\\d{8,14}$" },
+        "prefixo_aas": { "type": "string", "pattern": "^https?://" },
+        "padrao_peca": {
+          "description": "Opcional (tarefa 2.5): expressão regular (re.fullmatch) sobre o identificador da peça que diz se ela é peça da planta virtual; só essas ganham o Digital Link como globalAssetId e a referência ao AAS WP_ da base. Sem ela, nenhuma peça é ligada à planta.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["dominio_digital_link", "gtin", "prefixo_aas"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["versao", "normalizacao", "trecho", "janela_dedup_s", "expiracao_s", "verificar_expiracao_s",
+               "associacao"],
+  "additionalProperties": false
+}
