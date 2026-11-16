@@ -366,6 +366,9 @@ motivos listados em cada uma (vídeo, UaExpert, `.env.example`, `devcontainer up
 
 ## Em andamento
 
+O que depende só do grupo (gravar, capturar, coletar, decidir) está reunido em
+[`docs/pendencias-do-grupo.md`](docs/pendencias-do-grupo.md).
+
 Fase 1, pendências antes da coleta: `.env.example`, vídeo do dashboard, print no UaExpert e `devcontainer up`. Depois, a sessão com operador (1.12/1.13).
 
 Fase 2, evidências que faltam: print do address space com os 5 objetos (2.1); webcam real e etiquetas impressas
