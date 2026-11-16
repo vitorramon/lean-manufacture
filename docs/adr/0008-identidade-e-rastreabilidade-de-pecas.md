@@ -42,3 +42,21 @@ com um endereço GS1 Digital Link que contém o número de série, e esse endere
 - **Usar só o Digital Link completo como identificador**: único, mas longo e ilegível numa ficha.
 - **Reaproveitar o ciclo de vida de peça do sistema de execução da base**: já cria o AAS de cada peça, porém só
   para peças da planta virtual e por um fluxo que não passa pelos nossos dispositivos.
+
+## Nota de implementação (2026-11-16, Fase 2)
+
+Acréscimo datado; o texto acima não foi alterado e o ADR continua **Proposto** até o grupo decidir.
+
+- Confirmado pela implementação: identificador curto (`P0001`) ou serial da planta (`PC3280-2026-000004`),
+  normalizado no gateway pela primeira regra de `config/rastreio.yaml` que casa (Digital Link, serial, ID curto);
+  leitor publica o QR bruto; deduplicação (janela de 30 s e depois de fechada) e expiração (7200 s) no gateway;
+  ciclo sem leitura fica só em `leituras` (contado em `Rastreio.CiclosSemPeca`); peça expirada vira evento
+  `expirada` e aparece na página Rastreio; etiquetas em `dados/etiquetas/` (símbolo 2,31 cm). Evidências:
+  `docs/evidencias/f2-2.2-leitor-qr.md`, `f2-2.3-gateway-pecas.md`, `f2-2.8-fluxo-pecas.md`.
+- Ajustado na implementação: o lead time individual (item 5) é `saida − entrada` (primeira de cada), não "último −
+  primeiro evento", para que uma leitura tardia ou uma `entrada` repetida depois de reinício do gateway não altere o
+  valor. O resultado do teste (item 4) chega no próprio `scan` do ponto `teste` (ADR-0026). A ficha no AAS repete o
+  cálculo do `nucleo` (ADR-0027). Com a fonte `godot`, a ficha só referencia o AAS `WP_` da base: no perfil reduzido
+  ele não existe (HTTP 404).
+- Limitação vista: deduplicação e expiração vivem em memória; depois de reiniciar o gateway, uma releitura gera
+  outra `entrada` (`docs/convencoes-fase-2.md` §3).

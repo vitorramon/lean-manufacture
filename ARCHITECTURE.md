@@ -175,15 +175,22 @@ Equivale ao `gateway.py` e ao `gateway_multi.py` das aulas, com MQTT no lugar da
 2. Valida: esquema do payload, tipo, faixa calibrada por canal, sequência (`seq` repetido é descartado; lacuna é
    contada), QR duplicado dentro da janela e peça esquecida há mais de 2 h.
 3. Carimba o timestamp (relógio do gateway).
-4. Associa ciclo ↔ peça: o ciclo de um posto pertence à última peça lida naquele posto.
+4. Associa ciclo ↔ peça (tarefa 2.4): no `inicio`, a peça mais antiga na fila do posto (lida por um dispositivo
+   da mesma `estacao` e ainda sem ciclo ali), com tolerância de 2 s para leitura fora de ordem; sem peça, o ciclo
+   fica só em `leituras` (`docs/convencoes-fase-2.md`, `config/rastreio.yaml`).
 5. Escreve no servidor OPC UA `opc.tcp://0.0.0.0:4850/lean/dispositivos`, um objeto por dispositivo declarado em
    `config/dispositivos.yaml`.
 6. Mantém `Online` e `UltimaLeitura` por objeto: base do Andon cinza.
 7. Registra a origem declarada no status de cada dispositivo por sessão de coleta; nenhuma regra depende dela.
 
 Endereços: `ns=2;s=LinhaCelulares.Bateria_01.TempoCiclo`, `...Bateria_01.PecasFeitas`, `...Bateria_01.Online`,
-`...Rastreio.UltimaPeca`, `...Rastreio.LeadTimeReal`. Um evento OPC UA por evento de peça (peça, estação, evento,
-valor). Dado rejeitado vai para um contador e um log, nunca para o banco.
+`...Rastreio.UltimaPeca`, `...Rastreio.LeadTimeReal`. Cada evento de peça vai em `Rastreio.UltimoEventoPeca`, JSON
+numerado por `n` (peça, estação, evento, valor), que o `aas-sync` grava em `eventos` (ADR-0026, Proposto; implementado
+na tarefa 2.3). `Rastreio` também expõe `EventosPeca`, `PecasConcluidas`, `PecasEmProcesso`, `PecasExpiradas`,
+`LeiturasRepetidas` e `CiclosSemPeca`. Objetos de dispositivo (4, só por configuração): `Bateria_01`, `QR_Entrada`,
+`QR_Saida` (tarefa 2.1) e `QR_Teste` (tarefa 2.10, `ResultadoTeste`). Dado rejeitado vai para contadores, log e a
+tabela `rejeitados` (categorias `contrato`, `configuracao`, `faixa`, `sequencia` e `rastreio`), nunca para
+`leituras` nem `eventos`.
 
 Canal das rejeições até o `aas-sync` (ADR-0019, Proposto): `LinhaCelulares.Gateway.UltimaRejeicao` (JSON numerado
 por `n`) e contadores `Rejeitados`, `Duplicatas`, `Lacunas` por objeto; o `aas-sync` assina e grava `rejeitados`.
@@ -207,6 +214,11 @@ tornam o reinício idempotente. No AAS, shell `urn:lean-manufacture:grupo7:aas:<
 `DadosOperacionais`, atualizados a cada `AAS_INTERVALO_S`. `eventos` só recebe linhas a partir da 2.3/2.4. Falha
 transitória do SQLite repete o lote com backoff; erro permanente põe o lote em quarentena
 (`dados/estado/aas-sync/lotes-falhos.jsonl`); contadores `falhas_banco` e `lotes_em_quarentena` no arquivo de saúde.
+`Rastreio.UltimoEventoPeca` → `eventos` desde a tarefa 2.5, com ficha `Rastreabilidade` por peça no AAS. A ficha
+repete o cálculo de lead time e espera do `nucleo` (exceção à regra "L2 não calcula KPI", ADR-0027, Proposto),
+vigiada por `tests/aas_sync/test_ficha_cruzada.py`. A numeração (`Gateway.Inicio`, último `n` de evento e de
+rejeição) é gravada depois de cada lote em `dados/estado/aas-sync/numeracao-<banco>.json`: reiniciar o `aas-sync`
+com o gateway no ar conta como perda os eventos publicados enquanto ele estava fora.
 Código: `pipeline/aas_sync/README.md`.
 
 ## 7. L1 — dados
@@ -220,8 +232,18 @@ Código: `pipeline/aas_sync/README.md`.
 Divisão de papéis (ADR-0007): o banco guarda a **série** que alimenta KPIs; o AAS guarda o **estado e a identidade**
 de cada ativo e de cada peça, com semântica padronizada.
 
-Lead time individual: `MAX(ts) − MIN(ts)` por peça em `eventos`. Espera = lead time − soma dos tempos de
-processamento registrados.
+Lead time individual (implementado na Fase 2, `app/nucleo/pecas.py`): `ts` da `saida` − `ts` da `entrada` da peça
+em `eventos` (a primeira de cada, ADR-0008 item 5 ajustado; ver nota no ADR). Processamento = soma dos `dur_s` dos
+ciclos associados; espera = lead time − processamento. Tempos por estação: o ciclo `inicio` → `fim` é um segmento
+da estação do botão; os demais intervalos vão para a estação do evento de chegada; tudo recortado em
+[entrada, saída], de modo que a soma das esperas por estação é a espera da peça. A ficha do AAS repete esse cálculo
+(ADR-0027, Proposto), vigiada por `tests/aas_sync/test_ficha_cruzada.py`.
+
+`eventos` tem o índice único `ux_eventos_ts_peca_estacao_evento` (ADR-0026) e é gravada com `INSERT OR IGNORE`:
+reinício do `aas-sync` não duplica linhas. Banco de trabalho escolhido por `DB_PATH` (o `start.py` o passa ao
+compose como `LEAN_DB_ARQUIVO`, sempre dentro de `dados/`); na Fase 2 a rodada da planta virtual usou
+`dados/dados.f2.db` (fora do Git). Estado do `aas-sync` em `dados/estado/aas-sync/` (quarentena e
+`numeracao-<banco>.json`).
 
 ## 8. L3 — serviço
 
@@ -246,9 +268,9 @@ Streamlit multipágina (ADR-0010):
 |---|---|
 | Visão geral | Como estamos agora? KPIs contra baseline e meta, layout com estados |
 | Andon | Tem algo errado? Verde, amarelo, vermelho e **cinza** (sem dado novo ou dispositivo offline) |
-| Rastreio | Ficha da peça por ID ou QR: trajetória, tempos, espera, comparação com a média |
+| Rastreio | Ficha da peça por ID ou QR (ID curto, serial ou GS1 Digital Link): trajetória, tempos por estação, espera, comparação com a média; FPY/RTY do trecho com filtro "só medidas" ligado por padrão — implementada na Fase 2 (`app/pages/rastreio.py`) |
 | 3 gerações | Baseline M1 × simulado M2 × medido M3 × meta, com as divergências |
-| Dispositivos | Online/offline, última leitura, rejeições por faixa, lacunas de sequência |
+| Dispositivos | Online/offline, última atividade (leituras ou eventos), rejeições por categoria, duplicatas; lacunas lidas do AAS (só GET, pausa de 10 s depois de falha de conexão) — implementada na Fase 2 (`app/pages/dispositivos.py`) |
 | What-if | Reaproveita o simulador do M2 |
 | Cadeia | Elos, ritmo, lead time da cadeia, propagação |
 
@@ -283,7 +305,10 @@ Subida: `python3 start.py --fonte <roteiro|godot|operador|firmware|hardware>` (A
 Virtual-Factory com o nosso arquivo adicional, espera os health checks (broker, AAS, gateway, porta 4850, aas-sync),
 inicia o dashboard e a fonte escolhida e passa a monitorar a cada 5 s: processo vivo (reinicia o dashboard até 3
 vezes), porta respondendo e dado fluindo. Ctrl+C derruba o que a execução subiu; `--manter-base` deixa a base no
-ar; `--parar` faz `compose down` sem `-v`. A fonte `replay` ainda não existe e o `start.py` não a oferece. Medido na 1.6: health checks verdes
+ar; `--parar` faz `compose down` sem `-v`. Desde a Fase 2, nas fontes `godot` e `roteiro` o `--dispositivo` padrão é o
+trecho inteiro `qr-entrada,esp32-bat01,qr-teste,qr-saida` (um processo de emulador com uma conexão MQTT por
+dispositivo), e `DB_PATH=dados/<arquivo>.db` escolhe o banco (vira `LEAN_DB_ARQUIVO` no compose). Medido na 2.8:
+compose com `--build` em 42,5 s, M3 saudável em 49,9 s, dashboard em 51,1 s (`f2-2.8-fluxo-pecas.md`). A fonte `replay` ainda não existe e o `start.py` não a oferece. Medido na 1.6: health checks verdes
 em 59,6 s a frio (`docs/evidencias/f1-1.6-start.md`).
 
 Contêiner de desenvolvimento (tarefa 1.0, ADR-0015 e ADR-0024): `.devcontainer/` com as ferramentas fixadas, rede
@@ -296,14 +321,14 @@ lean-manufacture/                (github.com/vitorramon/lean-manufacture; local:
   README.md  SPECS.md  ARCHITECTURE.md  PLAN.md  PROGRESS.md  CLAUDE.md
   start.py
   docs/        adr/  relatorio.pdf  arquitetura.png  cartoes_conexao.md  evidencias/
-  hardware/    firmware/  emulador/  calibracao/  leitor_qr/ (Fase 2)  dispositivos.md (componentes, pinagem, custo)
+  hardware/    firmware/  emulador/ (inclui o leitor de QR: fontes roteiro/godot/camera e etiquetas, Fase 2)  dispositivos.md
   pipeline/    device_gateway/  aas_sync/  contrato/ (esquemas e mensagens de referência)
   twin/        t2t/  cadeia/
   app/         Home.py  pages/  nucleo/
   simulador/   (M2: GemeoDigitalCelulares)
   base/        (Virtual-Factory, commit fixado)
   infra/       docker-compose.lean.yml  lean-servicos.Dockerfile  orquestracao.py
-  config/      dispositivos.yaml  origens.yaml
+  config/      dispositivos.yaml  origens.yaml  rastreio.yaml (Fase 2)
   dados/       amostras/  analises/  etiquetas/
   tests/
 ```
@@ -326,3 +351,6 @@ lean-manufacture/                (github.com/vitorramon/lean-manufacture; local:
 | Planta 3D é de cilindros pneumáticos | Tempos da planta virtual não são os da linha de celulares | Mapeamento explícito; fonte `operador` para tempos humanos |
 | Recorte de 3 pontos em 22 estações | Lead time medido é do trecho, não da linha | Comparar com o mesmo trecho do simulado |
 | Calibração contra modelo, não contra instrumento | Erro de sensor é o que o emulador injeta | Declarar como calibração de procedimento |
+| Leitor de QR só emulado; modo câmera provado com arquivos PNG, sem webcam (WSL2 sem `/dev/video*`) | Taxa de leitura real, iluminação e posição da etiqueta não exercitadas | Testar `--fonte camera --camera 0` no Windows nativo ou com usbipd e registrar a taxa |
+| Deduplicação e expiração do rastreio só em memória no gateway | Depois de reiniciar o gateway, uma releitura da mesma peça gera outra `entrada` (o índice único não barra: `ts` diferente) | Estado persistente no gateway, com ADR (`docs/convencoes-fase-2.md` §3) |
+| Planta `godot` determinística | Lead time por peça varia só por ruído de emulação (21,4–25,8 s); não há peça "lenta" de verdade | Fonte `operador` ou roteiro com espera para a ficha lenta e a análise de espera |

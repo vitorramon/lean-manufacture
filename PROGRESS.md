@@ -3,13 +3,17 @@
 Registro do andamento. As tarefas vêm de [PLAN.md](PLAN.md). Atualize este arquivo ao concluir cada tarefa: marque a
 caixa, anote a data e aponte a evidência.
 
-**Última atualização:** 2026-11-15
-**Fase atual:** Fase 1 em andamento (1 feita, 11 parciais, 2 bloqueadas de 14); a Fase 1 não fecha sem a coleta
-com operador (1.12/1.13) e o vídeo do dashboard
+**Última atualização:** 2026-11-16
+**Fase atual:** Fase 2 executada em 2026-11-16 com as 10 tarefas parciais (nenhuma aceita como feita); a Fase 2 não
+fecha sem o print do address space, o vídeo de uma peça atravessando a linha e uma peça lenta de verdade. A Fase 1
+continua aberta (coleta com operador, vídeo do dashboard). Próxima: pendências de evidência das Fases 1 e 2 e Fase 3
 **Código do M3 implementado:** contrato `dev/v1` (`pipeline/contrato`), emulador com fontes `roteiro`, `godot` e
 `operador` (`hardware/emulador`), firmware ESP32 com QEMU (`hardware/firmware`), `device-gateway` (OPC UA 4850),
 `aas-sync` (SQLite WAL e AAS), app Streamlit com "Visão geral" e Andon (`app/`), compose adicional e `start.py`
-(`infra/`), contêiner de desenvolvimento (`.devcontainer/`), scripts de análise da 1.12/1.13 (`dados/analises/f1_*`)
+(`infra/`), contêiner de desenvolvimento (`.devcontainer/`), scripts de análise da 1.12/1.13 (`dados/analises/f1_*`).
+Fase 2: leitores `qr-entrada`, `qr-teste`, `qr-saida` só por configuração; leitor de QR (roteiro, godot, câmera) e
+etiquetas; rastreio por peça no gateway (`Rastreio`, `config/rastreio.yaml`); `eventos` e ficha da peça no AAS
+pelo `aas-sync`; páginas "Rastreio" e "Dispositivos"; análise de espera (`dados/analises/f2_espera.py`)
 
 ## Resumo
 
@@ -19,7 +23,7 @@ com operador (1.12/1.13) e o vídeo do dashboard
 | Pendências do grupo (P-01 a P-07) | Abertas | 3 de 7 |
 | Fase 0 — Fundação | Concluída (2026-11-15) | 8 de 8 |
 | Fase 1 — Primeiro dispositivo | Em andamento: 1 feita (1.8), 11 parciais, 2 bloqueadas (1.12, 1.13) | 1 de 14 |
-| Fase 2 — Rastreabilidade | Não iniciada | 0 de 10 |
+| Fase 2 — Rastreabilidade | Executada em 2026-11-16: 10 parciais, nenhuma feita | 0 de 10 |
 | Fase 3 — Rede federada | Não iniciada | 0 de 11 |
 | Fase 4 — Consolidação | Não iniciada | 0 de 11 |
 | Fase 5 — Bônus | Não iniciada | 0 de 7 |
@@ -30,8 +34,8 @@ Autoavaliação corrente. "Hoje" é o que se sustentaria com evidência se a ent
 
 | Critério | Pts | Hoje | O que falta |
 |---|---:|---:|---|
-| Sistema real funcionando | 10 | 2 | Caminho dispositivo emulado → MQTT → OPC UA → SQLite/AAS → dashboard roda pelo `start.py` com 4 fontes (`f1-1.6-start.md`, `f1-1.10-troca-l0.md`), mas tudo emulado (P-02), sem vídeo do dashboard e sem print no UaExpert; a sessão de teste deixou de contar como Medido em 2026-11-16 (ADR-0025). Falta: vídeo, coleta com operador, Fase 2 |
-| Rastreabilidade + KPIs | 8 | 0 | Fase 2 (o critério avalia o sistema real). Já há a coluna Simulado com n = 30 (FPY, RTY, OEE, 1 − COPQ; tarefas 0.7 e 0.8); falta o Medido |
+| Sistema real funcionando | 10 | 2 | Fase 2: 4 dispositivos emulados pelo `start.py` com a planta virtual (`f2-2.8-fluxo-pecas.md`); sem mudança de nota, porque continua tudo emulado e sem vídeo. Caminho dispositivo emulado → MQTT → OPC UA → SQLite/AAS → dashboard roda pelo `start.py` com 4 fontes (`f1-1.6-start.md`, `f1-1.10-troca-l0.md`), mas tudo emulado (P-02), sem vídeo do dashboard e sem print no UaExpert; a sessão de teste deixou de contar como Medido em 2026-11-16 (ADR-0025). Falta: vídeo, coleta com operador, Fase 2 |
+| Rastreabilidade + KPIs | 8 | 3 | Sustentado por evidência (planta virtual, emulada): 31 peças com trajetória e lead time individual em `eventos`, 0 repetidos (`f2-2.8-fluxo-pecas.md`); fichas de 4 peças no dashboard e no AAS (`f2-2.8-rastreio-*.png`); FPY = RTY do trecho de demonstração 90,3 % ao lado do M1 e do M2 (`f2-2.10-fpy-rty.md`); análise de espera (`f2-2.9-espera.md`). Falta: print do address space, vídeo de uma peça, peça lenta de verdade, KPIs da geração Medido (coleta com operador, P-02), prints depois da revisão |
 | Documentação profissional | 8 | 0 | Fase 4 (os documentos de projeto existem, o README final e o relatório não) |
 | Apresentação + demo | 8 | 0 | Fase 4 |
 | Reprodutibilidade | 6 | 1 | `start.py` com health check existe e rodou (`f1-1.6-start.md`); falta `.env.example`, `devcontainer up` e teste do terceiro em máquina limpa |
@@ -204,6 +208,81 @@ Surpresas:
 Mudou no plano: ADRs 0019 a 0024 propostos; SPECS §2.4, §6.1, §6.2 e R-08; ARCHITECTURE §10; README §3, §4, §6 e §7;
 CLAUDE "Comandos".
 
+### 2026-11-16 — Fase 2: vários dispositivos e rastreabilidade
+
+Estado aceito pelo verificador (não o declarado): **10 tarefas parciais, nenhuma feita**. Tudo é **emulado**
+(ADR-0002). A planta `godot` é determinística: vale para fluxo, rastreio, lead time do trecho e FPY/RTY de
+demonstração, não para amostra de tempo de ciclo (ADR-0013 item 5). Dado de `roteiro`, `teste` ou sintético não é
+medição. Reverificação no fechamento, com a base fora do ar (integrações puladas): contrato 104 passaram;
+device_gateway 135 + 7 pulados; aas_sync 74 + 3 pulados; app 62; emulador 64 + 6 pulados; firmware `pio test -e
+native` 29/29; ruff limpo por componente. `base/` e `simulador/` sem alteração.
+
+- [ ] 2.1 **Parcial.** `qr-entrada` (`QR_Entrada`, Bateria, ponto `entrada`) e `qr-saida` (`QR_Saida`, Embalagem,
+  ponto `saida`) só por `config/dispositivos.yaml`: gateway com 3 objetos, 3 scans sintéticos aceitos e 0
+  rejeitados, diff de `pipeline/`, `app/`, `hardware/`, `infra/` e `start.py` vazio. Na 2.8 o `start.py` subiu com 4
+  dispositivos. ADR-0026 (Proposto): `resultado` 0/1 opcional no `scan` do ponto `teste`, aditivo em `dev/v1`.
+  Falta o print do address space (só há `uals`/`uaread`) — evidência: `docs/evidencias/f2-2.1-dispositivos.md`,
+  `docs/convencoes-fase-2.md`
+- [ ] 2.2 **Parcial.** Leitor de QR no emulador: fontes `roteiro`, `godot` (publica o GS1 Digital Link da peça;
+  `part_inspected` vira scan `teste` com `resultado`) e `camera` (OpenCV; webcam ou arquivos PNG, sempre
+  `emulador:teste`); vários dispositivos por processo. 30 etiquetas `P0001`–`P0030` (PNG 300 dpi, PDF A4,
+  manifesto): símbolo 2,31 cm (3,19 cm com zona de silêncio), 30/30 decodificadas de volta. Amostras: roteiro 111
+  linhas, godot 32, câmera 66, 0 inválidas. Webcam real não testada (WSL2 sem `/dev/video*`): o modo câmera só foi
+  provado com arquivos, o que não é leitura física — evidência: `docs/evidencias/f2-2.2-leitor-qr.md`,
+  `dados/etiquetas/`, `dados/amostras/f2-2.2-*.jsonl`
+- [ ] 2.3 + 2.4 **Parcial.** Gateway com rastreio por peça (`pecas.py`, `config/rastreio.yaml` via `RASTREIO_PATH`):
+  normalização Digital Link / serial / `P0001`, QR sem regra e ponto não declarado rejeitados (`rastreio`,
+  `configuracao`), dedup em janela de 30 s e depois de fechada, expiração em 7200 s, associação FIFO ciclo ↔ peça
+  com tolerância de 2 s; objeto `LinhaCelulares.Rastreio`. No banco da 2.8 (somente leitura): índice
+  `ux_eventos_ts_peca_estacao_evento`, 157 eventos de 32 peças, consulta `GROUP BY peca, estacao, evento HAVING
+  COUNT>1` vazia, 31/31 ciclos associados. Expiração real vista só com prazo de 3 s, em teste; integrações não
+  reexecutadas no fechamento — evidência: `docs/evidencias/f2-2.3-gateway-pecas.md`
+- [ ] 2.5 **Parcial.** `aas-sync` assina `Rastreio.UltimoEventoPeca` (fila 10 000) e grava `eventos` com `INSERT OR
+  IGNORE`; perda detectada por salto de `n`; numeração persistida em `estado/aas-sync/numeracao-<banco>.json`
+  (revisão). Ficha `Rastreabilidade` por peça no AAS, remontada de `eventos` (ADR-0027, Proposto, com teste
+  cruzado contra o `nucleo`). Banco da 2.8: 157 gravados = 157 numerados. Carga registrada na evidência: 2000/2000
+  eventos, 0 `database is locked` (não reproduzida no fechamento). AAS `WP_` da planta dá 404 no perfil reduzido:
+  ligação só por referência — evidência: `docs/evidencias/f2-2.5-eventos-ficha.md`
+- [ ] 2.6 + 2.7 **Parcial.** `app/nucleo` com `pecas.py`, `kpis.py` e `aas_leitura.py` (só GET); páginas "Rastreio"
+  (busca por ID, serial ou Digital Link; trajetória; tempos por estação; comparação com a média; FPY/RTY com
+  "só medidas" ligado por padrão) e "Dispositivos" (online, última atividade, rejeições por categoria, lacunas do
+  AAS). 62 testes do app. Os prints da 2.8 são anteriores à correção da revisão (filtro desligado, espera antiga);
+  falta print novo pelo `start.py` — evidência: `docs/evidencias/f2-2.6-paginas.md`, `f2-2.8-rastreio-*.png`,
+  `f2-2.8-dispositivos.png`
+- [ ] 2.8 + 2.10 **Parcial.** `DB_PATH=dados/dados.f2.db python3 start.py --fonte godot --manter-base` com 4
+  dispositivos: compose `--build` 42,5 s, M3 saudável 49,9 s, dashboard 51,1 s. 32 peças (31 concluídas, 1 aberta),
+  157 eventos, 0 repetidos; 20ª saída 253,7 s depois da primeira entrada. Lead time (n = 31): 24,131 ± 0,839 s,
+  mín. 21,377 s (`000056`), máx. 25,805 s (`000083`). `teste`: 28 com 1 e 3 com 0 (`000058`, `000064`, `000073`):
+  FPY = RTY do trecho 90,3 % (28/31), **demonstração** `emulador:godot`, ao lado de M1 (78 → 92 %, 82 → 90 %) e M2
+  (94,18 ± 0,77 %). RF-A2-02 com 5º dispositivo temporário `esp32-tst01` em `dados/dados.f2-extra.db` (48 eventos,
+  10 peças, 21 linhas de `Teste_01.Temperatura`). Falta vídeo; a "lenta" fica +7 % e é classificada "na média" —
+  evidência: `docs/evidencias/f2-2.8-fluxo-pecas.md`, `f2-2.10-fpy-rty.md`, `f2-2.8-*.png`,
+  `dados/amostras/f2-2.8-*.csv`
+- [ ] 2.9 **Parcial.** `dados/analises/f2_espera.py` lê só pelo `nucleo` e recusa origem `roteiro`/`teste`. Depois
+  da revisão: espera média por estação Bateria 0,001 s, Teste 2,542 s, Embalagem 9,602 s; mais lenta `000083`
+  (25,805 s), espera na Embalagem; Muda W/T (TIM WOODS) do M1. O texto `f2_espera_texto.md` e a evidência ainda citam
+  os valores antigos (0,028 / 2,820 s) com nota de correção. O excesso é ruído da emulação, não Muda real —
+  evidência: `docs/evidencias/f2-2.9-espera.md`, `dados/analises/f2_espera.{md,csv,png}`, `f2_espera_texto.md`
+- [ ] Revisão de contratos da Fase 2 **parcial**: 0 bloqueantes, 4 importantes e 7 menores; 10 corrigidos com
+  teste, 1 declarado (entrada duplicada depois de reinício do gateway). Correções 3 (numeração persistida) e 9
+  (pausa nas consultas ao AAS) não verificadas contra serviços reais — evidência: `docs/evidencias/f2-revisao.md`
+
+Surpresas:
+
+- A espera por estação estava errada quando o ciclo chegava fora de ordem (peça `000056`: diferença de 11,998 s);
+  corrigida na revisão (diferença 0 nas 31 peças). Lead time e espera por peça não mudaram.
+- Com fila de 1000 na assinatura de `UltimoEventoPeca`, a carga perdeu 18 de 2000 eventos; fila subiu para 10 000.
+  Rajada MQTT sem esperar PUBACK perdeu eventos antes da L2 (1319 de 2000).
+- O `aas-sync` no contêiner ignorava o `DB_PATH` do computador; corrigido com `LEAN_DB_ARQUIVO`.
+- A planta é tão determinística que a peça "lenta" fica dentro de ±10 % da média: RF-A2-07 e RF-A2-08 pedem outra
+  fonte para ter Muda real.
+- O broker compartilhado misturou publicadores de tarefas paralelas com os mesmos ids; amostras filtradas por
+  (id, boot).
+
+Mudou no plano: ADR-0026 e ADR-0027 propostos; nota de implementação no ADR-0008 (ainda Proposto); SPECS §2.5,
+§6.1–§6.4; ARCHITECTURE §6, §7, §9, §10, §12; README §3–§7; `docs/convencoes-fase-2.md` versionado como
+referência; `config/rastreio.yaml` novo.
+
 ### 2026-11-15 — ferramentas do assistente
 
 - [x] `.claude/` na raiz do espaço de trabalho, adaptado do projeto Órbita: 9 regras, 7 skills, 5 agentes e
@@ -269,6 +348,11 @@ motivos listados em cada uma (vídeo, UaExpert, `.env.example`, `devcontainer up
 
 Fase 1, pendências antes da coleta: `.env.example`, vídeo do dashboard, print no UaExpert e `devcontainer up`. Depois, a sessão com operador (1.12/1.13).
 
+Fase 2, evidências que faltam (nenhuma exige código novo, salvo a peça lenta): print do address space com os 5
+objetos; vídeo de uma peça atravessando a linha; prints novos de Rastreio e Dispositivos pelo `start.py` depois da
+revisão; integrações e `test_carga` com a base no ar; texto da 2.9 reescrito; fichas com `--profile
+base-completa`; webcam real. Depois, Fase 3.
+
 ## Bloqueios
 
 | Bloqueio | Impede | Depende de |
@@ -278,11 +362,14 @@ Fase 1, pendências antes da coleta: `.env.example`, vídeo do dashboard, print 
 | `devcontainer up` / "Reopen in Container" negados pela política da sessão | 1.0 completa | Usuário |
 | Aceitação da L0 emulada (P-02) | Prioridade de comprar hardware; fonte `hardware` | Professor |
 | Datas e integrantes (P-05) | Cronograma com datas | Grupo |
+| Webcam inacessível no WSL2 (sem `/dev/video*`) | 2.2 completa (leitura física de QR) | Usuário (Windows nativo ou usbipd) |
+| Perfil reduzido sem `mes` (AAS `WP_` da peça dá 404) | Ligação da ficha com o AAS da planta (2.5, 2.8) | Subir `--profile base-completa` |
+| Planta `godot` determinística | Peça lenta de verdade (RF-A2-07) e Muda real na análise de espera (RF-A2-08) | Coleta com operador (1.12) ou roteiro com espera |
 
 ## Registro de decisões
 
 Ver [docs/adr/README.md](docs/adr/README.md). Aceitas pelo grupo: 0001, 0002, 0004, 0013 a 0018. Propostas,
-aguardando validação: 0003, 0005 a 0012, 0019 a 0025.
+aguardando validação: 0003, 0005 a 0012, 0019 a 0027.
 
 Em 2026-11-15, depois da Fase 0, o grupo decidiu:
 
@@ -304,6 +391,16 @@ Na Fase 1 (2026-11-15), propostos pelo assistente, aguardando o grupo:
 - ADR-0023: bibliotecas asyncua 2.1.0, paho-mqtt 2.2.0, arduino-mqtt 2.5.2, ArduinoJson 7.2.1, jsonschema 4.26.0.
 - ADR-0024: rede do contêiner de desenvolvimento (`--network=host` com `gai.conf`; complementa o ADR-0015).
 - ADR-0025 (2026-11-16): origem `emulador:teste` declarada pela L0 e origens medidas em `config/origens.yaml`.
+- ADR-0026 (2026-11-16, tarefa 2.1): `resultado` 0/1 no `scan` do ponto `teste`; objeto `LinhaCelulares.Rastreio`
+  com `UltimoEventoPeca` numerado; categoria `rastreio`; índice único em `eventos`.
+- ADR-0027 (2026-11-16, revisão da Fase 2): a ficha da peça no AAS repete o cálculo de lead time e espera do
+  `nucleo`, vigiada por teste cruzado.
+- ADR-0008 continua Proposto (decisão do grupo); nota de implementação de 2026-11-16 no próprio ADR (lead time =
+  saída − entrada; resultado do teste no scan).
+- Decisões da Fase 2 sem ADR (configuração ou L0): vários dispositivos por processo de emulador (`roteiro`,
+  `godot`); fonte `camera` sempre `emulador:teste` (usar webcam real como Medido exige ADR); `config/rastreio.yaml`
+  com `planta.padrao_peca`; `LEAN_DB_ARQUIVO` no compose; numeração do `aas-sync` persistida em `dados/estado/`;
+  limiar ±10 % para "mais rápida/lenta" (provisório, sem baseline no M1); `SIMULADO_M2` em `regras.py`.
 - Pendentes de decisão (sem ADR ainda): nomes de `origem` (ADR-0005 item 6 × contrato), `boot` obrigatório em
   tel/evt.
 
@@ -335,6 +432,15 @@ Destino: `docs/evidencias/`, um arquivo por requisito de SPECS.
 | `docs/evidencias/f1-1.10-troca-l0.md`, `f1-1.10-pagina-*.png`, `dados/amostras/f1-troca-l0-*.jsonl` | 1.10 | 4 fontes, mesmo hash de L2–L4 |
 | `docs/evidencias/f1-1.11-calibracao.md`, `docs/calibracao.md`, `dados/amostras/f1-calibracao-*.jsonl` | 1.11 | 4 testes sobre emulação |
 | `docs/evidencias/f1-1.12-preparo-coleta.md` | 1.12 | preparo da coleta (sem dado medido) |
+| `docs/evidencias/f2-2.1-dispositivos.md`, `docs/convencoes-fase-2.md` | 2.1 | `uals`/`uaread` com 3 objetos; diff de L2–L4 vazio |
+| `docs/evidencias/f2-2.2-leitor-qr.md`, `dados/etiquetas/`, `dados/amostras/f2-2.2-*.jsonl` | 2.2 | leitor de QR em 3 modos, 30 etiquetas |
+| `docs/evidencias/f2-2.3-gateway-pecas.md` | 2.3, 2.4 | rastreio no gateway, dedup, expiração, associação |
+| `docs/evidencias/f2-2.5-eventos-ficha.md` | 2.5 | `eventos`, ficha no AAS, carga 2000 eventos |
+| `docs/evidencias/f2-2.6-paginas.md` | 2.6, 2.7 | páginas Rastreio e Dispositivos (banco sintético) |
+| `docs/evidencias/f2-2.8-fluxo-pecas.md`, `f2-2.8-*.png`, `dados/amostras/f2-2.8-*.csv` | 2.8 | 32 peças pela planta virtual, fichas, 5º dispositivo |
+| `docs/evidencias/f2-2.10-fpy-rty.md` | 2.10 | FPY = RTY do trecho de demonstração 90,3 % |
+| `docs/evidencias/f2-2.9-espera.md`, `dados/analises/f2_espera*` | 2.9 | análise de espera |
+| `docs/evidencias/f2-revisao.md` | revisão F2 | 11 achados, correções e suítes |
 
 ## Como registrar uma entrada
 

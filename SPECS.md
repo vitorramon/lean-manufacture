@@ -158,6 +158,27 @@ dado desta fase é de teste ou emulado (ADR-0013); nenhum é medição.
 | RNF-03 | Atendido em teste: cinza 15,9 s após o último dado (prazo 15 s) | `f1-1.5-dashboard.md`, `f1-1.6-start.md` | — |
 | RNF-06 | Parcial: faixa, tipo, duplicata e lacuna testados (91 testes de unidade no gateway); desde 2026-11-16 a base da sequência só zera com boot novo ou `up_ms` que recomeçou, e boot anterior é rejeitado | `f1-1.3-device-gateway.md`, `f1-correcoes-revisao.md` | Mensagem atrasada mais antiga que a janela de 64, logo após reconexão, é tomada por reinício (limite documentado) |
 
+### 2.5 Módulo 3 — situação ao fim da Fase 2 (2026-11-16)
+
+Situação dos requisitos da Aula 2 contra a "Evidência de aceite" de §4, com o status aceito pelo verificador. Todo
+dado é **emulado** (ADR-0002): a planta `godot` é determinística e vale para fluxo, rastreio, lead time do trecho e
+FPY/RTY de demonstração, não para tempo de ciclo (ADR-0013 item 5). Nenhum requisito da Aula 2 está fechado sem
+ressalva; as 10 tarefas da Fase 2 estão parciais.
+
+| Requisito | Situação | Evidência | O que falta |
+|---|---|---|---|
+| RF-A2-01 | Parcial: 4 objetos de dispositivo (`Bateria_01`, `QR_Entrada`, `QR_Teste`, `QR_Saida`) e `Rastreio` no mesmo servidor 4850, listados com `uals`/`uaread` | `f2-2.1-dispositivos.md`, `f2-2.8-fluxo-pecas.md` | Print do address space (UaExpert ou equivalente) |
+| RF-A2-02 | Atendido em demonstração: `qr-entrada`/`qr-saida` (diff de L2–L4 vazio), `qr-teste` e um 5º temporário `esp32-tst01` só por `config/dispositivos.yaml`, com o mesmo hash de código antes e depois | `f2-2.1-dispositivos.md`, `f2-2.8-fluxo-pecas.md`, `f2-2.8-extra-*.png` | — |
+| RF-A2-03 | Atendido: `eventos` com as colunas da aula, ao lado de `leituras`; 157 eventos de 32 peças em `dados/dados.f2.db` (planta virtual) | `f2-2.5-eventos-ficha.md`, `f2-2.8-fluxo-pecas.md`, `dados/amostras/f2-2.8-eventos-godot.csv` | — |
+| RF-A2-04 | Parcial: 30 etiquetas `P0001`–`P0030` (símbolo 2,31 cm, 300 dpi) e PDF A4, decodificadas de volta 30/30 | `f2-2.2-leitor-qr.md`, `dados/etiquetas/` | Impressão conferida (≥ 2 cm) e leitura com webcam real |
+| RF-A2-05 | Parcial: consulta de repetidos vazia no banco da 2.8; dedup e expiração com testes de unidade; expiração real vista só com prazo de 3 s | `f2-2.3-gateway-pecas.md`, `f2-2.8-fluxo-pecas.md` | Integrações com broker no ar; entrada repetida depois de reinício do gateway escapa do índice (limitação declarada) |
+| RF-A2-06 | Atendido com a planta virtual: lead time por peça (n = 31, 24,131 ± 0,839 s) pela página Rastreio e pelo `nucleo` | `f2-2.8-fluxo-pecas.md`, `f2-2.8-rastreio-*.png` | Prints refeitos depois da correção da revisão |
+| RF-A2-07 | Parcial: fichas de 4 peças (rápida, lenta, típica, reprovada) no dashboard e no AAS; a "lenta" fica só +7 % e a página a classifica "na média" | `f2-2.8-fluxo-pecas.md`, `f2-2.8-rastreio-*.png` | Peça lenta de verdade (fonte `operador` ou roteiro com espera); ligação com o AAS WP_ (perfil completo) |
+| RF-A2-08 | Parcial: peça mais lenta (`000083`), estação de espera (Embalagem) e Muda W/T do TIM WOODS; o excesso é ruído de emulação | `f2-2.9-espera.md`, `dados/analises/f2_espera*` | Texto reescrito com os números corrigidos; repetir com fonte `operador`; comparação de valor com o M2 |
+| RF-A2-09 | Parcial: carga 2000/2000 eventos, 0 `database is locked` com leitor pelo `nucleo` (registrado na evidência da 2.5) | `f2-2.5-eventos-ficha.md`, `tests/aas_sync/test_carga.py` | Reexecutar a carga e as integrações com broker e AAS no ar |
+| RF-A2-10 | Atendido com a planta virtual: 31 peças concluídas (≥ 20) em `eventos`; 20ª saída 253,7 s depois da primeira entrada | `f2-2.8-fluxo-pecas.md` | — |
+| RF-A4-04 (FPY/RTY do trecho, tarefa 2.10) | Demonstração: FPY = RTY do trecho 90,3 % (28/31), `emulador:godot`; não é medição | `f2-2.10-fpy-rty.md` | Fonte com resultado real |
+
 ## 3. Decisões do grupo que moldam o escopo
 
 Registradas em 2026-11-15 (detalhes nos ADRs):
@@ -276,9 +297,10 @@ São os únicos pontos de contato entre camadas. Mudança de contrato exige ADR.
   `{"v":"online"|"offline","fw":"1.0.0","boot":3,"origem":"emulador:operador"}`
 - `dev/v1/{id}/tel/{canal}` — QoS 0: `{"seq":41,"up_ms":812345,"v":183.2}`
 - `dev/v1/{id}/evt/{evento}` — QoS 1: `{"seq":42,"up_ms":815020,...campos}`; eventos mínimos:
-  `ciclo` (`fase`: `inicio`|`fim`, `dur_s` no fim) e `scan` (`qr`, `ponto`)
+  `ciclo` (`fase`: `inicio`|`fim`, `dur_s` no fim) e `scan` (`qr`, `ponto`; `resultado` 1/0 opcional, só no ponto
+  `teste`, ADR-0026 Proposto)
 - O dispositivo **não** envia data/hora; `seq` detecta lacunas e duplicatas; `up_ms` serve só a diagnóstico.
-- Implementado em `pipeline/contrato/` (esquemas Draft 2020-12, 16 mensagens válidas e 29 inválidas). Valores de
+- Implementado em `pipeline/contrato/` (esquemas Draft 2020-12, 18 mensagens válidas e 33 inválidas desde a tarefa 2.1). Valores de
   `origem` aceitos hoje: `emulador:{roteiro,operador,godot,replay,teste}`, `firmware:emulado` e `hardware`;
   `emulador:teste` marca sessões de teste (teclas injetadas, `--teste`) e quais origens valem como Medido fica em
   `config/origens.yaml` (ADR-0025). O ADR-0005
@@ -291,12 +313,25 @@ Um servidor, um objeto por dispositivo: `ns=2;s=LinhaCelulares.<Dispositivo>.<Va
 `LinhaCelulares.Bateria_01.TempoCiclo`), mais `Online` e `UltimaLeitura` por objeto e `LinhaCelulares.Rastreio`.
 Implementado (1.3, ADR-0019 Proposto): servidor em `opc.tcp://<IP>:4850/lean/dispositivos`; cada objeto tem também
 `Origem`, `Boot`, `Firmware`, `UltimoEvento`, `Fase`, `Rejeitados`, `Duplicatas`, `Lacunas`; o objeto
-`LinhaCelulares.Gateway` expõe `UltimaRejeicao`, `Rejeitados`, `MensagensAceitas` e `Inicio`. `Rastreio` é da Fase 2.
+`LinhaCelulares.Gateway` expõe `UltimaRejeicao`, `Rejeitados`, `MensagensAceitas` e `Inicio`. Objetos de
+dispositivo, todos criados só por configuração: `Bateria_01`, `QR_Entrada` e `QR_Saida` (tarefa 2.1,
+`docs/evidencias/f2-2.1-dispositivos.md`) e `QR_Teste` (tarefa 2.10, com a variável `ResultadoTeste`,
+`docs/evidencias/f2-2.10-fpy-rty.md`): 4 objetos. O objeto `LinhaCelulares.Rastreio` (ADR-0026, Proposto) está
+implementado desde a tarefa 2.3: `UltimoEventoPeca` (String JSON `{"n","ts","peca","estacao","evento","valor",
+"dispositivo","qr"}`, um por evento de peça), `EventosPeca` (último `n`), `UltimaPeca`, `LeadTimeReal` (s) e os
+contadores `PecasConcluidas`, `PecasEmProcesso`, `PecasExpiradas`, `LeiturasRepetidas` e `CiclosSemPeca`, escritos só
+pelo gateway. As rejeições ganharam a categoria `rastreio` (QR sem regra, leitura repetida, peça já fechada); uma
+leitura recusada no rastreio continua contada em `MensagensAceitas` (semântica no README do gateway). Convenções em
+`docs/convencoes-fase-2.md`; evidência em `docs/evidencias/f2-2.3-gateway-pecas.md`.
 
 ### 6.3 Banco de séries e eventos (SQLite, WAL)
 
 - `leituras(ts TEXT, node TEXT, valor REAL)` — contrato do M2.A3, medidas de processo.
 - `eventos(ts TEXT, peca TEXT, estacao TEXT, evento TEXT, valor REAL)` — contrato do M3.A2, eventos por peça.
+  Gravada desde a tarefa 2.5 a partir de `Rastreio.UltimoEventoPeca`, com índice único
+  `ux_eventos_ts_peca_estacao_evento` e `INSERT OR IGNORE` (ADR-0026, Proposto). Valores de `evento`: `entrada`,
+  `inicio`, `fim` (`valor` = `dur_s`), `teste` (`valor` 1/0), `saida`, `expirada` (`valor` = idade em s);
+  `valor` NULL nos scans (`docs/convencoes-fase-2.md` §3).
 - `sessoes(dispositivo, origem, inicio, fim)` — de onde veio cada período de coleta (ADR-0013).
 - `rejeitados(ts, dispositivo, topico, categoria, motivo, payload, n)` — descartes do gateway (ADR-0019, ADR-0020).
 
@@ -304,6 +339,11 @@ Implementado (1.3, ADR-0019 Proposto): servidor em `opc.tcp://<IP>:4850/lean/dis
 
 Estado atual de cada dispositivo (submodelo de dados operacionais) e ficha de rastreabilidade por peça.
 Dispositivo: shell `urn:lean-manufacture:grupo7:aas:<id>`, submodelo `DadosOperacionais` (ADR-0020, Proposto).
+Peça (tarefa 2.5): shell `urn:lean-manufacture:grupo7:aas:peca:<peca>`, submodelo `Rastreabilidade` (Situacao,
+Entrada/Saida, LeadTime_s, Processamento_s, Espera_s, ResultadoTeste, TemposPorEstacao, Trajetoria, QrBruto,
+NumeroEventos), remontado a partir de `eventos`; para peça da planta, `globalAssetId` = GS1 Digital Link e
+referência ao AAS `WP_` da base (só referência, ADR-0001; o `WP_` não existe no perfil reduzido). O cálculo repete
+o do `nucleo` (ADR-0027, Proposto).
 
 ### 6.5 T2T (OPC UA)
 

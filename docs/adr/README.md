@@ -32,6 +32,8 @@ vale como direção de trabalho até o grupo confirmar ou recusar. *Substituído
 | [0023](0023-bibliotecas-de-comunicacao-e-validacao.md) | Bibliotecas: asyncua, paho-mqtt, arduino-mqtt, ArduinoJson, jsonschema | Proposto | Tarefas 1.1 a 1.7 |
 | [0024](0024-rede-do-conteiner-de-desenvolvimento.md) | Rede do contêiner de desenvolvimento: `--network=host` com `gai.conf` (complementa o 0015) | Proposto | Tarefa 1.0 |
 | [0025](0025-origem-de-teste-e-origens-medidas-em-configuracao.md) | Origem `emulador:teste` declarada pela L0 e origens medidas em `config/origens.yaml` | Proposto | Revisão da Fase 1 |
+| [0026](0026-resultado-do-teste-no-scan-e-objeto-rastreio.md) | Resultado do teste no `scan` (`resultado` 0/1 no ponto `teste`), objeto `Rastreio` com `UltimoEventoPeca` numerado e categoria `rastreio` | Proposto | Tarefa 2.1 |
+| [0027](0027-ficha-da-peca-no-aas-repete-o-calculo-do-nucleo.md) | Ficha da peça no AAS repete lead time e espera do `nucleo` (exceção à L2 sem KPI), vigiada por teste cruzado | Proposto | Revisão de contratos da Fase 2 |
 
 ## Modelo
 

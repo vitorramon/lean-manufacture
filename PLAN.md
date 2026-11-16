@@ -79,15 +79,32 @@ tabela de outliers.
 Objetivo: cada peça tem identidade, trajetória e lead time próprios.
 
 - [ ] 2.1 Segundo e terceiro dispositivos por configuração (`qr-entrada`, `qr-saida`); nenhum código de L2–L4 muda
+      — parcial em 2026-11-16: falta print do address space (UaExpert ou equivalente) com `QR_Entrada`, `QR_Teste`,
+      `QR_Saida`, `Bateria_01` e `Rastreio`; ADR-0008 e ADR-0026 Propostos
 - [ ] 2.2 Leitor de QR: modo emulado e modo câmera; geração das etiquetas
+      — parcial em 2026-11-16: falta teste com webcam real e etiquetas impressas (≥ 2 cm conferidos); reexecutar as
+      integrações do emulador com o broker no ar
 - [ ] 2.3 Tabela `eventos`; deduplicação e expiração de peças no gateway
+      — parcial em 2026-11-16: falta rodar as integrações com o broker no ar; entrada duplicada depois de reinício
+      do gateway só declarada (convenções §3)
 - [ ] 2.4 Associação ciclo ↔ peça por posto
+      — parcial em 2026-11-16 (junto com a 2.3): 31/31 ciclos associados no banco da 2.8; falta integração com broker
 - [ ] 2.5 Ficha da peça no AAS e ligação com o QR da peça da planta virtual (ADR-0008)
+      — parcial em 2026-11-16: falta abrir a ficha e o AAS `WP_` com `--profile base-completa`; rodar integrações e
+      `test_carga` com broker e AAS no ar; ADR-0026/0027 Propostos
 - [ ] 2.6 Página "Rastreio": busca por ID, trajetória, espera, comparação com a média
+      — parcial em 2026-11-16: falta print novo pelo `start.py` depois da correção da revisão
 - [ ] 2.7 Página "Dispositivos": online, última leitura, rejeições, lacunas
+      — parcial em 2026-11-16: falta print novo pelo `start.py` depois da correção da revisão
 - [ ] 2.8 Fluir ≥ 20 peças; fichas de ≥ 3 peças (uma rápida, uma lenta)
+      — parcial em 2026-11-16: falta vídeo de uma peça atravessando a linha, ficha de peça lenta de verdade
+      (operador ou roteiro com espera), prints refeitos e ligação com o AAS `WP_` no perfil completo
 - [ ] 2.9 Análise de espera: peça mais lenta, onde esperou, Muda do M1 associada
+      — parcial em 2026-11-16: falta reescrever o texto com os números corrigidos, repetir com fonte `operador`
+      (Muda real) e comparar o valor com o M2 no mesmo trecho
 - [ ] 2.10 Resultado do teste por peça nos eventos; FPY e RTY medidos no trecho
+      — parcial em 2026-11-16: FPY = RTY de demonstração 90,3 % (28/31, `emulador:godot`), não medição; falta
+      fonte com resultado real e vídeo
 
 Evidências: print do address space com ≥ 2 objetos; vídeo de uma peça atravessando a linha; três fichas; consulta
 mostrando ausência de eventos repetidos.
