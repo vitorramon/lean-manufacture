@@ -1,0 +1,5 @@
+# Folha de anotações da coleta com a fonte operador (docs/roteiro-coleta-operador.md, seção 6).
+# Copie para dados/coleta/AAAA-MM-DD-anotacoes.csv. Uma linha por evento notável; sem nomes (só OP1, OP2, OB1).
+# tipo: interrupcao, pausa, falta_peca, busca_peca, erro_montagem, retrabalho, toque_duplo, esqueceu_inicio,
+#       esqueceu_fim, toque_atrasado, rede, sistema, outro. Linhas começando com # são ignoradas.
+sessao,ciclo,operador,hora,tipo,descricao
