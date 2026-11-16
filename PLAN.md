@@ -84,23 +84,26 @@ Objetivo: cada peça tem identidade, trajetória e lead time próprios.
 - [ ] 2.2 Leitor de QR: modo emulado e modo câmera; geração das etiquetas
       — parcial em 2026-11-16: falta teste com webcam real e etiquetas impressas (≥ 2 cm conferidos); reexecutar as
       integrações do emulador com o broker no ar
-- [ ] 2.3 Tabela `eventos`; deduplicação e expiração de peças no gateway
-      — parcial em 2026-11-16: falta rodar as integrações com o broker no ar; entrada duplicada depois de reinício
-      do gateway só declarada (convenções §3)
-- [ ] 2.4 Associação ciclo ↔ peça por posto
-      — parcial em 2026-11-16 (junto com a 2.3): 31/31 ciclos associados no banco da 2.8; falta integração com broker
-- [ ] 2.5 Ficha da peça no AAS e ligação com o QR da peça da planta virtual (ADR-0008)
-      — parcial em 2026-11-16: falta abrir a ficha e o AAS `WP_` com `--profile base-completa`; rodar integrações e
-      `test_carga` com broker e AAS no ar; ADR-0026/0027 Propostos
-- [ ] 2.6 Página "Rastreio": busca por ID, trajetória, espera, comparação com a média
-      — parcial em 2026-11-16: falta print novo pelo `start.py` depois da correção da revisão
-- [ ] 2.7 Página "Dispositivos": online, última leitura, rejeições, lacunas
-      — parcial em 2026-11-16: falta print novo pelo `start.py` depois da correção da revisão
+- [x] 2.3 Tabela `eventos`; deduplicação e expiração de peças no gateway
+      — feita em 2026-11-16: integrações com broker no ar (gateway 142 passaram, 0 pulados), 0 repetidos pelo
+      `start.py` (docs/evidencias/f2-pos-revisao.md); limitação declarada: entrada duplicada depois de reinício do gateway (convenções §3)
+- [x] 2.4 Associação ciclo ↔ peça por posto
+      — feita em 2026-11-16 (junto com a 2.3): 31/31 ciclos associados no banco da 2.8; integrações com broker no ar
+      (docs/evidencias/f2-pos-revisao.md)
+- [x] 2.5 Ficha da peça no AAS e ligação com o QR da peça da planta virtual (ADR-0008)
+      — feita em 2026-11-16: com a base completa, a ficha `Peca_PC3280_2026_000102` aponta para o AAS
+      `WP_PC3280_2026_000102` do `mes`, que responde HTTP 200; integrações e `test_carga` com broker e AAS no ar
+      (aas_sync 77 passaram); reinício do `aas-sync` conta 13 eventos perdidos (docs/evidencias/f2-pos-revisao.md). ADR-0026/0027 Propostos
+- [x] 2.6 Página "Rastreio": busca por ID, trajetória, espera, comparação com a média
+      — feita em 2026-11-16: prints pelo `start.py` depois da correção da revisão
+      (`f2-pos-revisao-rastreio-*.png`, docs/evidencias/f2-pos-revisao.md)
+- [x] 2.7 Página "Dispositivos": online, última leitura, rejeições, lacunas
+      — feita em 2026-11-16: print pelo `start.py` com os 4 dispositivos online (`f2-pos-revisao-dispositivos.png`)
 - [ ] 2.8 Fluir ≥ 20 peças; fichas de ≥ 3 peças (uma rápida, uma lenta)
       — parcial em 2026-11-16: falta vídeo de uma peça atravessando a linha, ficha de peça lenta de verdade
-      (operador ou roteiro com espera), prints refeitos e ligação com o AAS `WP_` no perfil completo
+      (operador ou roteiro com espera); prints refeitos e ligação com o AAS `WP_` feitos depois (f2-pos-revisao.md)
 - [ ] 2.9 Análise de espera: peça mais lenta, onde esperou, Muda do M1 associada
-      — parcial em 2026-11-16: falta reescrever o texto com os números corrigidos, repetir com fonte `operador`
+      — parcial em 2026-11-16: texto reescrito com os números corrigidos; falta repetir com fonte `operador`
       (Muda real) e comparar o valor com o M2 no mesmo trecho
 - [ ] 2.10 Resultado do teste por peça nos eventos; FPY e RTY medidos no trecho
       — parcial em 2026-11-16: FPY = RTY de demonstração 90,3 % (28/31, `emulador:godot`), não medição; falta

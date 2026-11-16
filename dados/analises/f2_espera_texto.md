@@ -15,9 +15,8 @@ peça em [`f2_espera.csv`](f2_espera.csv). O script lê o banco só por `app/nuc
 > `fim` (caso da `000056`). Saídas regeneradas com o mesmo comando e o mesmo banco: Bateria 0,028 → **0,001 s**,
 > Teste 2,820 → **2,542 s** (média sobre 30 peças: na `000056` o teste caiu dentro do ciclo), Embalagem 9,602 s
 > (igual, agora a maior espera em **31 de 31** peças). Lead time, processamento e espera da peça **não mudaram**.
-> As frases abaixo que citam 0,028 s, 2,820 s, "Teste em 1 (a `000056`)" e a linha da `000056` no §5 são da versão
-> anterior; a tabela gerada [`f2_espera.md`](f2_espera.md) já traz os números corrigidos. Evidência:
-> `docs/evidencias/f2-revisao.md`.
+> O texto abaixo foi reescrito com os números corrigidos (2026-11-16), iguais aos da tabela gerada
+> [`f2_espera.md`](f2_espera.md). Evidência: `docs/evidencias/f2-revisao.md`.
 
 ![Espera por peça e por estação](f2_espera.png)
 
@@ -28,10 +27,10 @@ peça em [`f2_espera.csv`](f2_espera.csv). O script lê o banco só por `app/nuc
 | Lead time do trecho (entrada → saída) | 24,131 ± 0,839 s (21,377 a 25,805 s) | `emulador:godot`, n = 31 |
 | Processamento (Σ `dur_s` do posto Bateria) | 12,069 ± 0,264 s | idem |
 | Espera = lead time − processamento | 12,063 ± 0,768 s, **50,0 %** do lead time | idem |
-| Espera média por estação | Bateria 0,028 s · Teste 2,820 s · **Embalagem 9,602 s** | `Dados.espera_por_estacao` |
-| Estação com a maior espera da peça | Embalagem em 30 de 31 peças; Teste em 1 (a `000056`, ver §5) | `f2_espera.csv` |
+| Espera média por estação | Bateria 0,001 s · Teste 2,542 s · **Embalagem 9,602 s** | `Dados.espera_por_estacao` |
+| Estação com a maior espera da peça | Embalagem em 31 de 31 peças | `f2_espera.csv` |
 
-Quase não há espera **antes** do posto Bateria (0,028 s). Na planta, a liberação a cada 12 s e o ciclo do posto
+Quase não há espera **antes** do posto Bateria (0,001 s). Na planta, a liberação a cada 12 s e o ciclo do posto
 (também 12 s) estão balanceados, então não se forma fila nem WIP na entrada. A espera fica nos trechos sem
 processamento instrumentado. O maior deles vai da inspeção (`teste`) até a separação (`saida`), atribuído à
 Embalagem e com cerca de 9,6 s por peça.
@@ -45,8 +44,8 @@ A peça mais lenta é **`PC3280-2026-000083`**:
 
 | Estação | Tempo da peça (s) | Espera da peça (s) | Espera média da estação (s) | Diferença (s) |
 | --- | ---: | ---: | ---: | ---: |
-| Bateria | 11,999 | −0,001 | 0,028 | −0,028 |
-| Teste | 2,607 | 2,607 | 2,820 | −0,213 |
+| Bateria | 11,999 | −0,001 | 0,001 | −0,002 |
+| Teste | 2,607 | 2,607 | 2,542 | +0,065 |
 | **Embalagem** | 11,199 | **11,199** | 9,602 | **+1,597** |
 
 Ela esperou na **Embalagem**, entre o resultado do teste (21:27:20,243) e a saída (21:27:31,442). Desse trecho
@@ -87,7 +86,7 @@ slide 6 de `PPGEE_Grupo_7_Cen_8.pptx`; SPECS §2.1, desperdícios priorizados "e
 
 A causa-raiz do M1 ligada à espera é o **Meio ambiente** do Ishikawa/5 Porquês (slide 13): "gargalos e acúmulo de
 WIP entre as estações", fluxo empurrado sem limite de WIP. É aqui que a planta virtual **não reproduz** o M1. Como
-ela está balanceada (12 s × 12 s), não há fila nem WIP: a espera antes da Bateria é de 0,028 s. A espera que
+ela está balanceada (12 s × 12 s), não há fila nem WIP: a espera antes da Bateria é de 0,001 s. A espera que
 aparece no M3 é **transporte/espera estrutural do layout**, não acúmulo por fluxo empurrado.
 
 O mecanismo do M1 aparece na geração Simulado (M2). No cenário Atual, a espera média na fila da Bateria é de
@@ -136,6 +135,6 @@ A comparação de valor no mesmo trecho fica **pendente**. Ela precisa de um des
 | --- | --- | --- |
 | Planta `godot` determinística: liberação e ciclo fixos em 12 s, sem pessoas | O espalhamento do lead time (σ = 0,84 s) é ruído da emulação. A "mais lenta" fica só +6,9 % acima da média, e a página a classifica como "na média". Não há causa de processo para a espera dela | Repetir a análise com a fonte `operador` (variação humana) ou com um roteiro com fila declarada, que não vale como medição |
 | "Espera" = tempo sem `dur_s` instrumentado. Só o posto Bateria tem botão de ciclo | Os 9,6 s da Embalagem misturam transporte, inspeção e separação da planta com espera propriamente dita: é um limite superior da espera | Instrumentar ciclo no Teste e na Embalagem (`dur_s`), o que só exige configuração (RF-A2-02) |
-| Ciclo da `godot` = intervalo entre liberações (convenções §5). Na `000056`, o `teste` chegou antes do `fim` | A partição por estação dessa peça fica errada: Bateria 0,83 s, Teste 11,17 s, e o processamento não é descontado de nenhuma estação. O total (lead time e espera da peça) continua certo. É a única peça com a maior espera "no Teste" | **Corrigido em 2026-11-16** (revisão da Fase 2, achado 1): o ciclo vira um segmento da Bateria; a `000056` fica com Bateria 0,001 s e Embalagem 9,378 s |
+| Ciclo da `godot` = intervalo entre liberações (convenções §5). Na `000056`, o `teste` chegou antes do `fim` | Na primeira versão, a partição por estação dessa peça saía errada (Bateria 0,83 s, Teste 11,17 s). **Corrigido em 2026-11-16** (revisão da Fase 2, achado 1): o ciclo `inicio` → `fim` vira um segmento da Bateria; a `000056` fica com Bateria 0,001 s e Embalagem 9,378 s, e a soma das esperas por estação bate com a espera da peça em todas as 31 | Nenhuma; o caso fica coberto por teste em `nucleo/pecas.py` e `aas_sync/ficha.py` |
 | Trecho do M3 (3 pontos) ≠ trecho do M2 (9 estações e fila) | Lead time e espera do M3 não se comparam em valor com o Simulado | Recortar o simulado aos mesmos pontos ou instrumentar o trecho do ADR-0009 |
 | Lead time e espera sem baseline nem meta no M1 | Não há "atingiu?" para estes indicadores | Mantê-los como complementares (SPECS §2.1, consequência 1) |

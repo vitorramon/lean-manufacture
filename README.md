@@ -3,7 +3,7 @@
 Projeto final da disciplina PGENE586 — Lean Manufacturing e Qualidade Aplicadas à Indústria 4.0 (PPGEE/UFAM).
 
 > **Estado em 2026-11-16: Fase 1 com 1 de 14 tarefas aceitas como feitas (11 parciais, 2 bloqueadas); Fase 2
-> executada com as 10 tarefas parciais.** O caminho dispositivo emulado → MQTT → OPC UA → SQLite e AAS → dashboard
+> com 5 de 10 tarefas feitas (2.3–2.7) e 5 parciais.** O caminho dispositivo emulado → MQTT → OPC UA → SQLite e AAS → dashboard
 > roda pelo `start.py`, e desde a Fase 2 cada peça da planta virtual tem trajetória, lead time e ficha próprios.
 > Tudo é **emulado**: nenhum número aqui é medição física (ADR-0013); a coleta com operador (tarefa 1.12) ainda não
 > foi feita. O andamento está em [PROGRESS.md](PROGRESS.md).
@@ -214,7 +214,7 @@ As portas 4840 e 4841, usuais na disciplina, já são ocupadas pelo CLP virtual 
 | Planta `godot` determinística (takt 12 s) | Lead time por peça varia só 21,4–25,8 s por ruído; a peça "lenta" fica +7 % ("na média") e o excesso não é Muda real; FPY 90,3 % é sorteio da planta | Ficha lenta e análise de espera com a fonte `operador` ou roteiro com espera |
 | Rastreio (dedup e expiração) só em memória no gateway | Depois de reiniciar o gateway, uma releitura gera outra `entrada` em `eventos` (o lead time usa a primeira) | Estado persistente no gateway, com ADR |
 | Ficha do AAS repete o cálculo do `nucleo` na L2 (ADR-0027) | Duas implementações podem divergir | Teste cruzado `tests/aas_sync/test_ficha_cruzada.py` (7 cenários) |
-| Perfil reduzido sem o `mes` da base | O AAS `WP_` da peça da planta dá 404; a ficha só o referencia | `--profile base-completa` na demonstração |
+| Perfil reduzido sem o `mes` da base | O AAS `WP_` da peça da planta dá 404; a ficha só o referencia | Na demonstração, `COMPOSE_PROFILES=base-completa` antes do `start.py` (verificado: `docs/evidencias/f2-pos-revisao.md`); iniciar a fonte depois de o `mes` subir |
 | Eventos publicados com o `aas-sync` fora do ar | São contados como perdidos (salto de `n`), não recuperados | Buffer no gateway, com ADR |
 
 ## Equipe

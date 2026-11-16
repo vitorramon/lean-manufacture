@@ -4,7 +4,7 @@ Registro do andamento. As tarefas vêm de [PLAN.md](PLAN.md). Atualize este arqu
 caixa, anote a data e aponte a evidência.
 
 **Última atualização:** 2026-11-16
-**Fase atual:** Fase 2 executada em 2026-11-16 com as 10 tarefas parciais (nenhuma aceita como feita); a Fase 2 não
+**Fase atual:** Fase 2 executada em 2026-11-16: 5 tarefas feitas (2.3–2.7) depois da verificação com a pilha no ar, 5 parciais; a Fase 2 não
 fecha sem o print do address space, o vídeo de uma peça atravessando a linha e uma peça lenta de verdade. A Fase 1
 continua aberta (coleta com operador, vídeo do dashboard). Próxima: pendências de evidência das Fases 1 e 2 e Fase 3
 **Código do M3 implementado:** contrato `dev/v1` (`pipeline/contrato`), emulador com fontes `roteiro`, `godot` e
@@ -23,7 +23,7 @@ pelo `aas-sync`; páginas "Rastreio" e "Dispositivos"; análise de espera (`dado
 | Pendências do grupo (P-01 a P-07) | Abertas | 3 de 7 |
 | Fase 0 — Fundação | Concluída (2026-11-15) | 8 de 8 |
 | Fase 1 — Primeiro dispositivo | Em andamento: 1 feita (1.8), 11 parciais, 2 bloqueadas (1.12, 1.13) | 1 de 14 |
-| Fase 2 — Rastreabilidade | Executada em 2026-11-16: 10 parciais, nenhuma feita | 0 de 10 |
+| Fase 2 — Rastreabilidade | Executada em 2026-11-16: 2.3–2.7 feitas; 2.1, 2.2, 2.8, 2.9, 2.10 parciais | 5 de 10 |
 | Fase 3 — Rede federada | Não iniciada | 0 de 11 |
 | Fase 4 — Consolidação | Não iniciada | 0 de 11 |
 | Fase 5 — Bônus | Não iniciada | 0 de 7 |
@@ -208,9 +208,29 @@ Surpresas:
 Mudou no plano: ADRs 0019 a 0024 propostos; SPECS §2.4, §6.1, §6.2 e R-08; ARCHITECTURE §10; README §3, §4, §6 e §7;
 CLAUDE "Comandos".
 
+### 2026-11-16 — Fase 2: verificação com a pilha no ar
+
+`COMPOSE_PROFILES=base-completa DB_PATH=dados/dados.f2r.db python3 start.py --fonte godot --manter-base` (25
+contêineres, `mes` incluído). Tudo **emulado** (`emulador:godot`, determinística).
+
+- [x] 2.3 + 2.4 **Feitas.** Integrações com broker no ar: device_gateway 142 passaram, 0 pulados. Rodada pelo
+  `start.py`: 30 peças, 163 eventos, 0 repetidos, 0 rejeitados — evidência: `docs/evidencias/f2-pos-revisao.md`
+- [x] 2.5 **Feita.** Ficha `Peca_PC3280_2026_000102` → AAS `WP_PC3280_2026_000102` do `mes`: HTTP 200, 14
+  submodels. aas_sync 77 passaram (inclui `test_carga`), 0 pulados. Reinício do `aas-sync` com o gateway no ar:
+  numeração restaurada e 13 eventos perdidos contados (correção 3 da revisão verificada) — evidência: idem
+- [x] 2.6 + 2.7 **Feitas.** Prints pelo `start.py` depois da revisão: filtro "só medidas" ligado, espera por estação
+  somando a espera da peça (`000102`: 0,003 + 2,531 + 11,298 = 13,8 s), 4 dispositivos online — evidência:
+  `docs/evidencias/f2-pos-revisao-*.png`
+- [ ] 2.9 continua parcial; texto `dados/analises/f2_espera_texto.md` reescrito com os números corrigidos.
+- Demais suítes com a pilha no ar: contrato 104, emulador 70 (0 pulados), app 62.
+
+Surpresas: as peças liberadas antes de o `mes` terminar de subir (`000088`–`000091`) ficam sem AAS `WP_` (o `mes`
+descarta os eventos depois de 60 s); os testes de integração publicam no broker compartilhado e entram no banco da
+rodada (104 rejeitados depois deles), por isso as contagens foram tiradas antes.
+
 ### 2026-11-16 — Fase 2: vários dispositivos e rastreabilidade
 
-Estado aceito pelo verificador (não o declarado): **10 tarefas parciais, nenhuma feita**. Tudo é **emulado**
+Estado aceito pelo verificador (não o declarado): **10 tarefas parciais, nenhuma feita** (2.3–2.7 fechadas depois, na entrada acima). Tudo é **emulado**
 (ADR-0002). A planta `godot` é determinística: vale para fluxo, rastreio, lead time do trecho e FPY/RTY de
 demonstração, não para amostra de tempo de ciclo (ADR-0013 item 5). Dado de `roteiro`, `teste` ou sintético não é
 medição. Reverificação no fechamento, com a base fora do ar (integrações puladas): contrato 104 passaram;
@@ -348,10 +368,9 @@ motivos listados em cada uma (vídeo, UaExpert, `.env.example`, `devcontainer up
 
 Fase 1, pendências antes da coleta: `.env.example`, vídeo do dashboard, print no UaExpert e `devcontainer up`. Depois, a sessão com operador (1.12/1.13).
 
-Fase 2, evidências que faltam (nenhuma exige código novo, salvo a peça lenta): print do address space com os 5
-objetos; vídeo de uma peça atravessando a linha; prints novos de Rastreio e Dispositivos pelo `start.py` depois da
-revisão; integrações e `test_carga` com a base no ar; texto da 2.9 reescrito; fichas com `--profile
-base-completa`; webcam real. Depois, Fase 3.
+Fase 2, evidências que faltam: print do address space com os 5 objetos (2.1); webcam real e etiquetas impressas
+(2.2); vídeo de uma peça atravessando a linha e peça lenta de verdade (2.8); Muda real e comparação de valor com o
+M2 (2.9) e FPY/RTY medidos (2.10), que dependem da fonte `operador`. Depois, Fase 3.
 
 ## Bloqueios
 
@@ -363,7 +382,6 @@ base-completa`; webcam real. Depois, Fase 3.
 | Aceitação da L0 emulada (P-02) | Prioridade de comprar hardware; fonte `hardware` | Professor |
 | Datas e integrantes (P-05) | Cronograma com datas | Grupo |
 | Webcam inacessível no WSL2 (sem `/dev/video*`) | 2.2 completa (leitura física de QR) | Usuário (Windows nativo ou usbipd) |
-| Perfil reduzido sem `mes` (AAS `WP_` da peça dá 404) | Ligação da ficha com o AAS da planta (2.5, 2.8) | Subir `--profile base-completa` |
 | Planta `godot` determinística | Peça lenta de verdade (RF-A2-07) e Muda real na análise de espera (RF-A2-08) | Coleta com operador (1.12) ou roteiro com espera |
 
 ## Registro de decisões
