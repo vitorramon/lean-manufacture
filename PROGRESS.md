@@ -30,7 +30,7 @@ Autoavaliação corrente. "Hoje" é o que se sustentaria com evidência se a ent
 
 | Critério | Pts | Hoje | O que falta |
 |---|---:|---:|---|
-| Sistema real funcionando | 10 | 2 | Caminho dispositivo emulado → MQTT → OPC UA → SQLite/AAS → dashboard roda pelo `start.py` com 4 fontes (`f1-1.6-start.md`, `f1-1.10-troca-l0.md`), mas tudo emulado (P-02), sem vídeo do dashboard, sem print no UaExpert e com sessão de teste contando como Medido. Falta: correções da revisão, vídeo, coleta com operador, Fase 2 |
+| Sistema real funcionando | 10 | 2 | Caminho dispositivo emulado → MQTT → OPC UA → SQLite/AAS → dashboard roda pelo `start.py` com 4 fontes (`f1-1.6-start.md`, `f1-1.10-troca-l0.md`), mas tudo emulado (P-02), sem vídeo do dashboard e sem print no UaExpert; a sessão de teste deixou de contar como Medido em 2026-11-16 (ADR-0025). Falta: vídeo, coleta com operador, Fase 2 |
 | Rastreabilidade + KPIs | 8 | 0 | Fase 2 (o critério avalia o sistema real). Já há a coluna Simulado com n = 30 (FPY, RTY, OEE, 1 − COPQ; tarefas 0.7 e 0.8); falta o Medido |
 | Documentação profissional | 8 | 0 | Fase 4 (os documentos de projeto existem, o README final e o relatório não) |
 | Apresentação + demo | 8 | 0 | Fase 4 |
@@ -237,11 +237,37 @@ Medido na tarefa 0.2 (`docs/evidencias/f0-0.2-ambiente.md`).
 | Disco | 1007 GB, 906 GB livres |
 | Leitor de PDF (`poppler`) | Ausente |
 
+### 2026-11-16 — correções da revisão da Fase 1
+
+Os quatro achados importantes da revisão de contratos foram corrigidos, com testes; evidência em
+[docs/evidencias/f1-correcoes-revisao.md](docs/evidencias/f1-correcoes-revisao.md). As tarefas continuam parciais pelos
+motivos listados em cada uma (vídeo, UaExpert, `.env.example`, `devcontainer up`, coleta com pessoa).
+
+- Sessão de teste do operador: a L0 declara `emulador:teste` (ADR-0025). Cadeia nativa (amqtt + gateway + aas-sync +
+  emulador por pipe): sessão gravada como `emulador:teste`, 2 ciclos em `leituras`, amostra medida n = 0. O banco
+  antigo com a sessão de teste da 1.10 foi separado em `dados/dados.f1-teste.db` (fora do Git).
+- Gateway: a base da sequência só zera quando o `boot` muda, ou quando, depois de um status online com o mesmo boot,
+  o `up_ms` recomeça (reinício sem incremento do boot); tel/evt de boot anterior é rejeitado; status com boot menor
+  é renascimento, com aviso; janela dos últimos 64 pares (seq, up_ms) para não confundir reenvio QoS 1 com
+  reinício. 7 testes novos.
+- aas-sync: erro transitório do SQLite (`OperationalError`) repete o lote com backoff (0,5 s → 10 s) em vez de
+  descartar; erro permanente manda o lote para `dados/estado/aas-sync/lotes-falhos.jsonl` e segue; o healthcheck
+  acusa mais de 5 falhas seguidas; quarentena fora do laço e tolerante a disco cheio; `stop_grace_period: 20s` no
+  compose. 4 testes novos.
+- Origens medidas em `config/origens.yaml` (inclui `hardware`); o carregador recusa `roteiro`, `teste`, origem fora
+  do contrato e versão desconhecida; análises da 1.12/1.13 e página usam as mesmas listas. 7 testes.
+- README: `replay` saiu do `start.py` e da documentação de comandos; contagens de testes e limitação atualizadas.
+- ruff nas dependências de dev do contrato e do gateway.
+- Testes: contrato 67, emulador 41 (com broker), gateway 96 (com broker), aas_sync 38 (com broker e AAS), app 28,
+  firmware nativo 29. Duas passadas do `revisor-contratos`: a primeira barrou a correção do gateway (reinício sem
+  incremento do boot emudeceria o dispositivo); a segunda liberou o commit e apontou o reenvio fora de ordem, também
+  corrigido.
+- Ponta a ponta pelo `start.py` (Docker ligado): pilha saudável em 51,7 s; sessão por pipe gravada como
+  `emulador:teste`, 2 leituras, amostra medida n = 0. Rodado também pelo `start.py`, abaixo.
+
 ## Em andamento
 
-Fase 1, correções antes da coleta: separar a sessão de teste do operador (origem de teste com ADR), sequência por
-`boot` no gateway, backoff na gravação do `aas-sync`, origens medidas em configuração, `.env.example`, vídeo do
-dashboard e print no UaExpert. Depois, a sessão com operador (1.12/1.13).
+Fase 1, pendências antes da coleta: `.env.example`, vídeo do dashboard, print no UaExpert e `devcontainer up`. Depois, a sessão com operador (1.12/1.13).
 
 ## Bloqueios
 
@@ -256,7 +282,7 @@ dashboard e print no UaExpert. Depois, a sessão com operador (1.12/1.13).
 ## Registro de decisões
 
 Ver [docs/adr/README.md](docs/adr/README.md). Aceitas pelo grupo: 0001, 0002, 0004, 0013 a 0018. Propostas,
-aguardando validação: 0003, 0005 a 0012, 0019 a 0024.
+aguardando validação: 0003, 0005 a 0012, 0019 a 0025.
 
 Em 2026-11-15, depois da Fase 0, o grupo decidiu:
 
@@ -277,8 +303,9 @@ Na Fase 1 (2026-11-15), propostos pelo assistente, aguardando o grupo:
 - ADR-0022: perfil reduzido por `profiles` no compose adicional (complementa o item 2 do ADR-0016).
 - ADR-0023: bibliotecas asyncua 2.1.0, paho-mqtt 2.2.0, arduino-mqtt 2.5.2, ArduinoJson 7.2.1, jsonschema 4.26.0.
 - ADR-0024: rede do contêiner de desenvolvimento (`--network=host` com `gai.conf`; complementa o ADR-0015).
+- ADR-0025 (2026-11-16): origem `emulador:teste` declarada pela L0 e origens medidas em `config/origens.yaml`.
 - Pendentes de decisão (sem ADR ainda): nomes de `origem` (ADR-0005 item 6 × contrato), `boot` obrigatório em
-  tel/evt, origem de teste para sessões sem terminal.
+  tel/evt.
 
 ## Evidências coletadas
 

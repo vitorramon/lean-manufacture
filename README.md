@@ -67,17 +67,23 @@ Fontes testadas pelo `start.py` na tarefa 1.10 (`docs/evidencias/f1-1.10-troca-l
 | `operador` | `python3 start.py --fonte operador --operador OP1 --manter-base` | Enter = início/fim; a única fonte válida para tempo de ciclo |
 | `firmware` | `python3 start.py --fonte firmware --estimulo bancada/demo.txt --manter-base` | firmware real do ESP32 no QEMU (ADR-0021) |
 
-A fonte `hardware` (ESP32 físico) existe no `start.py`, mas não foi testada: não há placa (ADR-0002). A fonte
-`replay` ainda não foi implementada.
+A fonte `hardware` (ESP32 físico) existe no `start.py`, mas não foi testada: não há placa (ADR-0002). Uma fonte
+`replay` (CSV gravado) está prevista na arquitetura, mas não existe e o `start.py` não a oferece.
+
+Quais origens contam como "Medido (M3)" está em [`config/origens.yaml`](config/origens.yaml), não no código
+(ADR-0025). A fonte `operador` sem terminal (teclas injetadas por pipe) ou com `--teste` se declara
+`emulador:teste` e fica fora do Medido, assim como o `roteiro`. O arquivo (ou `ORIGENS_PATH`) é lido quando o
+dashboard inicia: depois de editá-lo, reinicie o `start.py`. As variáveis de ambiente de cada componente estão em
+[pipeline/contrato/README.md](pipeline/contrato/README.md#variáveis-de-ambiente).
 
 Testes automáticos (sem rede externa; os de integração são pulados se o broker local não estiver no ar):
 
 ```bash
-uv run --project pipeline/contrato pytest tests/contrato          # 66 passaram
-uv run --project hardware/emulador pytest tests/emulador          # 30 passaram, 4 de integração
-uv run --project pipeline/device_gateway pytest tests/device_gateway   # 83 passaram, 5 de integração
-uv run --project pipeline/aas_sync pytest tests/aas_sync          # 32 passaram, 2 de integração
-uv run --project app pytest tests/app                             # 21 passaram
+uv run --project pipeline/contrato pytest tests/contrato          # 67 passaram
+uv run --project hardware/emulador pytest tests/emulador          # 37 passaram, 4 de integração
+uv run --project pipeline/device_gateway pytest tests/device_gateway   # 91 passaram, 5 de integração
+uv run --project pipeline/aas_sync pytest tests/aas_sync          # 36 passaram, 2 de integração
+uv run --project app pytest tests/app                             # 28 passaram
 (cd hardware/firmware && pio test -e native && pio run -e esp32)  # 29 passaram; compila para ESP32
 ```
 
@@ -166,7 +172,7 @@ As portas 4840 e 4841, usuais na disciplina, já são ocupadas pelo CLP virtual 
 | Limitação | Impacto no resultado | Proposta |
 |---|---|---|
 | Dispositivos emulados; o firmware roda no QEMU com Ethernet emulada no lugar do Wi-Fi e botão e DHT22 pela serial | Ruído elétrico, repique mecânico, Wi-Fi e erro do DHT22 não são exercitados; a calibração da 1.11 é só de procedimento | Substituir um emulador por placa física (tarefa 5.6) e repetir a calibração (`docs/calibracao.md`) |
-| A sessão de teste da fonte `operador` (teclas injetadas) se declara `emulador:operador`, como uma sessão real | O painel mostrou essa sessão como "Medido" (n = 4) | Separar sessões de teste por origem própria (com ADR) e usar `--desde` nas análises da 1.12 |
+| A origem é declarada pelo próprio dispositivo; teclas injetadas viram `emulador:teste` (ADR-0025), mas uma pessoa que só aperta Enter num terminal sem fazer a tarefa da bancada ainda se declara `emulador:operador` | Uma sessão mal conduzida entraria no Medido | Folha de coleta com observador (`docs/roteiro-coleta-operador.md`) e `--desde` nas análises da 1.12 |
 | Planta 3D de outro produto (cilindro pneumático) | Tempos da planta virtual não representam a linha de celulares | Mapeamento documentado; tempos humanos pela fonte `operador` |
 | Trecho de 3 pontos de medição em 22 estações | Lead time medido é parcial | Comparar com o mesmo trecho do simulado; ampliar pontos |
 | Uma semente no M2 | Coluna "Simulado" sem intervalo de confiança | 30 replicações (Fase 0) |

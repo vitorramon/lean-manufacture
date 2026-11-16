@@ -61,9 +61,9 @@ e AAS.
 - [x] 1.8 Escolher e configurar o emulador de firmware; rodar o firmware nele contra o mesmo broker
       — 2026-11-15: QEMU da Espressif (ADR-0021), 16/16 mensagens válidas com `firmware:emulado`
 - [ ] 1.9 Fontes `godot` e `operador` no emulador
-      — parcial em 2026-11-15: operador só com teclas injetadas; sessão de teste se declara `emulador:operador` (ADR-0013)
+      — parcial em 2026-11-15: operador só com teclas injetadas; desde 2026-11-16 a sessão de teste se declara `emulador:teste` (ADR-0025)
 - [ ] 1.10 Teste da troca de L0: mesmo commit de L2–L4 com `roteiro`, `godot`, `operador` e firmware emulado
-      — parcial em 2026-11-15: 4 fontes com o mesmo hash de L2–L4; falta commit de L2–L4 e fonte `hardware`; sessão de teste na amostra medida
+      — parcial em 2026-11-15: 4 fontes com o mesmo hash de L2–L4; falta commit de L2–L4 e fonte `hardware`; sessão de teste fora da amostra medida desde 2026-11-16 (ADR-0025)
 - [ ] 1.11 Procedimento de calibração (4 testes) e faixas de validação; registro no README
       — parcial em 2026-11-15: 4 testes só sobre emulação; calibração física pendente
 - [ ] 1.12 Coleta de ≥ 30 ciclos com a fonte `operador`; comparação com o simulado (tabela e histogramas)

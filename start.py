@@ -42,7 +42,8 @@ from orquestracao import (
     url_responde,
 )
 
-FONTES = ("roteiro", "godot", "operador", "firmware", "replay", "hardware")
+# `replay` está reservada no contrato (origem emulador:replay), mas não é oferecida enquanto não existir.
+FONTES = ("roteiro", "godot", "operador", "firmware", "hardware")
 ESTADO = RAIZ / "dados" / "estado" / "start"
 ARQ_PIDS = ESTADO / "pids.json"
 DB = Path(os.environ.get("DB_PATH", RAIZ / "dados" / "dados.db"))
@@ -86,9 +87,6 @@ def godot() -> str:
 
 
 def pre_requisitos(a: argparse.Namespace) -> None:
-    if a.fonte == "replay":
-        sys.exit("start.py: a fonte 'replay' ainda não foi implementada (PLAN, Fase 1; ADR-0013). "
-                 "Use roteiro, godot, operador, firmware ou hardware.")
     if a.fonte == "firmware" and not (RAIZ / "hardware/firmware/emular.sh").exists():
         sys.exit("start.py: fonte firmware precisa de hardware/firmware/emular.sh (tarefa 1.8)")
     if a.fonte == "godot" and not (RAIZ / "base/godot/project.godot").exists():
