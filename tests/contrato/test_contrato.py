@@ -129,3 +129,44 @@ def test_resultado_identifica_topico():
     assert r.topico.dispositivo == "esp32-bat01"
     assert r.topico.nome == "ciclo"
     assert r.dados["dur_s"] == 27.42
+
+
+# ---------------------------------------------------------------- resultado do teste no scan (ADR-0026, tarefa 2.1)
+@pytest.mark.parametrize("resultado", [0, 1])
+def test_scan_no_ponto_teste_aceita_resultado(resultado):
+    r = validar("dev/v1/qr-teste/evt/scan",
+                {"seq": 1, "up_ms": 10, "boot": 1, "qr": "P0001", "ponto": "teste", "resultado": resultado})
+    assert r, r.motivo
+    assert r.dados["resultado"] == resultado
+
+
+def test_scan_sem_resultado_continua_valido_em_qualquer_ponto():
+    """Mudança aditiva: mensagens dev/v1 anteriores ao ADR-0026 continuam válidas (sem dev/v2)."""
+    for ponto in ("entrada", "teste", "saida"):
+        assert validar("dev/v1/qr-x/evt/scan", {"seq": 1, "up_ms": 10, "qr": "P0001", "ponto": ponto})
+
+
+@pytest.mark.parametrize(("ponto", "resultado", "trecho"), [
+    ("saida", 1, "teste"), ("entrada", 0, "teste"), ("teste", 2, "resultado"), ("teste", -1, "resultado"),
+    ("teste", "aprovado", "resultado"), ("teste", True, "resultado"),
+])
+def test_scan_resultado_invalido(ponto, resultado, trecho):
+    r = validar("dev/v1/qr-teste/evt/scan",
+                {"seq": 1, "up_ms": 10, "qr": "P0001", "ponto": ponto, "resultado": resultado})
+    assert not r and trecho in r.motivo
+
+
+def test_resultado_nao_tem_enum_para_nao_virar_variavel_texto():
+    """O gateway cria uma variável String por propriedade com 'enum' (ADR-0019 item 2). 'resultado' é número 0/1:
+    só vira variável (Double) no dispositivo que o declarar em 'campos' (RF-A2-02)."""
+    props = esquema("evt.scan")["properties"]
+    assert "enum" not in props["resultado"] and props["resultado"]["type"] == "integer"
+    assert not any("enum" in p for p in props.values())
+
+
+def test_resultado_fora_do_ponto_teste_e_rejeitado():
+    """Revisão de contratos da Fase 2, achado 5: outro ponto com `resultado` (ex.: inspeção antes da Bateria) não
+    entra só por configuração; o esquema fixa `resultado` ao ponto `teste` (ADR-0026 item 1). Mudar isso exige ADR."""
+    r = validar("dev/v1/qr-inspecao/evt/scan",
+                {"seq": 1, "up_ms": 10, "qr": "P0001", "ponto": "inspecao", "resultado": 1})
+    assert not r and "teste" in r.motivo

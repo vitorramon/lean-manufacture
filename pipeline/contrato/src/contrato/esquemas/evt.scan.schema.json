@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/vitorramon/lean-manufacture/pipeline/contrato/dev/v1/evt.scan.schema.json",
   "title": "dev/v1/{id}/evt/scan",
-  "description": "Leitura de QR Code. QoS 1, não retido. 'qr' é o conteúdo bruto do código (ID curto P0042 ou GS1 Digital Link da planta); a normalização para ID de peça, a deduplicação e a expiração são do gateway (ADR-0008). Sem data/hora.",
+  "description": "Leitura de QR Code. QoS 1, não retido. 'qr' é o conteúdo bruto do código (ID curto P0042 ou GS1 Digital Link/serial da planta); a normalização para ID de peça, a deduplicação e a expiração são do gateway (ADR-0008). 'resultado' (opcional, só no ponto 'teste') é o resultado do teste funcional da peça lida: 1 = aprovada, 0 = reprovada (ADR-0026). Sem data/hora.",
   "type": "object",
   "properties": {
     "seq": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
@@ -19,8 +19,16 @@
       "description": "Ponto de leitura declarado em config/dispositivos.yaml (ex.: entrada, saida).",
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,31}$"
+    },
+    "resultado": {
+      "description": "Resultado do teste funcional da peça lida (ADR-0026): 1 = aprovada, 0 = reprovada. Só com ponto 'teste'. Inteiro sem 'enum' de propósito: vira variável Double só nos dispositivos que o declaram em 'campos' de config/dispositivos.yaml.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1
     }
   },
   "required": ["seq", "up_ms", "qr", "ponto"],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "if": { "required": ["resultado"] },
+  "then": { "properties": { "ponto": { "const": "teste" } } }
 }

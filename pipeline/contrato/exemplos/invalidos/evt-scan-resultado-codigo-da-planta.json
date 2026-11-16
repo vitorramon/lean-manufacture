@@ -1,0 +1,13 @@
+{
+  "descricao": "resultado 2 (código 'reprovado' da planta virtual) não é do contrato: a L0 traduz 1->1 e 2->0 (ADR-0026)",
+  "topico": "dev/v1/qr-teste/evt/scan",
+  "payload": {
+    "seq": 12,
+    "up_ms": 151000,
+    "boot": 1,
+    "qr": "P0042",
+    "ponto": "teste",
+    "resultado": 2
+  },
+  "motivo_contem": "resultado"
+}

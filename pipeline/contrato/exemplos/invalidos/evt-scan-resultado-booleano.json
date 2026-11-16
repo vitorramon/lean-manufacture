@@ -1,0 +1,13 @@
+{
+  "descricao": "resultado é inteiro 0/1, não booleano (ADR-0026)",
+  "topico": "dev/v1/qr-teste/evt/scan",
+  "payload": {
+    "seq": 14,
+    "up_ms": 153000,
+    "boot": 1,
+    "qr": "P0042",
+    "ponto": "teste",
+    "resultado": true
+  },
+  "motivo_contem": "resultado"
+}

@@ -1,0 +1,13 @@
+{
+  "descricao": "resultado só é aceito no ponto teste (ADR-0026)",
+  "topico": "dev/v1/qr-saida/evt/scan",
+  "payload": {
+    "seq": 11,
+    "up_ms": 150000,
+    "boot": 1,
+    "qr": "P0042",
+    "ponto": "saida",
+    "resultado": 1
+  },
+  "motivo_contem": "teste"
+}

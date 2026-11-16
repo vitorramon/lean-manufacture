@@ -1,0 +1,12 @@
+{
+  "descricao": "Leitura no ponto teste com resultado do teste funcional: 1 = aprovada (ADR-0026)",
+  "topico": "dev/v1/qr-teste/evt/scan",
+  "payload": {
+    "seq": 9,
+    "up_ms": 133000,
+    "boot": 1,
+    "qr": "PC3280-2026-000006",
+    "ponto": "teste",
+    "resultado": 1
+  }
+}

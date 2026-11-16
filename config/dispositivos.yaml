@@ -2,7 +2,9 @@
 # Esquema: pipeline/contrato/src/contrato/esquemas/dispositivos.schema.json
 # Leitura: contrato.carregar_dispositivos() (variável DISPOSITIVOS_PATH para outro arquivo).
 #
-# Acrescentar um dispositivo = acrescentar uma entrada aqui (RF-A2-02); nenhum código de L2–L4 muda.
+# Acrescentar um dispositivo = acrescentar uma entrada aqui (RF-A2-02); nenhum código de L2–L4 muda (comprovado na
+# tarefa 2.1 com qr-entrada e qr-saida).
+# A ordem das entradas segue o fluxo da peça no trecho (ADR-0009): é a ordem dos objetos sob LinhaCelulares.
 # O gateway cria o objeto OPC UA ns=2;s=LinhaCelulares.<objeto_opcua>.<Variavel> com as variáveis abaixo,
 # mais Online e UltimaLeitura (sempre presentes), e rejeita valor fora da faixa (vai para 'rejeitados').
 #
@@ -50,3 +52,75 @@ dispositivos:
         contador_opcua:
           variavel_opcua: PecasFeitas
           quando: {fase: fim}
+
+  # Leitores de QR do trecho instrumentado (tarefa 2.1, RF-A2-01/RF-A2-02; ADR-0008, ADR-0009, ARCHITECTURE §4).
+  # Entraram só por esta configuração: nenhum código de L2–L4 mudou (evidência docs/evidencias/f2-2.1-dispositivos.md).
+  # O leitor publica o QR BRUTO (ID curto P0042 ou GS1 Digital Link/serial da planta virtual); normalização para ID
+  # de peça, deduplicação e expiração são do gateway (config/rastreio.yaml; docs/convencoes-fase-2.md).
+  # A `estacao` agrupa os dispositivos de um posto: é ela que vai para a coluna `estacao` de `eventos`, e é por ela
+  # que o ciclo do posto é associado à peça (tarefa 2.4).
+  - id: qr-entrada
+    objeto_opcua: QR_Entrada
+    estacao: Bateria
+    descricao: >-
+      Leitor de QR na entrada do trecho montagem -> teste -> embalagem (ADR-0009), na chegada da peça ao posto
+      Bateria. Planta virtual: ac01/event/part_released (serial da peça). Marca o primeiro evento da peça
+      (início do lead time do trecho).
+    tipo: leitor_qr
+    kpis: [lead time do trecho (início), espera, rastreio por peça]
+    pinagem:
+      camera: webcam USB do computador, decodificação no PC (modo câmera, tarefa 2.2)
+    canais: {}
+    eventos:
+      scan:
+        descricao: Leitura de QR na entrada do trecho (conteúdo bruto do código e ponto)
+        pontos: [entrada]
+        contador_opcua:
+          variavel_opcua: LeiturasQr
+          quando: {ponto: entrada}
+
+
+  # Leitor de QR no posto Teste (tarefa 2.10, ADR-0026): resultado do teste por peça. Entrou só por esta
+  # configuração (RF-A2-02). O campo opcional `resultado` (1 aprovada, 0 reprovada) do scan vira a variável
+  # ResultadoTeste e o valor do evento `teste` em `eventos`. Planta virtual: plc01/event/part_inspected
+  # (`result` 1/2 -> 1/0, traduzido na L0 pela fonte godot).
+  - id: qr-teste
+    objeto_opcua: QR_Teste
+    estacao: Teste
+    descricao: >-
+      Leitor de QR no posto Teste do trecho (ADR-0009), com o resultado do teste da peça (1 aprovada, 0
+      reprovada; ADR-0026). Planta virtual: plc01/event/part_inspected. Base do FPY/RTY do trecho.
+    tipo: leitor_qr
+    kpis: [FPY do trecho, RTY do trecho, resultado por peça]
+    pinagem:
+      camera: webcam USB do computador, decodificação no PC (modo câmera, tarefa 2.2)
+    canais: {}
+    eventos:
+      scan:
+        descricao: Leitura de QR no posto Teste, com o resultado do teste da peça
+        pontos: [teste]
+        campos:
+          resultado:                      # 1 aprovada, 0 reprovada (ADR-0026)
+            variavel_opcua: ResultadoTeste
+        contador_opcua:
+          variavel_opcua: LeiturasQr
+          quando: {ponto: teste}
+
+  - id: qr-saida
+    objeto_opcua: QR_Saida
+    estacao: Embalagem
+    descricao: >-
+      Leitor de QR na saída do trecho (embalagem). Planta virtual: plc01/event/part_sorted (robô RB01 ->
+      KLTA01 aprovadas / KLTB01 reprovadas). Marca o último evento da peça (fim do lead time do trecho).
+    tipo: leitor_qr
+    kpis: [lead time do trecho (fim), peças concluídas, ritmo de saída (T2T RitmoReal)]
+    pinagem:
+      camera: webcam USB do computador, decodificação no PC (modo câmera, tarefa 2.2)
+    canais: {}
+    eventos:
+      scan:
+        descricao: Leitura de QR na saída do trecho (conteúdo bruto do código e ponto)
+        pontos: [saida]
+        contador_opcua:
+          variavel_opcua: LeiturasQr
+          quando: {ponto: saida}
