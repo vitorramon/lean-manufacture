@@ -97,3 +97,40 @@ services:
         condition: service_healthy
       aas-env:
         condition: service_started
+
+  # L3 (tarefa 3.1, ADR-0011/ADR-0028): servidor T2T :4851. Lê o banco do aas-sync SOMENTE LEITURA (nucleo.dados abre
+  # com mode=ro; a montagem fica rw porque o SQLite em WAL precisa do -shm) e nunca escreve no SQLite nem no AAS.
+  # Os elos emulados da cadeia (tarefa 3.3) rodam no host: daqui são alcançados por host.docker.internal.
+  twin-t2t:
+    <<: *lean-servico
+    command: ["/opt/twin_t2t/bin/python", "-m", "twin_t2t"]
+    environment:
+      PYTHONPATH: /app/app          # app/nucleo copiado na imagem (sem as páginas)
+      T2T_ENDPOINT: opc.tcp://0.0.0.0:4851
+      T2T_URL: opc.tcp://localhost:4851
+      T2T_REFERENCIA: ${T2T_REFERENCIA:-agora}
+      DB_PATH: /dados/${LEAN_DB_ARQUIVO:-dados.db}
+      DISPOSITIVOS_PATH: /app/config/dispositivos.yaml
+      RASTREIO_PATH: /app/config/rastreio.yaml
+      ORIGENS_PATH: /app/config/origens.yaml
+      CADEIA_PATH: /app/config/cadeia.yaml
+      CADEIA_FORNECEDOR_URL: ${CADEIA_FORNECEDOR_URL:-opc.tcp://host.docker.internal:4852}
+      CADEIA_DISTRIBUICAO_URL: ${CADEIA_DISTRIBUICAO_URL:-opc.tcp://host.docker.internal:4853}
+      LOG_LEVEL: ${LEAN_LOG_LEVEL:-INFO}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../../config:/app/config:ro
+      - ../../dados:/dados
+    ports:
+      - "4851:4851"
+    healthcheck:
+      test: ["CMD", "/opt/twin_t2t/bin/python", "-m", "twin_t2t.saude"]
+      interval: 10s
+      timeout: 8s
+      retries: 3
+      start_period: 20s
+      start_interval: 1s
+    depends_on:
+      aas-sync:
+        condition: service_healthy

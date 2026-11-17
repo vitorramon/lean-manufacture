@@ -1,0 +1,36 @@
+[project]
+name = "lean-twin-t2t"
+version = "0.1.0"
+description = "twin-t2t (L3): servidor OPC UA :4851 com o EstadoGemeo calculado de `eventos` (somente leitura) e o estado da cadeia"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "asyncua>=2.1.0",
+    "lean-contrato",
+    "pyyaml>=6.0",
+]
+
+[tool.uv.sources]
+lean-contrato = { path = "../../pipeline/contrato", editable = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
+    "ruff>=0.17.5",
+]
+
+# O twin reaproveita app/nucleo (leitura somente leitura do banco e cálculo por peça, ADR-0027) sem depender do
+# pacote do dashboard (streamlit, pandas) e sem cópia: no ambiente de desenvolvimento (editável) `app/` entra no
+# sys.path por dev-mode-dirs; na imagem Docker, app/nucleo é copiado para /app/app e entra por PYTHONPATH
+# (infra/lean-servicos.Dockerfile). Dependências do nucleo (pyyaml, lean-contrato) estão declaradas acima.
+[tool.hatch.build.targets.wheel]
+packages = ["src/twin_t2t"]
+dev-mode-dirs = ["src", "../../app"]
+
+[tool.ruff]
+line-length = 120

@@ -1,0 +1,83 @@
+# Cadeia de gêmeos (Fase 3, ADR-0011 e ADR-0028, Propostos): fornecedor -> PRODUÇÃO (nós) -> distribuição.
+# Criado na tarefa 3.1 (2026-11-16) para fixar os valores que as tarefas 3.2 a 3.8 usam em paralelo.
+# Convenções: docs/convencoes-fase-3.md. Lido por app/nucleo/parametros_cadeia.py (variável CADEIA_PATH).
+# Mudar um valor aqui não exige código. Nenhuma regra daqui depende da origem do dado (ADR-0013).
+#
+# TUDO É EMULADO (ADR-0002): a produção é a planta virtual/emulador; os elos Fornecedor e Distribuição são
+# processos nossos enquanto não houver grupo parceiro (P-04). Parâmetros de emulação NÃO são medição.
+
+versao: 1
+
+# Quem somos na cadeia (cartão de conexão, RF-A3-08).
+elo: Producao
+grupo: Grupo7
+
+# 1. Servidor twin-t2t (tarefa 3.1, RF-A3-01/11): como o EstadoGemeo é calculado a partir de `eventos`.
+t2t:
+  janela_ritmo_s: 600            # RitmoReal = peças com saída nos últimos 600 s × (3600 / 600) = × 6 (ADR-0011 item 1)
+  periodo_publicacao_s: 2        # recálculo e escrita no address space
+  lead_time_amostras: 20         # LeadTimeMedio = média das últimas N peças concluídas (lead time LOCAL do trecho)
+  parada_sem_saida_s: 45         # sem saída há mais que isto -> PARADA (> maior intervalo entre saídas visto: 37,5 s)
+  apenas_medidas: false          # true: só peças de origens "medida" (config/origens.yaml) entram no EstadoGemeo
+
+# 2. Decisão com dado do vizinho (tarefa 3.3a, RF-A3-09).
+decisao:
+  estoque_minimo: 20             # unidades; estoque do fornecedor (ONLINE) abaixo disto e linha produzindo -> RISCO_FALTA
+
+# 3. Vizinhos lidos pelo cliente da cadeia (tarefa 3.2), que roda dentro do twin-t2t. O endereço vem da variável
+#    `url_env`; sem ela, `url_padrao`. Elo real de outro grupo (3.6) troca só url/namespace/nos: o formato é o mesmo.
+#    `nos`: variável do vizinho -> NodeId completo no servidor dele, tipo OPC UA e unidade (contrato de interface).
+elos:
+  - nome: Fornecedor
+    papel: fornecedor
+    emulado: true                # false quando for o gêmeo real de outro grupo (P-04)
+    url_env: CADEIA_FORNECEDOR_URL
+    url_padrao: opc.tcp://localhost:4852
+    nos:
+      EstoqueFornecedor: {node_id: "ns=2;s=EstadoGemeo.EstoqueFornecedor", tipo: Double, unidade: unidades}
+      RitmoReal: {node_id: "ns=2;s=EstadoGemeo.RitmoReal", tipo: Double, unidade: unidades/h}
+      LeadTimeMedio: {node_id: "ns=2;s=EstadoGemeo.LeadTimeMedio", tipo: Double, unidade: s}
+      StatusLinha: {node_id: "ns=2;s=EstadoGemeo.StatusLinha", tipo: String, unidade: "-"}
+      Batimento: {node_id: "ns=2;s=EstadoGemeo.Batimento", tipo: UInt32, unidade: "-"}
+  - nome: Distribuicao
+    papel: distribuicao
+    emulado: true
+    url_env: CADEIA_DISTRIBUICAO_URL
+    url_padrao: opc.tcp://localhost:4853
+    nos:
+      FilaDistribuicao: {node_id: "ns=2;s=EstadoGemeo.FilaDistribuicao", tipo: Double, unidade: unidades}
+      RitmoReal: {node_id: "ns=2;s=EstadoGemeo.RitmoReal", tipo: Double, unidade: unidades/h}
+      LeadTimeMedio: {node_id: "ns=2;s=EstadoGemeo.LeadTimeMedio", tipo: Double, unidade: s}
+      StatusLinha: {node_id: "ns=2;s=EstadoGemeo.StatusLinha", tipo: String, unidade: "-"}
+      Batimento: {node_id: "ns=2;s=EstadoGemeo.Batimento", tipo: UInt32, unidade: "-"}
+
+# 4. Cliente da cadeia (tarefa 3.2, RF-A3-05).
+cliente:
+  periodo_leitura_s: 1           # leitura dos nós de cada vizinho
+  timeout_s: 3                   # conexão/leitura acima disto = falha
+  reconexao_inicial_s: 1         # espera antes de reconectar; dobra a cada falha
+  reconexao_max_s: 10
+  batimento_parado_s: 10         # Batimento sem mudar por este tempo (relógio do NOSSO processo) -> OFFLINE
+
+# 5. Elos emulados (tarefa 3.3): parâmetros de emulação, não medição. Processos locais em twin/cadeia/.
+emulados:
+  Fornecedor:
+    endpoint: opc.tcp://0.0.0.0:4852
+    periodo_publicacao_s: 1      # recálculo e publicação (Batimento +1); acrescentado na 3.3
+    estoque_inicial: 100         # unidades
+    consumo_por_peca: 1          # unidades consumidas por peça que a Produção conclui (lido de RitmoProducao)
+    reposicao_lote: 50           # unidades por reposição
+    lead_time_reposicao_s: 120   # lead time LOCAL do fornecedor (pedido -> entrega), relógio do processo emulado
+    ponto_pedido: 40             # estoque abaixo disto e nenhum pedido em aberto -> pede um lote (3.3). Com 240
+                                 # peças/h a Produção consome ~8 no lead time: a reposição normal não deixa o estoque
+                                 # cair abaixo de decisao.estoque_minimo; RISCO_FALTA se exercita com SIGUSR2/--estoque
+  Distribuicao:
+    endpoint: opc.tcp://0.0.0.0:4853
+    periodo_publicacao_s: 1
+    tempo_despacho_s: 60         # cada peça recebida fica na expedição este tempo (lead time LOCAL da distribuição)
+    ritmo_minimo_producao: 60    # peças/h; RitmoProducao abaixo disto (com a Produção ONLINE) -> reage
+
+# 6. Teste de propagação (tarefa 3.5, RF-A3-03).
+propagacao:
+  alvo_s: 15
+  limite_s: 30

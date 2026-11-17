@@ -1,8 +1,10 @@
-# Contexto = raiz do repositório; só o pipeline entra na imagem (base/ e simulador/ têm GBs com LFS).
+# Contexto = raiz do repositório; só o pipeline, o twin-t2t e app/nucleo entram na imagem (base/ e simulador/ têm GBs com LFS).
 *
 !pipeline/contrato/
 !pipeline/device_gateway/
 !pipeline/aas_sync/
+!twin/t2t/
+!app/nucleo/
 **/.venv
 **/__pycache__
 **/*.pyc
