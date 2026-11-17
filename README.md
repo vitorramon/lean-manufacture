@@ -87,6 +87,22 @@ As páginas "Rastreio" (busca por `P0042`, serial ou GS1 Digital Link) e "Dispos
 A fonte `hardware` (ESP32 físico) existe no `start.py`, mas não foi testada: não há placa (ADR-0002). Uma fonte
 `replay` (CSV gravado) está prevista na arquitetura, mas não existe e o `start.py` não a oferece.
 
+Rede federada (Fase 3, comandos executados em 2026-11-16): o `start.py` sobe também o `twin-t2t` (OPC UA
+`opc.tcp://localhost:4851`) e os elos Fornecedor (4852) e Distribuição (4853), **emulados localmente** pelo Grupo 7
+enquanto não houver grupo parceiro (P-04). A página "Cadeia" mostra elos, ritmo, lead time da cadeia (soma dos
+locais) e a decisão com o estoque do vizinho.
+
+```bash
+DB_PATH=dados/dados.f3.db python3 start.py --fonte godot --manter-base      # pilha saudável em ~100 s (f3-3.5-propagacao.md)
+twin/t2t/.venv/bin/uals -u opc.tcp://localhost:4851 -n 'ns=2;s=EstadoGemeo' -l 1
+twin/t2t/.venv/bin/uaread -u opc.tcp://localhost:4851 -n 'ns=2;s=EstadoGemeo.StatusLinha'
+twin/t2t/.venv/bin/python tests/vivo/f3_propagacao.py 6 <saida.log>        # mede a reação da Distribuição (3.5)
+kill -USR2 <pid do fornecedor>        # força estoque 5 no Fornecedor emulado → RISCO_FALTA (3.3a)
+twin/cadeia/.venv/bin/python -m cadeia.diagnostico --host localhost --porta 4852 --elo Fornecedor   # roteiro da 3.6
+~/.local/bin/uv run dados/analises/f3_cadeia_simpy.py                      # modelo SimPy da cadeia (3.0)
+~/.local/bin/uv run dados/analises/f3_tres_geracoes.py --logs              # 3 gerações do lead time da cadeia (3.7)
+```
+
 Quais origens contam como "Medido (M3)" está em [`config/origens.yaml`](config/origens.yaml), não no código
 (ADR-0025). A fonte `operador` sem terminal (teclas injetadas por pipe) ou com `--teste` se declara
 `emulador:teste` e fica fora do Medido, assim como o `roteiro`. O arquivo (ou `ORIGENS_PATH`) é lido quando o
@@ -100,7 +116,10 @@ uv run --project pipeline/contrato pytest tests/contrato          # 104 passaram
 uv run --project hardware/emulador pytest tests/emulador          # 64 passaram, 6 de integração pulados sem broker
 uv run --project pipeline/device_gateway pytest tests/device_gateway   # 135 passaram, 7 de integração pulados
 uv run --project pipeline/aas_sync pytest tests/aas_sync          # 74 passaram, 3 de integração pulados
-uv run --project app pytest tests/app                             # 62 passaram
+uv run --project app pytest tests/app                             # 88 passaram
+uv run --project twin/t2t pytest tests/twin_t2t                   # 40 passaram (Fase 3)
+uv run --project twin/cadeia pytest tests/cadeia                  # 22 passaram (Fase 3)
+uv run --no-project --python 3.12 --with simpy==4.1.1 --with pyyaml==6.0.3 --with pytest==9.2.0 pytest tests/analises   # 18 passaram
 (cd hardware/firmware && pio test -e native && pio run -e esp32)  # 29 passaram; compila para ESP32
 ```
 
@@ -140,6 +159,7 @@ O erro do DHT22 contra um termômetro e o repique real do botão só podem ser m
 | 1 − COPQ (scrap) | 95 % | 95,75 ± 0,56 % (atual) → 98,76 ± 0,14 % (Lean local) → 98,71 ± 0,15 % (Lean ampliado) | a medir | 98 % |
 | Lead time do trecho Bateria → Embalagem (min) — complementar | sem baseline no M1 | 64,22 ± 0,22 → 46,55 ± 1,60 → 2,87 ± 0,00 | a medir; planta virtual (3 pontos): 24,131 ± 0,839 s (n = 31), trecho não comparável ao do M2 | a definir |
 | Espera na fila da Bateria (min) — complementar | sem baseline no M1 | 61,54 ± 0,00 → 0,00 → 0,00 | a medir; planta virtual: 0,001 s (planta balanceada, sem fila) | a definir |
+| Lead time da cadeia Fornecedor → Produção → Distribuição, soma dos locais (min) — complementar (RF-A3-06) | sem baseline no M1 (P-07) | modelo SimPy da cadeia (tarefa 3.0, no lugar da Extra 2; não é o M2): 67,41 ± 1,19 (atual) → 49,74 ± 1,55 (Lean local) → 5,87 ± 0,04 (Lean ampliado) | demonstração, não medição: 1,40 (84,3 s) **parcial** = Produção `godot` 24,2 s + Distribuição **emulada** 60,1 s; Fornecedor **emulado** sem lead time na rodada (P-04); recortes não comparáveis em valor | sem meta no M1 (P-07) |
 
 Fonte da coluna "Simulado (M2)": simulador do M2 (`simulador/`, commit `1e4b27d`), sem alteração, 30 replicações de
 8 h por cenário (sementes 1–30), KPIs calculados pelo `metrics.js` do próprio painel; tarefa 0.8, evidência
@@ -152,6 +172,8 @@ Fonte dos valores da Fase 2 na coluna "Medido (M3)": rodada de 2026-11-16 da pla
 resultado sorteado pela própria planta (3 reprovadas em 31) e o espalhamento do lead time é ruído de emulação. Por
 isso esses números são demonstração do pipeline, não a geração Medido; a página Rastreio só os compara com o M1 e o
 M2 quando o filtro "só medidas" aceita a origem (`config/origens.yaml`).
+
+Fonte da linha do lead time da cadeia: "Simulado" = modelo SimPy da tarefa 3.0 (`dados/analises/f3_cadeia_simpy.md`, 30 sementes por cenário); "Real" (demonstração; Produção `godot` + elos emulados, não medição) = soma dos lead times locais do painel na rodada da 3.5 (`dados/dados.f3.db` pelo `nucleo` + logs dos elos emulados), tabela completa e narrativa das divergências em [`dados/analises/f3_tres_geracoes.md`](dados/analises/f3_tres_geracoes.md) e [`docs/evidencias/f3-3.7-tres-geracoes.md`](docs/evidencias/f3-3.7-tres-geracoes.md).
 
 Baseline e meta vêm da entrega do M1 (projeção em 90 dias). O M1 não definiu baseline nem meta de lead time.
 Limitações desta coluna:
@@ -168,8 +190,9 @@ Limitações desta coluna:
 O servidor OPC UA dos dispositivos existe desde a tarefa 1.3 (parcial: falta o print do address space num navegador
 OPC UA). As variáveis abaixo foram lidas com `uals`/`uaread` (`docs/evidencias/f1-1.3-device-gateway.md`,
 `f2-2.1-dispositivos.md`, `f2-2.3-gateway-pecas.md`). Objetos de dispositivo (Fase 2, todos só por configuração):
-`Bateria_01`, `QR_Entrada`, `QR_Teste`, `QR_Saida`. O T2T é
-da Fase 3 e ainda é previsto.
+`Bateria_01`, `QR_Entrada`, `QR_Teste`, `QR_Saida`. O servidor T2T do gêmeo (`twin-t2t`, Fase 3) existe desde a
+tarefa 3.1 (parcial: falta o print no navegador OPC UA). **Cartão completo do T2T e contrato de interface da cadeia:
+[`docs/cartoes_conexao.md`](docs/cartoes_conexao.md)** (ADR-0028/0029/0030); o resumo está no fim da tabela.
 
 | Item | Valor |
 |---|---|
@@ -193,11 +216,14 @@ da Fase 3 e ainda é previsto.
 | `Rastreio.PecasConcluidas`, `PecasEmProcesso`, `PecasExpiradas`, `LeiturasRepetidas`, `CiclosSemPeca` | UInt32 — desde o início do gateway |
 | Variável sem dado | StatusCode `BadWaitingForInitialData` |
 | Broker MQTT | `<IP>:1883`, tópicos `dev/v1/<id>/...` (SPECS §6.1) |
-| Servidor T2T do gêmeo (previsto) | `opc.tcp://<IP>:4851`, namespace 2 (`TwinLinhaCelulares`) |
-| `EstadoGemeo.RitmoReal` / `.RitmoProducao` (previsto) | float, peças/h — peças concluídas nos últimos 10 min × 6 |
-| `EstadoGemeo.UltimaPeca` (previsto) | string — identificador da última peça concluída |
-| `EstadoGemeo.LeadTimeMedio` (previsto) | float, min — lead time médio local |
-| `EstadoGemeo.StatusLinha` (previsto) | string — Normal, Atenção, Parada ou Sem dados |
+| Servidor T2T do gêmeo | `opc.tcp://<IP>:4851`, namespace 2 = `urn:lean-manufacture:grupo7:t2t`, objeto `EstadoGemeo` (implementado) |
+| `EstadoGemeo.RitmoReal` / `.RitmoProducao` | Double, peças/h — peças com saída nos últimos 10 min × 6 |
+| `EstadoGemeo.UltimaPeca` | String — identificador da última peça concluída |
+| `EstadoGemeo.LeadTimeMedio` | Double, s — média das últimas 20 peças; −1 = sem dado (nunca 0) |
+| `EstadoGemeo.StatusLinha` | String — `PRODUZINDO`, `PARADA`, `RISCO_FALTA` ou `SEM_DADOS` |
+| `EstadoGemeo.Batimento` | UInt32 — sobe a cada publicação; o vizinho detecta travamento sem comparar relógios |
+| `Cadeia.*` | Estado dos vizinhos lido pelo nosso cliente (`Cadeia.<Elo>.Status` ONLINE/OFFLINE), `LeadTimeCadeia` (s, soma dos locais), `Decisao` |
+| Elos EMULADOS (P-04) | Fornecedor `opc.tcp://<IP>:4852`, Distribuição `opc.tcp://<IP>:4853` |
 
 As portas 4840 e 4841, usuais na disciplina, já são ocupadas pelo CLP virtual do Virtual-Factory.
 
@@ -215,6 +241,10 @@ As portas 4840 e 4841, usuais na disciplina, já são ocupadas pelo CLP virtual 
 | Rastreio (dedup e expiração) só em memória no gateway | Depois de reiniciar o gateway, uma releitura gera outra `entrada` em `eventos` (o lead time usa a primeira) | Estado persistente no gateway, com ADR |
 | Ficha do AAS repete o cálculo do `nucleo` na L2 (ADR-0027) | Duas implementações podem divergir | Teste cruzado `tests/aas_sync/test_ficha_cruzada.py` (7 cenários) |
 | Perfil reduzido sem o `mes` da base | O AAS `WP_` da peça da planta dá 404; a ficha só o referencia | Na demonstração, `COMPOSE_PROFILES=base-completa` antes do `start.py` (verificado: `docs/evidencias/f2-pos-revisao.md`); iniciar a fonte depois de o `mes` subir |
+| Modos de falha dos elos emulados da cadeia por SIGUSR1/SIGUSR2 (só Linux, macOS e WSL2) | No Windows nativo não dá para congelar o elo nem forçar o estoque durante a demo; a Fase 3 foi verificada só no WSL2 | Usar `--congelar-apos S` e `--estoque N` na linha de comando do elo (`infra/README.md`, Limitações) |
+| Fornecedor e Distribuição são elos EMULADOS pelo próprio grupo (P-04) | A cadeia, a propagação (1,96 s) e o contrato de interface não provam interoperabilidade com outro grupo; os lead times desses elos são parâmetros (120 s, 60 s) | Grupo parceiro; roteiro de conexão em `docs/cartoes_conexao.md` §5 (`cadeia.diagnostico`) |
+| Lead time "Real" da cadeia parcial (Fornecedor sem reposição na rodada) e reconstituído depois da rodada | A linha do README §5 soma 2 de 3 elos (84,3 s) e não é comparável em valor ao Simulado | Rodada limpa mais longa com reposição do Fornecedor, gravando `Cadeia.LeadTimeCadeia` do painel |
+| Queda do broker nem sempre fecha a sessão do `qr-saida` | PARADA detectada em 46,2 s numa das 3 quedas (limite de 30 s) | Baixar `parada_sem_saida_s` ou fechar as sessões no gateway ao perder o broker (com ADR) |
 | Eventos publicados com o `aas-sync` fora do ar | São contados como perdidos (salto de `n`), não recuperados | Buffer no gateway, com ADR |
 
 ## Equipe

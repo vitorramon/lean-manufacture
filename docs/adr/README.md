@@ -34,6 +34,9 @@ vale como direção de trabalho até o grupo confirmar ou recusar. *Substituído
 | [0025](0025-origem-de-teste-e-origens-medidas-em-configuracao.md) | Origem `emulador:teste` declarada pela L0 e origens medidas em `config/origens.yaml` | Proposto | Revisão da Fase 1 |
 | [0026](0026-resultado-do-teste-no-scan-e-objeto-rastreio.md) | Resultado do teste no `scan` (`resultado` 0/1 no ponto `teste`), objeto `Rastreio` com `UltimoEventoPeca` numerado e categoria `rastreio` | Proposto | Tarefa 2.1 |
 | [0027](0027-ficha-da-peca-no-aas-repete-o-calculo-do-nucleo.md) | Ficha da peça no AAS repete lead time e espera do `nucleo` (exceção à L2 sem KPI), vigiada por teste cruzado | Proposto | Revisão de contratos da Fase 2 |
+| [0028](0028-address-space-t2t-e-estado-da-cadeia-no-twin.md) | Address space do `twin-t2t` (:4851, `EstadoGemeo`, `StatusLinha`), leitura somente leitura pelo `nucleo` e estado da cadeia em `Cadeia.*` no próprio twin | Proposto | Tarefa 3.1 |
+| [0029](0029-elos-emulados-e-cliente-da-cadeia.md) | Elos emulados da cadeia (Fornecedor :4852, Distribuição :4853: address space, comportamento, falhas por sinal) e cliente da cadeia com backoff e prazo de `Batimento` | Proposto | Tarefas 3.2 e 3.3 |
+| [0030](0030-espelho-de-elo-offline-e-texto-da-decisao.md) | Espelho de elo OFFLINE com StatusCode `UncertainLastUsableValue`, tipo do vizinho convertido, `Batimento` ilegível conta como parado e `Cadeia.Decisao` pela comparação do estoque | Proposto | Revisão de contratos da Fase 3 |
 
 ## Modelo
 

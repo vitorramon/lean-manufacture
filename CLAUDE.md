@@ -11,9 +11,9 @@ repositório `vitorramon/lean-manufacture` (remoto `origin`; push só a pedido).
 4. [ARCHITECTURE.md](ARCHITECTURE.md) e [docs/adr/](docs/adr/README.md): como e por quê
 
 Em 2026-11-16 as Fases 1 e 2 existem em código (contrato, emulador com leitor de QR, firmware, gateway com rastreio,
-aas-sync com `eventos` e ficha da peça, app com Rastreio e Dispositivos, `start.py`), com quase todas as tarefas
-parciais: confira o PROGRESS antes de presumir que algo está pronto. Convenções da Fase 2 em
-`docs/convencoes-fase-2.md`.
+aas-sync com `eventos` e ficha da peça, app com Rastreio e Dispositivos, `start.py`), e a Fase 3 também (`twin-t2t`
+na 4851, elos EMULADOS 4852/4853, página Cadeia), com quase todas as tarefas parciais: confira o PROGRESS antes de
+presumir que algo está pronto. Convenções em `docs/convencoes-fase-2.md` e `docs/convencoes-fase-3.md`.
 
 ## Regras do projeto
 
@@ -28,7 +28,7 @@ parciais: confira o PROGRESS antes de presumir que algo está pronto. Convençõ
 - **Virtual-Factory é intocado.** Nada de editar `Base/Virtual-Factory` (ou `base/`); o M3 entra por arquivo
   compose adicional, serviços e dados próprios. Mudança inevitável na base exige ADR.
 - **A geração "Medido (M3)" dos KPIs nunca vem da fonte `roteiro`** (ADR-0013).
-- **Portas:** 4850 (OPC UA dos dispositivos), 4851 (T2T), 8501 (dashboard). 4840 e 4841 são do Virtual-Factory.
+- **Portas:** 4850 (OPC UA dos dispositivos), 4851 (T2T), 4852/4853 (elos emulados), 8501 (dashboard). 4840 e 4841 são do Virtual-Factory.
 - **Idioma:** documentação, interface e mensagens em português; identificadores de padrões em inglês.
 
 ## Honestidade técnica (a disciplina avalia isto)
@@ -64,8 +64,9 @@ tem evidência (PLAN, "Definição de pronto").
 python3 start.py --fonte roteiro --velocidade 4 [--manter-base]   # ou godot | operador --operador OP1 | firmware
 python3 start.py --parar [--manter-base]                           # compose down sem -v
 DB_PATH=dados/dados.f2.db python3 start.py --fonte godot --manter-base   # Fase 2: trecho com 4 dispositivos, banco próprio
+DB_PATH=dados/dados.f3.db python3 start.py --fonte godot --manter-base   # Fase 3: + twin-t2t 4851 e elos emulados 4852/4853
 uv run --project pipeline/contrato pytest tests/contrato           # idem: hardware/emulador tests/emulador,
-uv run --project pipeline/device_gateway pytest tests/device_gateway  # pipeline/aas_sync tests/aas_sync, app tests/app
+uv run --project pipeline/device_gateway pytest tests/device_gateway  # pipeline/aas_sync tests/aas_sync, app tests/app, twin/t2t tests/twin_t2t, twin/cadeia tests/cadeia
 (cd hardware/firmware && pio test -e native && pio run -e esp32)   # ./emular.sh roda no QEMU
 ```
 

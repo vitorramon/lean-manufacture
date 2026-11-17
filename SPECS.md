@@ -179,6 +179,27 @@ ressalva; as 10 tarefas da Fase 2 estão parciais.
 | RF-A2-10 | Atendido com a planta virtual: 31 peças concluídas (≥ 20) em `eventos`; 20ª saída 253,7 s depois da primeira entrada | `f2-2.8-fluxo-pecas.md` | — |
 | RF-A4-04 (FPY/RTY do trecho, tarefa 2.10) | Demonstração: FPY = RTY do trecho 90,3 % (28/31), `emulador:godot`; não é medição | `f2-2.10-fpy-rty.md` | Fonte com resultado real |
 
+### 2.6 Módulo 3 — situação ao fim da Fase 3 (2026-11-16)
+
+Situação dos requisitos da Aula 3 contra a "Evidência de aceite" de §4, com o status aceito pelo verificador. Tudo é
+**emulado** (ADR-0002): a Produção vem da planta `godot` (demonstração, ADR-0013) e **Fornecedor e Distribuição são
+elos EMULADOS localmente** pelo Grupo 7, sem grupo parceiro (P-04). O M1 não tem baseline nem meta de lead time da
+cadeia (P-07).
+
+| Requisito | Situação | Evidência | O que falta |
+|---|---|---|---|
+| RF-A3-01 | Parcial: `twin-t2t` na 4851 publica `RitmoReal` (240,0 peças/h contra `dados.f2r.db`; 264 ao vivo) e `UltimaPeca` a partir de `eventos`, lidos com `uals`/`uaread` e conferidos por SQL; sobe pelo `start.py` | `f3-3.1-twin-t2t.md`, `f3-3.5-propagacao.md` | Print no UaExpert ou equivalente |
+| RF-A3-02 | Atendido com elo emulado: a Distribuição EMULADA lê o ritmo/status da Produção e entra em `AGUARDANDO_PRODUCAO` (linha "REAÇÃO" no log) | `f3-3.2-cadeia.md`, `f3-3.5-propagacao.md` | Elo de parceiro real (P-04) |
+| RF-A3-03 | Parcial: reação a jusante 1,96 s em média (máx. 2,52 s, n = 6), alvo ≤ 15 s em 6/6, medida num único relógio | `f3-3.5-propagacao.md` | Vídeo |
+| RF-A3-04 | Parcial: soma dos lead times locais (elo OFFLINE ou −1 fora, nunca zero) no twin e na página "Cadeia" | `f3-3.4-pagina-cadeia.md`, `f3-3.8-cadeia-*.png` | Print da página com o código atual (rótulos corrigidos na revisão) |
+| RF-A3-05 | Parcial: OFFLINE por elo e reconexão sozinha (Fornecedor 0,9 → 3,9 s; Distribuição 0,6 → 3,6 s; congelado 9,6 s); painel não cai | `f3-3.8-falhas.md`, `f3-3.2-cadeia.md` | Repetir com o código do ADR-0030 (espelho `Uncertain`) |
+| RF-A3-06 | Parcial: linha no README §5 — Simulado SimPy 67,41 → 5,87 min; "Real" de demonstração 84,3 s com 2 de 3 elos (Fornecedor fora) | `f3-3.7-tres-geracoes.md`, `f3-3.0-simpy-cadeia.md` | Rodada limpa com reposição do Fornecedor gravando `Cadeia.LeadTimeCadeia`; P-07 |
+| RF-A3-07 | Parcial: 6 tipos de falha com tempos de detecção e recuperação; PARADA de 46,2 s numa das 3 quedas do broker | `f3-3.8-falhas.md` | Seção no relatório (Fase 4); refazer com o código do ADR-0030 |
+| RF-A3-08 | Atendido: cartão com IP, porta, namespace e variáveis com tipo, unidade e significado | `docs/cartoes_conexao.md` | IP do dia |
+| RF-A3-09 | Parcial: estoque do Fornecedor EMULADO < 20 → `StatusLinha` RISCO_FALTA em 2,1 s, mostrado na página | `f3-3.8-falhas.md`, `f3-3.8-cadeia-decisao.png` | Print com o texto de `Cadeia.Decisao` do ADR-0030 |
+| RF-A3-10 | Parcial: contrato de interface dos 3 elos proposto pelo Grupo 7 | `docs/cartoes_conexao.md` §2 | Combinar com parceiros (P-04) |
+| RF-A3-11 | Parcial: `RitmoProducao` e `StatusLinha` publicados (lidos com `uals`) | `f3-3.1-twin-t2t.md` | Print no navegador OPC UA |
+
 ## 3. Decisões do grupo que moldam o escopo
 
 Registradas em 2026-11-15 (detalhes nos ADRs):
@@ -349,6 +370,22 @@ o do `nucleo` (ADR-0027, Proposto).
 
 `ns=2;s=EstadoGemeo.RitmoReal`, `EstadoGemeo.UltimaPeca`, `EstadoGemeo.LeadTimeMedio`, `EstadoGemeo.StatusLinha`.
 
+Implementado na tarefa 3.1 (ADR-0028, Proposto): servidor `opc.tcp://<IP>:4851`, namespace 2 =
+`urn:lean-manufacture:grupo7:t2t`; além dos quatro, `RitmoProducao` (= `RitmoReal`, RF-A3-11) e nós de apoio
+(`LeadTimeAmostras`, `PecasNaJanela`, `PecasEmProcesso`, `MotivoStatus`, `Origem`, `Referencia`,
+`InstanteReferencia`, `Batimento`, `Elo`, `Grupo`). `RitmoReal`/`RitmoProducao` em peças/h (Double), `LeadTimeMedio`
+em s (Double, −1 = sem dado), `StatusLinha` ∈ {`PRODUZINDO`, `PARADA`, `RISCO_FALTA`, `SEM_DADOS`}. Estado da cadeia
+lido dos vizinhos em `ns=2;s=Cadeia.*` no mesmo servidor. Tipos, unidades, contrato de interface dos elos e regras em
+`docs/convencoes-fase-3.md`; parâmetros em `config/cadeia.yaml`; evidência em `docs/evidencias/f3-3.1-twin-t2t.md`.
+
+Contrato de interface dos elos (tarefas 3.2 e 3.3, ADR-0029, Proposto): cada elo publica `ns=2;s=EstadoGemeo.<Variavel>`
+com `RitmoReal`, `LeadTimeMedio` (−1 = sem dado), `StatusLinha` e `Batimento`, mais as variáveis próprias; elos
+EMULADOS localmente (P-04) em `opc.tcp://<IP>:4852` (Fornecedor) e `:4853` (Distribuição). Elo OFFLINE = conexão ou
+leitura sem resposta em 3 s (`cliente.timeout_s`) ou `Batimento` sem mudar por 10 s (`cliente.batimento_parado_s`,
+medidos no nosso relógio; `Batimento` declarado e ilegível conta como parado). Espelho `Cadeia.<Elo>.<Variavel>` de elo
+OFFLINE: último valor com StatusCode `UncertainLastUsableValue`; `Cadeia.Decisao` montado pela comparação do estoque
+com o mínimo (ADR-0030, Proposto). Tabela completa em [`docs/cartoes_conexao.md` §2](docs/cartoes_conexao.md).
+
 ## 7. Entregáveis e rubrica
 
 | Critério da rubrica | Pts | Requisitos que o sustentam |
@@ -379,7 +416,7 @@ disciplina); apresentações "na próxima semana", ordem sorteada. **As datas ex
 | P-07 | Decidir se o grupo fixa uma meta de lead time/espera para o M3 (o M1 não tem) ou os trata só como indicadores complementares | Colunas "Baseline" e "Meta" dessas linhas na tabela das 3 gerações | Média |
 | P-02 | Confirmar com o professor se a L0 totalmente emulada é aceita e como será pontuado o critério de 10 pts | Pode mudar a prioridade de comprar um ESP32 | Alta |
 | P-03 | ~~Extras~~ — **resolvida em 2026-11-15**: o grupo não fez as Extras. O conteúdo delas entra na Fase 3, e o lead time simulado da cadeia será gerado com um modelo simplificado de cadeia (tarefa 3.0), com a origem declarada | — | — |
-| P-04 | Definir os grupos parceiros da cadeia (fornecedor e distribuição) e combinar o contrato de variáveis, ou assumir elos emulados | RF-A3 e bônus | Média |
+| P-04 | Definir os grupos parceiros da cadeia (fornecedor e distribuição) e combinar o contrato de variáveis, ou assumir elos emulados | RF-A3 e bônus; em 2026-11-16 a Fase 3 roda com elos EMULADOS e a 3.6 está bloqueada | Média |
 | P-05 | Datas da apresentação e da entrega; papéis dos 6 integrantes (nomes já constam do M1) | Cronograma do PLAN e roteiro da apresentação | Alta |
 | P-06 | Criar o fork do Virtual-Factory e o repositório final do grupo no GitHub | Teste do terceiro | ~~Média~~ Resolvida em 2026-11-15: fork `vitorramon/Virtual-Factory` (ADR-0014) e repositório `vitorramon/lean-manufacture` |
 

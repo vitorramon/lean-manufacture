@@ -42,3 +42,12 @@ fez as Extras. A federação ao vivo entre grupos vale bônus, mas depende de ou
 - **Usar a federação de AAS da base** (ambiente de fornecedores): tecnicamente mais rica, mas não é o que os outros
   grupos falam.
 - **Depender só do grupo parceiro**: risco de não ter cadeia alguma na apresentação.
+
+## Nota de implementação (2026-11-16, Fase 3)
+
+Sem reescrever a decisão acima: o servidor T2T foi implementado em `twin/t2t` (ADR-0028), o cliente da cadeia roda
+no mesmo processo e os elos de reserva existem como elos EMULADOS em `twin/cadeia`, Fornecedor na porta 4852 e
+Distribuição na 4853 (ADR-0029), subidos pelo `start.py`; a 4854 fica reservada ao coordenador. Comportamento de
+elo OFFLINE revisto no ADR-0030. Sem grupo parceiro (P-04), a federação ao vivo com outro grupo não aconteceu; o
+roteiro de conexão está em `docs/cartoes_conexao.md` §5. Evidências: `docs/evidencias/f3-3.2-cadeia.md`,
+`f3-3.5-propagacao.md`, `f3-3.8-falhas.md`.

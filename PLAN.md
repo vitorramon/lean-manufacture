@@ -116,18 +116,39 @@ mostrando ausência de eventos repetidos.
 
 Objetivo: o estado medido sai do gêmeo, um vizinho reage, e a cadeia tem lead time.
 
-- [ ] 3.0 Modelo simplificado da cadeia (fornecedor → produção → distribuição) em SimPy: lead time simulado da
+- [x] 3.0 Modelo simplificado da cadeia (fornecedor → produção → distribuição) em SimPy: lead time simulado da
       cadeia, que substitui o resultado da Extra 2 não realizada
+      — feita em 2026-11-16: 4 cenários × 30 sementes, CSV reproduzível (sha256 `9b12ecb9…f5f3`), 18 testes; origem
+      Simulado (modelo), Fornecedor e Distribuição com parâmetros dos elos EMULADOS (P-04) (`f3-3.0-simpy-cadeia.md`)
 - [ ] 3.1 `twin-t2t`: servidor com `RitmoReal`, `UltimaPeca`, `LeadTimeMedio`, `StatusLinha`
+      — parcial em 2026-11-16: falta print de `ns=2;s=EstadoGemeo` e `ns=2;s=Cadeia` no UaExpert (ou equivalente) com
+      a pilha subida pelo `start.py`; ADR-0028 Proposto
 - [ ] 3.2 Cliente com reconexão automática e estado `OFFLINE` por elo
+      — parcial em 2026-11-16: falta rodada ao vivo com o código do ADR-0030 (espelho `Uncertain`, `Batimento`
+      ilegível); ADR-0029/0030 Propostos
 - [ ] 3.3 Elos "Fornecedor" e "Distribuição" emulados localmente; teste em `localhost` antes de qualquer rede
+      — parcial em 2026-11-16: elos EMULADOS (P-04) sobem pelo `start.py` (4852/4853); falta repetir ao vivo depois
+      do ADR-0030 e decidir P-04
 - [ ] 3.3a Usar o dado do vizinho numa decisão nossa (ex.: estoque do fornecedor baixo → `StatusLinha`)
+      — parcial em 2026-11-16: RISCO_FALTA em 2,1 s com estoque emulado forçado; texto de `Cadeia.Decisao` corrigido
+      (ADR-0030) só verificado em teste
 - [ ] 3.3b Contrato de interface da cadeia e cartão de conexão completo (tipos e unidades)
+      — parcial em 2026-11-16: `docs/cartoes_conexao.md` é proposta nossa; falta combinar com parceiros (P-04, RF-A3-10)
 - [ ] 3.4 Página "Cadeia": elos, ritmo, lead time da cadeia (soma dos locais)
+      — parcial em 2026-11-16: falta print novo pelo `start.py` com o código atual (rótulos de origem corrigidos na
+      revisão); os prints `f3-3.8-cadeia-*.png` são anteriores
 - [ ] 3.5 Teste de propagação: interromper a produção e medir o tempo de reação do elo a jusante
+      — parcial em 2026-11-16: reação 1,96 s em média (máx. 2,52 s, n = 6, Distribuição EMULADA); falta o vídeo
+      (RF-A3-03)
 - [ ] 3.6 Conexão com grupos parceiros, se houver (P-04), na ordem `localhost` → `ping` → porta → OPC UA
+      — bloqueada em 2026-11-16 pela P-04 (sem grupo parceiro); `cadeia.diagnostico` e roteiro em
+      `docs/cartoes_conexao.md` §5 prontos, testados só contra elos emulados
 - [ ] 3.7 Tabela das 3 gerações do lead time da cadeia
+      — parcial em 2026-11-16: "Real" de demonstração 84,3 s com soma de 2 de 3 elos (Fornecedor fora), reconstituído
+      depois da rodada; falta rodada limpa com reposição gravando `Cadeia.LeadTimeCadeia`; sem baseline no M1 (P-07)
 - [ ] 3.8 Registro de falhas provocadas e da recuperação
+      — parcial em 2026-11-16: 6 tipos de falha com tempos (`f3-3.8-falhas.md`); falta refazer com o código do
+      ADR-0030, levar à seção do relatório (Fase 4) e decidir a PARADA de 46,2 s na queda do broker
 
 Evidências: vídeo da propagação com o tempo medido; painel da cadeia; `docs/cartoes_conexao.md`; registro de falhas.
 

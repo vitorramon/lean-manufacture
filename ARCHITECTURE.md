@@ -253,10 +253,20 @@ compose como `LEAN_DB_ARQUIVO`, sempre dentro de `dados/`); na Fase 2 a rodada d
 - **`twin-t2t`**: servidor OPC UA `opc.tcp://0.0.0.0:4851`, objeto `EstadoGemeo` com `RitmoReal` (peças com evento
   de saída nos últimos 10 min × 6), `UltimaPeca`, `LeadTimeMedio`, `StatusLinha`. Cliente com reconexão para ler os
   elos vizinhos; elo fora do ar vira `OFFLINE`.
+  Implementado na tarefa 3.1 em `twin/t2t/` (ADR-0028): calcula com `nucleo/estado_gemeo.py` sobre `nucleo.dados`
+  (somente leitura) e publica também `Cadeia.*` (espelho dos vizinhos e lead time da cadeia); convenções em
+  `docs/convencoes-fase-3.md`. O cliente da cadeia (tarefa 3.2, `cliente_cadeia.py`, ADR-0029) roda no mesmo
+  processo: uma tarefa por elo, backoff de 1 s a 10 s, `OFFLINE` por falha de conexão/leitura (3 s) ou `Batimento`
+  parado (10 s no nosso relógio). Revisão da Fase 3 (ADR-0030): espelho de elo OFFLINE fica com o último valor e StatusCode
+  `UncertainLastUsableValue`; `Batimento` ilegível conta como parado; `Cadeia.Decisao` vem da comparação do estoque
+  com o mínimo. Fluxo: banco (só leitura) → `nucleo.estado_gemeo` → `EstadoGemeo.*` (4851) → elos leem a Produção;
+  cliente lê os elos → `Cadeia.<Elo>.*` → lead time da cadeia (soma dos locais) e `StatusLinha` → página "Cadeia"
+  (`nucleo/cadeia.py`, só OPC UA). Nada da cadeia vai para o SQLite nem para o AAS.
 - **Cadeia** (padrão das aulas Extras): fornecedor → **produção (nós)** → distribuição. Lemos o estoque do
   fornecedor e o usamos numa decisão nossa; publicamos também `RitmoProducao` e `StatusLinha`, nomes combinados na
   turma. Lead time da cadeia = soma dos lead times médios locais. Sem parceiros, elos emulados de fornecedor e
-  distribuição rodam localmente (ADR-0011).
+  distribuição rodam localmente (ADR-0011; `twin/cadeia/`, portas 4852/4853, address space e modos de falha no
+  ADR-0029; cartão e contrato de interface em `docs/cartoes_conexao.md`).
 - **Coordenador** (opcional, Extra 3): lê todos os elos, re-simula cenários da cadeia e publica
   `Recomendacao.MelhorCenario` e `LeadTimeProjetado`; sugere, não comanda.
 
@@ -287,7 +297,9 @@ Grafana e a AAS Web UI do Virtual-Factory continuam disponíveis como visão de 
 | Postgres do BaSyx (`db`) | 5432 (só interno) | Contêiner (Virtual-Factory), no perfil reduzido |
 | `device-gateway` | 4850 (`/lean/dispositivos`) | Contêiner `lean-m3-servicos:dev` (compose adicional); healthcheck lê `ServerState` no próprio OPC UA — Fase 1 |
 | `aas-sync` | — | Mesma imagem; healthcheck por sinal de vida (`SAUDE_PATH`); banco em `dados/` montado em `/dados` — Fase 1 |
-| `twin-t2t` | 4851 | Contêiner (Fase 3, não existe ainda) |
+| `twin-t2t` | 4851 | Contêiner `lean-m3-servicos:dev` (tarefa 3.1, ADR-0028); lê o banco somente leitura por `app/nucleo`; healthcheck lê `ServerState` e `EstadoGemeo.Batimento` |
+| Elos EMULADOS Fornecedor / Distribuição | 4852 / 4853 | Processos locais em `twin/cadeia/` iniciados pelo `start.py` (religados até 3 vezes; `--sem-cadeia` não os inicia); o twin no contêiner os alcança por `host.docker.internal` (tarefas 3.3 e 3.5; P-04, ADR-0029) |
+| Coordenador (reservado) | 4854 | Não existe (Extra 3, tarefa 5.2) |
 | Emulador de dispositivos / firmware no QEMU | — | Processo local iniciado pelo `start.py` |
 | Streamlit | 8501 | Processo local iniciado pelo `start.py`; lê o mesmo `dados/dados.db` em WAL |
 | Godot (planta 3D) | — | Nativo no host, sem janela, iniciado pelo `start.py --fonte godot` |
@@ -308,7 +320,10 @@ vezes), porta respondendo e dado fluindo. Ctrl+C derruba o que a execução subi
 ar; `--parar` faz `compose down` sem `-v`. Desde a Fase 2, nas fontes `godot` e `roteiro` o `--dispositivo` padrão é o
 trecho inteiro `qr-entrada,esp32-bat01,qr-teste,qr-saida` (um processo de emulador com uma conexão MQTT por
 dispositivo), e `DB_PATH=dados/<arquivo>.db` escolhe o banco (vira `LEAN_DB_ARQUIVO` no compose). Medido na 2.8:
-compose com `--build` em 42,5 s, M3 saudável em 49,9 s, dashboard em 51,1 s (`f2-2.8-fluxo-pecas.md`). A fonte `replay` ainda não existe e o `start.py` não a oferece. Medido na 1.6: health checks verdes
+compose com `--build` em 42,5 s, M3 saudável em 49,9 s, dashboard em 51,1 s (`f2-2.8-fluxo-pecas.md`). Desde a Fase 3,
+o `start.py` espera também o healthcheck do `twin-t2t` e a porta 4851, inicia os elos EMULADOS Fornecedor (4852) e
+Distribuição (4853) e monitora as portas 4851–4853; medido na 3.5: pilha saudável em ~100 s
+(`f3-3.5-propagacao.md`). A fonte `replay` ainda não existe e o `start.py` não a oferece. Medido na 1.6: health checks verdes
 em 59,6 s a frio (`docs/evidencias/f1-1.6-start.md`).
 
 Contêiner de desenvolvimento (tarefa 1.0, ADR-0015 e ADR-0024): `.devcontainer/` com as ferramentas fixadas, rede
@@ -353,4 +368,6 @@ lean-manufacture/                (github.com/vitorramon/lean-manufacture; local:
 | Calibração contra modelo, não contra instrumento | Erro de sensor é o que o emulador injeta | Declarar como calibração de procedimento |
 | Leitor de QR só emulado; modo câmera provado com arquivos PNG, sem webcam (WSL2 sem `/dev/video*`) | Taxa de leitura real, iluminação e posição da etiqueta não exercitadas | Testar `--fonte camera --camera 0` no Windows nativo ou com usbipd e registrar a taxa |
 | Deduplicação e expiração do rastreio só em memória no gateway | Depois de reiniciar o gateway, uma releitura da mesma peça gera outra `entrada` (o índice único não barra: `ts` diferente) | Estado persistente no gateway, com ADR (`docs/convencoes-fase-2.md` §3) |
+| Elos Fornecedor e Distribuição EMULADOS (P-04) | Interoperabilidade com outro grupo não provada; lead times deles são parâmetros | Grupo parceiro e roteiro de `docs/cartoes_conexao.md` §5 |
+| Queda do broker pode não fechar a sessão do `qr-saida` | PARADA detectada só pela regra de 45 s sem saída (46,2 s, acima do limite de 30 s) | Baixar `parada_sem_saida_s` ou fechar as sessões no gateway ao perder o broker (com ADR) |
 | Planta `godot` determinística | Lead time por peça varia só por ruído de emulação (21,4–25,8 s); não há peça "lenta" de verdade | Fonte `operador` ou roteiro com espera para a ficha lenta e a análise de espera |

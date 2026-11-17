@@ -152,11 +152,11 @@ isso, esta tabela é a referência). O `.env` real fica fora do Git.
 | `OPCUA_ENDPOINT` | `opc.tcp://0.0.0.0:4850/lean/dispositivos` | gateway (onde o servidor escuta) |
 | `OPCUA_URL` | `opc.tcp://localhost:4850/lean/dispositivos` | aas-sync, testes (onde o cliente conecta) |
 | `AAS_URL` | `http://localhost:8091` | aas-sync; `app/nucleo` (só leitura dos contadores `Lacunas`/`Duplicatas` na página Dispositivos) |
-| `DB_PATH` | `dados/dados.db` | aas-sync (escrita), `app/nucleo/dados.py` (leitura); `start.py` (relativo à raiz, precisa ficar em `dados/`; vira `LEAN_DB_ARQUIVO` para o contêiner, tarefa 2.8) |
+| `DB_PATH` | `dados/dados.db` | aas-sync (escrita), `app/nucleo/dados.py` e twin-t2t (leitura); `start.py` (relativo à raiz, precisa ficar em `dados/`; vira `LEAN_DB_ARQUIVO` para o contêiner, tarefa 2.8) |
 | `LEAN_DB_ARQUIVO` | `dados.db` | compose do M3: arquivo do banco do aas-sync em `/dados` (= `dados/` do computador); o `start.py` preenche a partir do `DB_PATH` |
 | `DISPOSITIVOS_PATH` | `config/dispositivos.yaml` | gateway, emulador, aas-sync (via `carregar_dispositivos`) |
 | `RASTREIO_PATH` | `config/rastreio.yaml` | gateway (normalização do QR, deduplicação, expiração, associação ciclo ↔ peça); aas-sync (início/fim do trecho e `planta`, inclusive `planta.padrao_peca`, para a ficha da peça no AAS, tarefa 2.5); esquema `esquemas/rastreio.schema.json`, lido por `contrato.carregar_rastreio()` desde a tarefa 2.3 (`docs/convencoes-fase-2.md`); `app/nucleo` (início/fim do trecho e normalização do QR na busca, tarefa 2.6) |
-| `ORIGENS_PATH` | `config/origens.yaml` | `app/nucleo` (origens que valem como Medido, ADR-0025); lido na partida do dashboard |
+| `ORIGENS_PATH` | `config/origens.yaml` | `app/nucleo` (origens que valem como Medido, ADR-0025); lido na partida do dashboard e do twin-t2t |
 | `SAUDE_MAX_FALHAS_BANCO` | `5` | healthcheck do aas-sync: falhas seguidas do SQLite toleradas |
 | `LOG_LEVEL` | `INFO` | todos |
 | `UNS_MQTT_HOST` / `UNS_MQTT_PORT` | iguais a `MQTT_HOST` / `MQTT_PORT` | emulador, fonte `godot` (broker da UNS da planta) |
@@ -164,6 +164,18 @@ isso, esta tabela é a referência). O `.env` real fica fora do Git.
 | `EMULADOR_ESTADO_DIR` | `dados/estado/emulador` | emulador (contador de `boot` persistido; fora do Git) |
 | `PLANTA_DIGITAL_LINK_DOMINIO` | `https://virtual-factory.example` | emulador, fonte `godot`: domínio do GS1 Digital Link do QR da peça da planta (tarefa 2.2; o mesmo da base) |
 | `PLANTA_GTIN` | `04099999032808` | emulador, fonte `godot`: GTIN do QR da peça da planta (`<domínio>/01/<GTIN>/21/<serial>`) |
+| `T2T_ENDPOINT` | `opc.tcp://0.0.0.0:4851` | twin-t2t (onde o servidor T2T escuta; tarefa 3.1, ADR-0028) |
+| `T2T_URL` | `opc.tcp://localhost:4851` | healthcheck do twin-t2t, testes; `app/nucleo` (página Cadeia, tarefa 3.4); elos emulados `twin/cadeia` (onde leem a Produção, tarefa 3.3; também `--t2t-url`) |
+| `T2T_CLIENTE_CADEIA` | `1` | twin-t2t: `0` desliga o cliente da cadeia (só servidor; vizinhos ficam `OFFLINE`; tarefa 3.2) |
+| `T2T_REFERENCIA` | `agora` | twin-t2t: `agora` (ao vivo) ou `ultimo_evento` (reler banco gravado; publicado no nó `EstadoGemeo.Referencia`) |
+| `CADEIA_PATH` | `config/cadeia.yaml` | twin-t2t, elos emulados, `app/nucleo` (`nucleo.parametros_cadeia`): janela do ritmo, parada, decisão, elos vizinhos |
+| `CADEIA_SIM_PATH` | `config/cadeia_simulacao.yaml` | modelo SimPy da cadeia (`dados/analises/f3_cadeia_simpy.py`, tarefa 3.0): política do Fornecedor, variação dos tempos, replicações, efeito chicote. Parâmetros de modelo, não medição |
+| `CADEIA_FORNECEDOR_URL` | `opc.tcp://localhost:4852` (no compose: `opc.tcp://host.docker.internal:4852`) | cliente da cadeia no twin-t2t (tarefa 3.2): elo Fornecedor (emulado enquanto não houver parceiro, P-04) |
+| `CADEIA_DISTRIBUICAO_URL` | `opc.tcp://localhost:4853` (no compose: `opc.tcp://host.docker.internal:4853`) | cliente da cadeia no twin-t2t (tarefa 3.2): elo Distribuição (emulado, P-04) |
+| `PROPAGACAO_ESTAVEL_S` | `45` | `tests/vivo/f3_propagacao.py` (tarefa 3.5): segundos de linha normal contínua exigidos antes de cada repetição |
+| `TWIN_CONTEINER` / `BROKER_CONTEINER` | `vf-twin-t2t-1` / `vf-mqtt-1` | `tests/vivo/f3_falhas.py` (tarefa 3.8): contêineres derrubados no teste de falhas |
+| `TWIN_FORA_S` / `BROKER_FORA_S` | `25` / `30` | `tests/vivo/f3_falhas.py`: tempo mínimo que o twin-t2t / o broker ficam parados antes do `docker start` |
+| `PRINT_CMD` | vazio (sem prints) | `tests/vivo/f3_falhas.py`: comando que tira o print da página Cadeia (recebe o caminho do PNG como último argumento) |
 
 Caminhos relativos (`DB_PATH`, `DISPOSITIVOS_PATH`) são relativos ao diretório de trabalho: rode os componentes
 a partir da raiz do repositório, como nos comandos acima. Dentro de um contêiner, use caminho absoluto.
