@@ -18,8 +18,16 @@ python3 start.py --parar [--manter-base]         # derruba tudo (docker compose 
 ```
 
 `--fonte replay` ainda não existe e falha com mensagem. Opções: `--manter-base` (ao sair, derruba só
-`device-gateway` e `aas-sync`), `--sem-dashboard`, `--intervalo` (s entre verificações), `--dispositivo`,
-`--roteiro`.
+`device-gateway`, `aas-sync` e `twin-t2t`), `--sem-dashboard`, `--sem-cadeia` (não inicia os elos emulados),
+`--intervalo` (s entre verificações), `--dispositivo`, `--roteiro`.
+
+Fase 3 (tarefas 3.5 e 3.8): o `start.py` sobe também o `twin-t2t` (contêiner, OPC UA `:4851`) e os elos da cadeia
+**emulados localmente** enquanto não houver grupo parceiro (P-04): Fornecedor `:4852` e Distribuição `:4853`, como
+processos do computador (`twin/cadeia/.venv/bin/python -m cadeia.<elo>`; no Windows nativo,
+`twin/cadeia/.venv/Scripts/python.exe`, depois de `uv sync --project twin/cadeia
+--frozen`), com log em `dados/estado/start/<elo>.log`. Se um elo sair, o monitor o religa (até 3 vezes) e o cliente
+da cadeia no twin reconecta sozinho. O twin alcança os elos por `host.docker.internal` (testado no WSL2 + Docker
+Desktop em 2026-11-16). Provas ao vivo: `tests/vivo/` (propagação e falhas provocadas).
 
 Dispositivos emulados (tarefas 2.8 e 2.10): com `--fonte godot` ou `--fonte roteiro`, o padrão é o trecho inteiro
 `qr-entrada,esp32-bat01,qr-teste,qr-saida` (um processo do emulador, uma conexão MQTT por dispositivo). A fonte
@@ -33,10 +41,11 @@ O `start.py` (só biblioteca padrão):
 1. confere Docker, `base/` e o que a fonte exige; anota o que já estava no ar;
 2. `docker compose -f base/infra/docker-compose.yml -f infra/docker-compose.lean.yml up -d --build`;
 3. espera, nesta ordem: broker `:1883`, AAS `/shells`, healthcheck do `device-gateway`, porta `:4850`, healthcheck
-   do `aas-sync`;
-4. inicia o Streamlit (`:8501`, espera `/_stcore/health`) e a fonte; logs em `dados/estado/start/` (fora do Git);
-5. a cada 5 s imprime os três níveis: processo vivo (reinicia o dashboard até 3 vezes), porta respondendo
-   (1883, 4850, 8501) e saúde dos contêineres, e dado fluindo (contagens de `leituras`, `eventos`, `sessoes`,
+   do `aas-sync`, healthcheck do `twin-t2t`, porta `:4851`;
+4. inicia o Streamlit (`:8501`, espera `/_stcore/health`), a fonte e os elos emulados; logs em `dados/estado/start/`
+   (fora do Git);
+5. a cada 5 s imprime os três níveis: processo vivo (reinicia o dashboard e os elos até 3 vezes), porta respondendo
+   (1883, 4850, 4851, 4852, 4853, 8501) e saúde dos contêineres, e dado fluindo (contagens de `leituras`, `eventos`, `sessoes`,
    `rejeitados`, só leitura). Fonte viva sem dado novo há mais de `START_SEM_DADO_S` (20 s) gera alerta;
 6. Ctrl+C: SIGINT na fonte (o emulador publica offline), encerra o dashboard e derruba o que esta execução subiu.
    Se a base já estava no ar (ou com `--manter-base`), só os serviços do M3 saem.
@@ -47,6 +56,7 @@ O `start.py` (só biblioteca padrão):
 | --- | --- | --- | --- |
 | `device-gateway` | `lean-m3-servicos:dev` (`lean-servicos.Dockerfile`) | 4850 | `python -m device_gateway.saude`: lê `Server_ServerStatus_State` no próprio OPC UA |
 | `aas-sync` | a mesma | — | `python -m aas_sync.saude`: sinal de vida (`SAUDE_PATH`) com menos de 20 s e subscription OPC UA ativa |
+| `twin-t2t` | a mesma | 4851 | `python -m twin_t2t.saude`: lê o `Batimento` no próprio OPC UA (tarefa 3.1) |
 
 - Dentro da rede do compose: `MQTT_HOST=mqtt`, `OPCUA_URL=opc.tcp://device-gateway:4850/...`,
   `AAS_URL=http://aas-env:8091`. Os mesmos componentes rodam fora do contêiner com os padrões `localhost`.
@@ -84,3 +94,8 @@ docker compose -f base/infra/docker-compose.yml -f infra/docker-compose.lean.yml
   primeira peça) → falso alerta uma vez → aceitável; ajustar `START_SEM_DADO_S` se incomodar.
 - O dashboard e as fontes rodam no computador, não em contêiner → o terceiro precisa de `uv` além do Docker → o
   README da Fase 4 lista os dois pré-requisitos.
+- Os elos emulados da cadeia usam SIGUSR1 (congelar) e SIGUSR2 (estoque forçado), que só existem em Linux, macOS e
+  WSL2 → no Windows nativo o elo sobe e encerra por Ctrl+C, mas os dois modos de falha por sinal não existem (o elo
+  avisa no log) → usar `--congelar-apos S` e `--estoque N` (estoque inicial baixo) na linha de comando do elo; a demo
+  da Fase 3 foi verificada só no WSL2 (2026-11-16). O `start.py` escolhe `bin/python` ou `Scripts/python.exe`
+  conforme o sistema; a subida completa no Windows nativo não foi testada.

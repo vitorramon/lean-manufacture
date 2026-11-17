@@ -20,7 +20,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 # Base primeiro: com vários -f, os caminhos relativos são resolvidos a partir de base/infra (ver o compose do M3).
 COMPOSE = ["docker", "compose", "-f", "base/infra/docker-compose.yml", "-f", "infra/docker-compose.lean.yml"]
 PROJETO = "vf"   # nome fixado pelo compose da base
-SERVICOS_LEAN = ("device-gateway", "aas-sync")
+SERVICOS_LEAN = ("device-gateway", "aas-sync", "twin-t2t")
 MAX_REINICIOS = 3
 
 

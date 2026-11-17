@@ -9,6 +9,9 @@ fonte de estímulo e o dashboard e passa a monitorar (processo vivo, porta respo
     python3 start.py --fonte hardware           # nenhuma fonte local: espera o ESP32 publicar no broker
     python3 start.py --parar                    # derruba tudo o que o start.py sobe (sem apagar volumes)
 
+Fase 3 (tarefas 3.5/3.8): sobe também o twin-t2t (contêiner, OPC UA :4851) e os elos EMULADOS da cadeia (P-04) como
+processos locais: Fornecedor :4852 e Distribuição :4853 (`--sem-cadeia` não inicia os elos).
+
 Ctrl+C derruba o que esta execução subiu. Só biblioteca padrão (Python ≥ 3.12); os componentes rodam com `uv`.
 Detalhes e variáveis: infra/README.md.
 """
@@ -50,6 +53,8 @@ DB = (RAIZ / os.environ.get("DB_PATH", "dados/dados.db")).resolve()   # relativo
 MQTT_PORT = int(os.environ.get("MQTT_PORT", "1883"))
 AAS_URL = os.environ.get("AAS_URL", "http://localhost:8091").rstrip("/")
 PORTA_APP = int(os.environ.get("APP_PORTA", "8501"))
+PORTA_T2T = 4851
+ELOS = (("fornecedor", "cadeia.fornecedor", 4852), ("distribuicao", "cadeia.distribuicao", 4853))   # emulados, P-04
 SEM_DADO_S = float(os.environ.get("START_SEM_DADO_S", "20"))   # fonte viva e banco parado além disto → alerta
 # Dispositivos que a fonte emula por padrão (tarefas 2.8 e 2.10): o trecho instrumentado inteiro, leitores antes do
 # botão (a mesma liberação da planta gera o scan de entrada e o ciclo). `--dispositivo` troca a lista.
@@ -70,6 +75,8 @@ def argumentos() -> argparse.Namespace:
     p.add_argument("--estimulo", help="firmware: arquivo de estímulo da bancada (ex.: bancada/demo.txt)")
     p.add_argument("--intervalo", type=float, default=5.0, help="segundos entre verificações do monitor")
     p.add_argument("--sem-dashboard", action="store_true", help="não inicia o Streamlit")
+    p.add_argument("--sem-cadeia", action="store_true",
+                   help="não inicia os elos emulados Fornecedor (:4852) e Distribuição (:4853); o twin-t2t sobe igual")
     p.add_argument("--manter-base", action="store_true",
                    help="ao sair, derruba só os serviços do M3 e deixa a base reduzida no ar")
     p.add_argument("--parar", action="store_true", help="derruba tudo e sai (docker compose down, sem -v)")
@@ -112,7 +119,7 @@ def pre_requisitos(a: argparse.Namespace) -> None:
 def subir_infra(t0: float) -> set[str]:
     antes = servicos_rodando()
     log(t0, f"serviços já no ar antes: {sorted(antes) or 'nenhum'}")
-    log(t0, "docker compose up -d --build (base reduzida, ADR-0016, + device-gateway e aas-sync)")
+    log(t0, "docker compose up -d --build (base reduzida, ADR-0016, + device-gateway, aas-sync e twin-t2t)")
     r = compose("up", "-d", "--build", capturar=True)
     if r.returncode:
         print(r.stdout[-3000:], r.stderr[-3000:], sep="\n")
@@ -124,6 +131,8 @@ def subir_infra(t0: float) -> set[str]:
         ("device-gateway (healthcheck)", lambda: saude_conteiner("device-gateway") == "healthy"),
         ("OPC UA :4850", lambda: porta_responde("localhost", 4850)),
         ("aas-sync (healthcheck)", lambda: saude_conteiner("aas-sync") == "healthy"),
+        ("twin-t2t (healthcheck)", lambda: saude_conteiner("twin-t2t") == "healthy"),
+        (f"OPC UA T2T :{PORTA_T2T}", lambda: porta_responde("localhost", PORTA_T2T)),
     ]
     for nome, teste in checagens:
         if not esperar(teste, 240):
@@ -156,6 +165,8 @@ def iniciar_processos(a: argparse.Namespace, t0: float) -> list[Processo]:
                               cwd=RAIZ / "hardware/firmware"))
     else:
         log(t0, "fonte hardware: nada a iniciar aqui; o ESP32 publica direto no broker (cartão de conexão)")
+    if not a.sem_cadeia:
+        procs += elos_cadeia(u, t0)
     for p in procs:
         p.iniciar()
         log(t0, f"iniciado {p.nome} (pid {p.popen.pid}){'; log em ' + str(p.log) if p.log else ''}")
@@ -165,6 +176,24 @@ def iniciar_processos(a: argparse.Namespace, t0: float) -> list[Processo]:
             sys.exit("start.py: dashboard não respondeu em 90 s (veja dados/estado/start/dashboard.log)")
         log(t0, f"dashboard respondendo: http://localhost:{PORTA_APP}")
     return procs
+
+
+def python_do_venv(venv: Path) -> Path:
+    """Interpretador do ambiente do uv: `bin/python` (Linux, macOS, WSL2) ou `Scripts/python.exe` (Windows)."""
+    return venv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+
+
+def elos_cadeia(u: str, t0: float) -> list[Processo]:
+    """Elos EMULADOS (P-04, ADR-0029) como processos locais (convenções da Fase 3 §3): a demo derruba e religa um elo
+    sem mexer na pilha. Rodam pelo python do próprio ambiente (não por `uv run`) para que SIGUSR1/SIGUSR2 (congelar,
+    estoque baixo) cheguem ao elo. Se um elo sair, o monitor o religa (até 3 vezes) e o cliente da cadeia no twin-t2t
+    reconecta sozinho."""
+    r = subprocess.run([u, "sync", "--project", "twin/cadeia", "--frozen", "--quiet"], cwd=RAIZ, check=False)
+    if r.returncode:
+        sys.exit("start.py: uv sync --project twin/cadeia falhou (elos emulados da cadeia)")
+    py = str(python_do_venv(RAIZ / "twin/cadeia/.venv"))
+    log(t0, "elos da cadeia EMULADOS localmente (P-04): Fornecedor :4852, Distribuição :4853")
+    return [Processo(nome, [py, "-m", modulo], ESTADO / f"{nome}.log", reiniciar=True) for nome, modulo, _ in ELOS]
 
 
 def contagem() -> dict[str, int] | None:
@@ -188,7 +217,10 @@ def monitorar(procs: list[Processo], a: argparse.Namespace, t0: float) -> None:
         problemas = [f"{p.nome}: {s}" for p in procs if (s := p.verificar())]
         if any("reiniciado" in s for s in problemas):
             ARQ_PIDS.write_text(json.dumps({p.nome: p.popen.pid for p in procs}))   # --parar acha o novo pid
-        portas = {"mqtt": porta_responde("localhost", MQTT_PORT), "opcua": porta_responde("localhost", 4850)}
+        portas = {"mqtt": porta_responde("localhost", MQTT_PORT), "opcua": porta_responde("localhost", 4850),
+                  "t2t": porta_responde("localhost", PORTA_T2T)}
+        if not a.sem_cadeia:
+            portas |= {nome: porta_responde("localhost", porta) for nome, _, porta in ELOS}
         if not a.sem_dashboard:
             portas["dashboard"] = porta_responde("localhost", PORTA_APP)
         saude = {s: saude_conteiner(s) for s in SERVICOS_LEAN}
