@@ -11,10 +11,12 @@ Streamlit multipágina (ADR-0010). As páginas só leem por `nucleo/`; nenhuma f
 | `nucleo/pecas.py` | L3 | Cálculo puro por peça (tarefa 2.6): situação (aberta, concluída, expirada, incompleta), lead time individual = saída − entrada, processamento = Σ `dur_s`, espera = lead time − processamento; cada ciclo associado (`inicio` → `fim`) é um segmento da estação do botão e os demais intervalos vão para a estação de chegada, recortados em [entrada, saída] (Σ espera por estação = espera da peça); comparação com a média. A ficha do AAS repete o cálculo (ADR-0027, `tests/aas_sync/test_ficha_cruzada.py`) |
 | `nucleo/kpis.py` | L3 | FPY e RTY do trecho a partir do primeiro resultado por estação (cálculo da 2.10), com n, origens e a referência do M1. Com uma estação de resultado, RTY do trecho = FPY do teste |
 | `nucleo/aas_leitura.py` | L3 | Só GET no AAS: contadores `Rejeitados`, `Duplicatas` e `Lacunas` do gateway (submodelo `DadosOperacionais`), que não chegam ao SQLite |
+| `nucleo/cadeia.py` | L3 | Estado da cadeia (3.4) lido do `twin-t2t` por OPC UA, **só leitura** (`T2T_URL`; nós `EstadoGemeo.*` e `Cadeia.*` das convenções da Fase 3 §1): elos ONLINE/OFFLINE (valor de elo OFFLINE não é mostrado), ritmo por elo, lead time da cadeia = soma dos lead times LOCAIS pela mesma função do twin (`estado_gemeo.lead_time_cadeia`; elo OFFLINE ou −1 fora e sinalizado, nunca zero) e o cálculo "estoque do Fornecedor X < limite Y → StatusLinha Z" (RF-A3-09). Twin fora do ar → "indisponível" e pausa de 10 s antes de tentar de novo |
 | `nucleo/configuracao.py` | L3 | Variáveis de ambiente (tabela abaixo) |
 | `Home.py` | L4 | Entrada e navegação (`st.navigation`) |
 | `pages/rastreio.py` | L4 | "Rastreio" (2.6): busca por ID ou QR bruto, ficha (trajetória, tempo e espera por estação, comparação com a média), peças abertas e expiradas, mais rápida e mais lenta, FPY/RTY do trecho com n, origem e referência do M1; chave "só medidas" **ligada por padrão**: desligada, os números viram "demonstração (inclui dado sintético)", sem baseline/meta do M1 nem simulado do M2 (`kpis.apresentar`; ADR-0013, ADR-0025) |
 | `pages/dispositivos.py` | L4 | "Dispositivos" (2.7): online, origem declarada, última atividade, últimas leituras, rejeições por categoria, duplicatas (banco) e lacunas (AAS) |
+| `pages/cadeia.py` | L4 | "Cadeia" (3.4): Fornecedor → Produção → Distribuição com estado, ritmo, lead time local, reconexões e origem de cada número (elos **emulados**, P-04; Produção da planta virtual); soma do lead time com as parcelas e os elos fora; decisão com dado do vizinho. Twin fora do ar → "Cadeia indisponível" e "—" |
 | `pages/visao_geral.py` | L4 | "Visão geral" (mínima, tarefa 1.5): Andon, estado, origem declarada, último dado, último tempo de ciclo, últimos ciclos com a origem de cada um, amostra medida, rejeições. Atualiza sozinha a cada `APP_ATUALIZACAO_S` |
 
 Todos os dispositivos são **emulados** (ADR-0002). Ciclo de origem `emulador:roteiro` aparece na página marcado
@@ -27,7 +29,7 @@ Pré-requisito: o `aas-sync` já criou o banco (`DB_PATH`). Sem banco, a página
 ```bash
 uv run --project app streamlit run app/Home.py --server.port 8501 --server.headless true
 curl -s http://localhost:8501/_stcore/health          # "ok"
-uv run --project app pytest tests/app -v               # 51 testes, sem rede
+uv run --project app pytest tests/app -v               # 80 testes, sem rede externa (servidor OPC UA de teste local)
 uv run --project app ruff check app tests/app
 ```
 
@@ -44,6 +46,8 @@ uv run --project app ruff check app tests/app
 | `ORIGENS_PATH` | `config/origens.yaml` | Origens que valem como "Medido (M3)" |
 | `RASTREIO_PATH` | `config/rastreio.yaml` | Início e fim do trecho (lead time) e normalização do QR na busca |
 | `AAS_URL` | `http://localhost:8091` | AAS, só leitura: lacunas e duplicatas do gateway na página Dispositivos; fora do ar = "—" |
+| `T2T_URL` | `opc.tcp://localhost:4851` | twin-t2t, só leitura por OPC UA: página Cadeia; fora do ar = "Cadeia indisponível" |
+| `CADEIA_PATH` | `config/cadeia.yaml` | Elos da cadeia e limite da decisão (`decisao.estoque_minimo`) |
 
 ## Limites do Andon (provisórios)
 

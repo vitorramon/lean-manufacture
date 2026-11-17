@@ -17,5 +17,6 @@ navegacao = st.navigation([
     st.Page(PAGINAS / "visao_geral.py", title="Visão geral", default=True),
     st.Page(PAGINAS / "rastreio.py", title="Rastreio"),
     st.Page(PAGINAS / "dispositivos.py", title="Dispositivos"),
+    st.Page(PAGINAS / "cadeia.py", title="Cadeia"),
 ])
 navegacao.run()

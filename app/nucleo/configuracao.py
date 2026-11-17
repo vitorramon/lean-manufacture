@@ -11,6 +11,8 @@
 | `ORIGENS_PATH` | `config/origens.yaml` | Origens que valem como "Medido (M3)" e para a amostra de ciclo (ADR-0025) |
 | `RASTREIO_PATH` | `config/rastreio.yaml` | Início/fim do trecho e normalização do QR para a busca (via `contrato`) |
 | `AAS_URL` | `http://localhost:8091` | AAS (só leitura): contadores `Lacunas`/`Duplicatas` do gateway na página Dispositivos |
+| `T2T_URL` | `opc.tcp://localhost:4851` | twin-t2t (só leitura por OPC UA): estado da cadeia na página Cadeia (tarefa 3.4) |
+| `CADEIA_PATH` | `config/cadeia.yaml` | Elos, limite da decisão com dado do vizinho (lido por `nucleo.parametros_cadeia`) |
 """
 
 from __future__ import annotations
@@ -103,6 +105,7 @@ class Configuracao:
     prazo_padrao_s: float
     atualizacao_s: float
     aas_url: str = "http://localhost:8091"
+    t2t_url: str = "opc.tcp://localhost:4851"
 
 
 def ler_configuracao() -> Configuracao:
@@ -113,6 +116,7 @@ def ler_configuracao() -> Configuracao:
         prazo_padrao_s=_float("ANDON_PRAZO_PADRAO_S", 60.0),
         atualizacao_s=_float("APP_ATUALIZACAO_S", 2.0),
         aas_url=os.environ.get("AAS_URL", "http://localhost:8091").rstrip("/"),
+        t2t_url=os.environ.get("T2T_URL", "").strip() or "opc.tcp://localhost:4851",
     )
 
 
