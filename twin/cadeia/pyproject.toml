@@ -1,0 +1,33 @@
+[project]
+name = "lean-cadeia"
+version = "0.1.0"
+description = "Elos EMULADOS da cadeia (tarefa 3.3): Fornecedor :4852 e Distribuição :4853, servidores OPC UA no contrato de interface"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "asyncua>=2.1.0",
+    "lean-twin-t2t",
+    "pyyaml>=6.0",
+]
+
+# Reaproveita o cliente com reconexão do twin-t2t (twin_t2t.cliente_cadeia) e o leitor de config/cadeia.yaml
+# (nucleo.parametros_cadeia, que entra pelo dev-mode-dirs do twin-t2t). Sem cópia de código.
+[tool.uv.sources]
+lean-twin-t2t = { path = "../t2t", editable = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cadeia"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
+    "ruff>=0.17.5",
+]
+
+[tool.ruff]
+line-length = 120
