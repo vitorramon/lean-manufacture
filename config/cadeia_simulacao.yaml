@@ -1,0 +1,54 @@
+# Modelo simplificado da cadeia em SimPy (tarefa 3.0; P-03: substitui a Extra 2 não realizada).
+# Fornecedor -> PRODUÇÃO (nós) -> Distribuição. Lido por dados/analises/f3_cadeia_simpy.py (variável CADEIA_SIM_PATH).
+# Convenções: docs/convencoes-fase-3.md §6 e §8.
+#
+# TUDO AQUI É PARÂMETRO DE MODELO (hipótese), NÃO MEDIÇÃO (ADR-0002, ADR-0013). A saída do modelo é declarada como
+# "Simulado (modelo SimPy da cadeia, parâmetros de config/cadeia_simulacao.yaml + config/cadeia.yaml → emulados)".
+# Os valores centrais de Fornecedor e Distribuição NÃO são repetidos aqui: vêm de config/cadeia.yaml → emulados
+# (os mesmos que os elos emulados da 3.3 usam), para que o "Simulado" e o "Real" da 3.7 falem do mesmo elo.
+
+versao: 1
+
+# Produção = caixa-preta alimentada pelo simulador do M2 (tarefa 0.8, 30 sementes por cenário, trecho do ADR-0009).
+# Réplica i do modelo usa a linha `semente = i` do cenário em f0_replicacoes.csv:
+#   - ritmo de liberação = concluidas / turno (intervalo determinístico, como a liberação do M2);
+#   - lead time de cada peça ~ lognormal ajustada a (lt_trecho_media_min, lt_trecho_p90_min) daquela semente
+#     (média = p90 -> determinístico, caso do "Lean ampliado").
+producao:
+  fonte_m2: dados/analises/f0_replicacoes.csv
+  turno_s: 28800                 # 8 h, o mesmo turno do M2
+  cenarios:                      # nome no CSV do M2 -> rótulo curto nas tabelas
+    "Atual": Atual
+    "SPI/AOI": SPI/AOI
+    "SPI/AOI + Lean": Lean local
+    "SPI/AOI + Lean ampliado": Lean ampliado
+  comparacao: ["Atual", "SPI/AOI + Lean ampliado"]   # teste pareado por semente (pedido da tarefa 3.0)
+
+# Fornecedor: estoque de kits (Container SimPy) com política (s, Q). Estoque inicial, lote Q, consumo por peça e
+# lead time central de reposição vêm de config/cadeia.yaml -> emulados.Fornecedor.
+fornecedor:
+  ponto_pedido: 20               # s: pede um lote quando estoque + pedidos em trânsito <= s (= decisao.estoque_minimo)
+  lead_time_variacao: 0.25       # reposição ~ triangular(L·(1−v), L, L·(1+v)); média = L. 0 = determinístico
+
+# Distribuição: cada peça concluída fica na expedição e é despachada; tempo central de config/cadeia.yaml ->
+# emulados.Distribuicao.tempo_despacho_s (o mesmo do elo emulado).
+distribuicao:
+  tempo_despacho_variacao: 0.25  # despacho ~ triangular(T·(1−v), T, T·(1+v)); média = T. 0 = determinístico
+
+replicacoes:
+  n: 30
+  semente_inicial: 1             # sementes 1..30, pareadas com as sementes do M2
+  confianca: 0.95
+
+# Experimento do efeito chicote (Extra 2): demanda do cliente com variação ±20 % por período. Modelo de revisão
+# periódica (Chen et al., 2000): cada elo usa política "order-up-to" com previsão por média móvel; a razão
+# Var(pedidos do elo) / Var(demanda) mede a amplificação. Lead time de reposição em períodos (arredondado para
+# cima, mínimo 1): Distribuição <- Produção usa o lead time do trecho da semente do M2; Produção <- Fornecedor usa o
+# lead time de reposição do Fornecedor; Fornecedor <- fonte externa usa `lead_time_fonte_periodos`.
+chicote:
+  periodo_s: 900                 # 15 min: com 1 h, SPI/AOI (54 min) e Lean ampliado (2,9 min) cairiam no mesmo L = 1
+  periodos: 400                  # 100 h
+  aquecimento_periodos: 40       # descartados antes de medir a variância
+  variacao_demanda: 0.20         # demanda_t = média · (1 + U(−0,20; +0,20)); média = ritmo de saída do M2 (peças/h)
+  media_movel_periodos: 8        # p da previsão (2 h)
+  lead_time_fonte_periodos: 1
