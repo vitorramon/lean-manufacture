@@ -21,7 +21,7 @@ python3 start.py --parar [--manter-base]         # derruba tudo (docker compose 
 `device-gateway`, `aas-sync` e `twin-t2t`), `--sem-dashboard`, `--sem-cadeia` (não inicia os elos emulados),
 `--intervalo` (s entre verificações), `--dispositivo`, `--roteiro`.
 
-`--parar` em outro terminal primeiro manda SIGINT ao `start.py` que está no ar (pid em `dados/estado/start/start.pid`) e espera ele encerrar o que subiu; só depois encerra os processos que restarem e derruba o compose. Antes de 2026-11-18 o monitor do `start.py` vivo religava o dashboard e os elos que o `--parar` tinha encerrado.
+`--parar` em outro terminal primeiro manda SIGTERM ao `start.py` que está no ar (pid em `dados/estado/start/start.pid`) e espera ele encerrar o que subiu; só depois encerra os processos que restarem e derruba o compose. O `start.py` instala explicitamente os handlers de SIGINT e SIGTERM, porque, iniciado em segundo plano por um shell não interativo, herda o SIGINT ignorado (ensaio do teste do terceiro, 2026-11-18). Antes de 2026-11-18 o monitor do `start.py` vivo religava o dashboard e os elos que o `--parar` tinha encerrado.
 
 Fase 3 (tarefas 3.5 e 3.8): o `start.py` sobe também o `twin-t2t` (contêiner, OPC UA `:4851`) e os elos da cadeia
 **emulados localmente** enquanto não houver grupo parceiro (P-04): Fornecedor `:4852` e Distribuição `:4853`, como

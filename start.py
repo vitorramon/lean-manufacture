@@ -155,6 +155,7 @@ def iniciar_processos(a: argparse.Namespace, t0: float) -> list[Processo]:
         procs.append(Processo("fonte", emul + ["--fonte", "roteiro", "--velocidade", str(a.velocidade), *extra],
                               ESTADO / "fonte.log"))
     elif a.fonte == "godot":
+        importar_planta(t0)
         procs.append(Processo("planta", [godot(), "--headless", "--max-fps", "60", "--path", "base/godot"],
                               ESTADO / "planta.log"))
         procs.append(Processo("fonte", emul + ["--fonte", "godot"], ESTADO / "fonte.log"))
@@ -177,6 +178,24 @@ def iniciar_processos(a: argparse.Namespace, t0: float) -> list[Processo]:
             sys.exit("start.py: dashboard não respondeu em 90 s (veja dados/estado/start/dashboard.log)")
         log(t0, f"dashboard respondendo: http://localhost:{PORTA_APP}")
     return procs
+
+
+def importar_planta(t0: float) -> None:
+    """Clone limpo não tem `base/godot/.godot` (cache ignorado pelo Git da base): sem o import, a planta sobe sem
+    recursos ("Could not find type ...") e não publica nada. O cache é gerado, não edita a base (ADR-0001)."""
+    if (RAIZ / "base/godot/.godot").exists():
+        return
+    log(t0, "primeira vez: importando o projeto Godot (base/godot/.godot), cerca de 30 s")
+    r = subprocess.run([godot(), "--headless", "--path", "base/godot", "--import"], cwd=RAIZ,
+                       capture_output=True, text=True, timeout=600, check=False)
+    if not (RAIZ / "base/godot/.godot").exists():
+        print(r.stdout[-2000:], r.stderr[-2000:], sep="\n")
+        sys.exit("start.py: o import do projeto Godot falhou (saída acima); rode "
+                 "'godot --headless --path base/godot --import'")
+
+
+def interromper(_sinal: int, _quadro: object) -> None:
+    raise KeyboardInterrupt
 
 
 def python_do_venv(venv: Path) -> Path:
@@ -268,7 +287,8 @@ def start_vivo(pid: int) -> bool:
 
 def parar_start_em_execucao(t0: float) -> None:
     """Sem isto, o monitor do start.py que está no ar religava o dashboard e os elos (reiniciar=True) depois que o
-    --parar os encerrava. SIGINT faz o start.py em execução cair no próprio `derrubar` (Ctrl+C)."""
+    --parar os encerrava. SIGTERM faz o start.py em execução cair no próprio `derrubar`, como o Ctrl+C (SIGTERM porque um start.py
+    iniciado em segundo plano por shell não interativo herda o SIGINT ignorado)."""
     if not ARQ_PID_START.exists():
         return
     try:
@@ -276,23 +296,37 @@ def parar_start_em_execucao(t0: float) -> None:
     except ValueError:
         pid = 0
     if pid and pid != os.getpid() and start_vivo(pid):
-        os.kill(pid, signal.SIGINT)
-        log(t0, f"SIGINT para o start.py em execução (pid {pid}); esperando ele encerrar o que subiu")
+        os.kill(pid, signal.SIGTERM)
+        log(t0, f"SIGTERM para o start.py em execução (pid {pid}); esperando ele encerrar o que subiu")
         if not esperar(lambda: not start_vivo(pid), 120):
             log(t0, f"start.py (pid {pid}) não saiu em 120 s; seguindo com a parada")
     ARQ_PID_START.unlink(missing_ok=True)
+
+
+def processo_vivo(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except (ProcessLookupError, PermissionError):
+        return False
+    estado = Path(f"/proc/{pid}/stat")
+    return not estado.exists() or estado.read_text().split(") ")[-1][:1] != "Z"
 
 
 def parar_tudo(manter_base: bool) -> None:
     t0 = time.monotonic()
     parar_start_em_execucao(t0)
     if ARQ_PIDS.exists():
-        for nome, pid in json.loads(ARQ_PIDS.read_text()).items():
-            try:
-                os.killpg(pid, signal.SIGINT)
-                log(t0, f"SIGINT para {nome} (pid {pid})")
-            except ProcessLookupError:
-                log(t0, f"{nome} (pid {pid}) já tinha saído")
+        pids = json.loads(ARQ_PIDS.read_text())
+        for sinal in (signal.SIGINT, signal.SIGTERM, signal.SIGKILL):   # mesma escada do `encerrar`
+            vivos = {n: pid for n, pid in pids.items() if processo_vivo(pid)}
+            for nome, pid in vivos.items():
+                try:
+                    os.killpg(pid, sinal)
+                    log(t0, f"{signal.Signals(sinal).name} para {nome} (pid {pid})")
+                except ProcessLookupError:
+                    pass
+            if vivos:
+                esperar(lambda: not any(processo_vivo(pid) for pid in vivos.values()), 10)
         ARQ_PIDS.unlink()
     if manter_base:
         compose("rm", "-s", "-f", *SERVICOS_LEAN)
@@ -327,6 +361,9 @@ def main() -> int:
     procs: list[Processo] = []
     ESTADO.mkdir(parents=True, exist_ok=True)
     ARQ_PID_START.write_text(str(os.getpid()))
+    # Explícito: em segundo plano o SIGINT chega ignorado e o Python não instala o handler do Ctrl+C sozinho.
+    signal.signal(signal.SIGINT, signal.default_int_handler)
+    signal.signal(signal.SIGTERM, interromper)
     try:
         procs = iniciar_processos(a, t0)
         monitorar(procs, a, t0)
@@ -334,7 +371,8 @@ def main() -> int:
         print()
         log(t0, "Ctrl+C recebido")
     finally:
-        signal.signal(signal.SIGINT, signal.SIG_IGN)   # um segundo Ctrl+C não interrompe a limpeza
+        signal.signal(signal.SIGINT, signal.SIG_IGN)   # um segundo Ctrl+C (ou SIGTERM) não interrompe a limpeza
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
         derrubar(procs, antes, a.manter_base, t0)
         if ARQ_PID_START.exists() and ARQ_PID_START.read_text().strip() == str(os.getpid()):
             ARQ_PID_START.unlink()

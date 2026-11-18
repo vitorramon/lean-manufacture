@@ -189,7 +189,7 @@ Objetivo: um produto único, documentado e reproduzível.
       — parcial em 2026-11-18: `docs/relatorio.pdf` gerado (14 páginas); falta a geração Medido e as evidências do
       grupo (vídeos, UaExpert, ata da 4.7) e gerar o PDF de novo depois delas
 - [ ] 4.7 Teste do terceiro em máquina limpa; corrigir o README até passar
-      — bloqueada em 2026-11-18: precisa de um colega real em máquina limpa e ata com data e quem executou (RF-A4-03)
+      — bloqueada em 2026-11-18: precisa de um colega real em máquina limpa e ata com data e quem executou (RF-A4-03); ensaio por agente achou 3 falhas, corrigidas (`f4-4.7-ensaio-terceiro.md`)
 - [ ] 4.8 Vídeo de reserva de 3 min; link no README
       — bloqueada em 2026-11-18: depende do grupo gravar e publicar; roteiro pronto
       (`docs/apresentacao/roteiro-video-reserva.md`)

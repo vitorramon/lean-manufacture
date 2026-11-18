@@ -55,7 +55,7 @@ revisada, `docs/evidencias/f4-revisao.md`, e fechada com commits locais, sem pus
 
 | Item | Tarefa / requisito | Situação e como |
 | --- | --- | --- |
-| Teste do terceiro: um colega real clona e segue só o README em máquina limpa, com ata (data, quem executou, o que falhou) | 4.7, RF-A4-03 | Bloqueada (não executada). Corrigir o README até passar e tirar a ressalva do README §3 |
+| Teste do terceiro: um colega real clona e segue só o README em máquina limpa, com ata (data, quem executou, o que falhou) | 4.7, RF-A4-03 | Ensaio por agente em 2026-11-18 achou 3 falhas, corrigidas (`docs/evidencias/f4-4.7-ensaio-terceiro.md`); falta o colega real |
 | Vídeo de reserva de 3 min e link no README | 4.8, RF-A4-08 | Bloqueada; roteiro pronto em `docs/apresentacao/roteiro-video-reserva.md`. Registrar em `docs/evidencias/f4-4.8-video.md` |
 | Slides finais e ensaio cronometrado com todos os integrantes (≤ 15 min, 2-2-5-3-2-1) | 4.9, RF-A4-07 | Parcial; roteiro pronto em `docs/apresentacao/roteiro-apresentacao.md`. A sequência da demo nunca foi ensaiada inteira |
 | Revisar a autoavaliação depois de 4.7–4.9, da coleta com OP1 e do print do UaExpert | 4.10, RF-A4-10 | Parcial: `docs/autoavaliacao.md` (hoje 10/40) |

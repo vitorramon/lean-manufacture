@@ -97,7 +97,9 @@ O `start.py` faz o seguinte:
 3. inicia o dashboard, a planta, a fonte e os elos EMULADOS (4852/4853);
 4. monitora processo, porta e dado a cada 5 s.
 
-Ctrl+C derruba o que ele subiu. Na rodada de 2026-11-18 a pilha ficou saudável em 83,4 s, com 26 contêineres
+Na primeira vez com a fonte `godot`, o `start.py` importa o projeto Godot (`base/godot/.godot`, cerca de 30 s). A
+subida leva cerca de 100 s até "dashboard respondendo"; precisa das portas 1883, 4850–4853, 8091 e 8501 livres e de
+internet para baixar imagens e dependências na primeira vez. Ctrl+C derruba o que ele subiu. Na rodada de 2026-11-18 a pilha ficou saudável em 83,4 s, com 26 contêineres
 ([`f4-integracao.md`](docs/evidencias/f4-integracao.md)). O lead time da cadeia só fica completo (3 de 3 elos)
 depois da primeira reposição do Fornecedor emulado, cerca de 15 min depois da subida.
 
@@ -122,9 +124,9 @@ do Andon estão em [`config/andon.yaml`](config/andon.yaml). As variáveis de am
 ### 3.4 Com a pilha no ar: leituras e roteiros de verificação
 
 ```bash
-twin/t2t/.venv/bin/uals -u opc.tcp://localhost:4851 -n 'ns=2;s=EstadoGemeo' -l 1      # f3-3.1-twin-t2t.md
-twin/t2t/.venv/bin/uaread -u opc.tcp://localhost:4851 -n 'ns=2;s=EstadoGemeo.StatusLinha'
-twin/t2t/.venv/bin/python tests/vivo/f3_propagacao.py 6 <saida.log>     # reação da Distribuição (3.5)
+uv run --project twin/t2t uals -u opc.tcp://localhost:4851 -n 'ns=2;s=EstadoGemeo' -l 1      # f3-3.1-twin-t2t.md
+uv run --project twin/t2t uaread -u opc.tcp://localhost:4851 -n 'ns=2;s=EstadoGemeo.StatusLinha'
+uv run --project twin/t2t python tests/vivo/f3_propagacao.py 6 <saida.log>     # reação da Distribuição (3.5)
 twin/cadeia/.venv/bin/python -m cadeia.diagnostico --host localhost --porta 4852 --elo Fornecedor   # 3.6
 ```
 

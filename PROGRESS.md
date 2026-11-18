@@ -514,6 +514,13 @@ Surpresas:
 - O banco `dados.f4.db` continua crescendo enquanto a pilha roda: a `f4-4.1` registrou 125/136 e a `f4-integracao`
   130/142. README §5 e relatório §6 dizem qual instante usam.
 
+### 2026-11-18 — ensaio do teste do terceiro (4.7, por agente)
+
+- [ ] 4.7 continua bloqueada (falta o colega real). O ensaio em clone limpo achou 3 falhas, corrigidas:
+  import do projeto Godot ausente (planta sem dados), `--parar` sem efeito em `start.py` iniciado em segundo plano
+  (SIGINT herdado como ignorado; agora SIGTERM e handlers explícitos: 126 s → 7,3 s, nada para trás) e caminho do
+  `uals` no README. Evidência: [`f4-4.7-ensaio-terceiro.md`](docs/evidencias/f4-4.7-ensaio-terceiro.md).
+
 ### 2026-11-15 — ferramentas do assistente
 
 - [x] `.claude/` na raiz do espaço de trabalho, adaptado do projeto Órbita: 9 regras, 7 skills, 5 agentes e
