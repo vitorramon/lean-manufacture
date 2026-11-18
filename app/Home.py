@@ -19,5 +19,6 @@ navegacao = st.navigation([
     st.Page(PAGINAS / "dispositivos.py", title="Dispositivos"),
     st.Page(PAGINAS / "cadeia.py", title="Cadeia"),
     st.Page(PAGINAS / "tres_geracoes.py", title="3 gerações"),
+    st.Page(PAGINAS / "what_if.py", title="What-if"),
 ])
 navegacao.run()
