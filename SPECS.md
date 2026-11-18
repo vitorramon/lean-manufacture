@@ -177,7 +177,7 @@ ressalva; as 10 tarefas da Fase 2 estão parciais.
 | RF-A2-08 | Parcial: peça mais lenta (`000083`), estação de espera (Embalagem) e Muda W/T do TIM WOODS; o excesso é ruído de emulação | `f2-2.9-espera.md`, `dados/analises/f2_espera*` | Texto reescrito com os números corrigidos; repetir com fonte `operador`; comparação de valor com o M2 |
 | RF-A2-09 | Parcial: carga 2000/2000 eventos, 0 `database is locked` com leitor pelo `nucleo` (registrado na evidência da 2.5) | `f2-2.5-eventos-ficha.md`, `tests/aas_sync/test_carga.py` | Reexecutar a carga e as integrações com broker e AAS no ar |
 | RF-A2-10 | Atendido com a planta virtual: 31 peças concluídas (≥ 20) em `eventos`; 20ª saída 253,7 s depois da primeira entrada | `f2-2.8-fluxo-pecas.md` | — |
-| RF-A4-04 (FPY/RTY do trecho, tarefa 2.10) | Demonstração: FPY = RTY do trecho 90,3 % (28/31), `emulador:godot`; não é medição | `f2-2.10-fpy-rty.md` | Fonte com resultado real |
+| Tarefa 2.10 (FPY/RTY do trecho; KPIs do M1, §2.1; sem RF próprio) | Demonstração: FPY = RTY do trecho 90,3 % (28/31) em 2026-11-16 e 91,5 % (130/142) na rodada de 2026-11-18, `emulador:godot`; não é medição | `f2-2.10-fpy-rty.md`, `f4-integracao.md` | Fonte com resultado real |
 
 ### 2.6 Módulo 3 — situação ao fim da Fase 3 (2026-11-16)
 
@@ -190,15 +190,33 @@ cadeia (P-07).
 |---|---|---|---|
 | RF-A3-01 | Parcial: `twin-t2t` na 4851 publica `RitmoReal` (240,0 peças/h contra `dados.f2r.db`; 264 ao vivo) e `UltimaPeca` a partir de `eventos`, lidos com `uals`/`uaread` e conferidos por SQL; sobe pelo `start.py` | `f3-3.1-twin-t2t.md`, `f3-3.5-propagacao.md` | Print no UaExpert ou equivalente |
 | RF-A3-02 | Atendido com elo emulado: a Distribuição EMULADA lê o ritmo/status da Produção e entra em `AGUARDANDO_PRODUCAO` (linha "REAÇÃO" no log) | `f3-3.2-cadeia.md`, `f3-3.5-propagacao.md` | Elo de parceiro real (P-04) |
-| RF-A3-03 | Parcial: reação a jusante 1,96 s em média (máx. 2,52 s, n = 6), alvo ≤ 15 s em 6/6, medida num único relógio | `f3-3.5-propagacao.md` | Vídeo |
-| RF-A3-04 | Parcial: soma dos lead times locais (elo OFFLINE ou −1 fora, nunca zero) no twin e na página "Cadeia" | `f3-3.4-pagina-cadeia.md`, `f3-3.8-cadeia-*.png` | Print da página com o código atual (rótulos corrigidos na revisão) |
-| RF-A3-05 | Parcial: OFFLINE por elo e reconexão sozinha (Fornecedor 0,9 → 3,9 s; Distribuição 0,6 → 3,6 s; congelado 9,6 s); painel não cai | `f3-3.8-falhas.md`, `f3-3.2-cadeia.md` | Repetir com o código do ADR-0030 (espelho `Uncertain`) |
-| RF-A3-06 | Parcial: linha no README §5 — Simulado SimPy 67,41 → 5,87 min; "Real" de demonstração 84,3 s com 2 de 3 elos (Fornecedor fora) | `f3-3.7-tres-geracoes.md`, `f3-3.0-simpy-cadeia.md` | Rodada limpa com reposição do Fornecedor gravando `Cadeia.LeadTimeCadeia`; P-07 |
-| RF-A3-07 | Parcial: 6 tipos de falha com tempos de detecção e recuperação; PARADA de 46,2 s numa das 3 quedas do broker | `f3-3.8-falhas.md` | Seção no relatório (Fase 4); refazer com o código do ADR-0030 |
+| RF-A3-03 | Parcial: reação a jusante 2,42 s em média (máx. 3,02 s, n = 6) com o código atual (2026-11-18); 2,19 s em n = 12 com a rodada anterior; alvo ≤ 15 s em 12/12, medida num único relógio. Queda do broker pode levar até ~45 s (decisão pendente) | `f3-3.5-propagacao.md`, `f3-3.8-falhas.md` | Vídeo |
+| RF-A3-04 | Atendido com elos emulados (P-04): página "Cadeia" pelo `start.py` com a soma completa 204,5 s (3 de 3) igual à publicada pelo twin; elo OFFLINE fora da soma e sinalizado, nunca zero | `f3-3.4-pagina-cadeia.md`, `f3-3.8-cadeia-*-pos-adr0030.png` | Parceiro real (P-04) |
+| RF-A3-05 | Atendido com elos emulados (P-04): OFFLINE por elo e reconexão sozinha com o código do ADR-0030 (Fornecedor 0,9 → 15,9 s; Distribuição 0,8 → 7,8 s; congelada 10,5 s); espelhos `UncertainLastUsableValue` lidos por asyncua; painel não cai | `f3-3.8-falhas.md`, `f3-3.2-cadeia.md` | Parceiro real (P-04) |
+| RF-A3-06 | Atendido como demonstração: linha no README §5 — Simulado SimPy 67,41 → 5,87 min; "Real" 204,5 s com os 3 elos (`LeadTimeCompleto = true`), lido do painel gravado; sem baseline/meta no M1 (P-07) | `f3-3.7-tres-geracoes.md`, `f3-3.0-simpy-cadeia.md` | P-07; parceiros (P-04) |
+| RF-A3-07 | Parcial: 6 tipos de falha refeitos com o código do ADR-0030 (2026-11-18); PARADA na queda do broker acima de 30 s em 3 de 6 quedas (decisão pendente do grupo) | `f3-3.8-falhas.md`, `docs/relatorio.md` §8 | Decisão sobre a queda do broker e nova medição |
 | RF-A3-08 | Atendido: cartão com IP, porta, namespace e variáveis com tipo, unidade e significado | `docs/cartoes_conexao.md` | IP do dia |
-| RF-A3-09 | Parcial: estoque do Fornecedor EMULADO < 20 → `StatusLinha` RISCO_FALTA em 2,1 s, mostrado na página | `f3-3.8-falhas.md`, `f3-3.8-cadeia-decisao.png` | Print com o texto de `Cadeia.Decisao` do ADR-0030 |
+| RF-A3-09 | Atendido com elo emulado (P-04): estoque do Fornecedor EMULADO < 20 → `StatusLinha` RISCO_FALTA em 3,3 s; página mostra a regra e o texto de `Cadeia.Decisao` do ADR-0030; PARADA prevalece verificada ao vivo | `f3-3.8-falhas.md`, `f3-3.8-cadeia-decisao-pos-adr0030.png` | Parceiro real (P-04) |
 | RF-A3-10 | Parcial: contrato de interface dos 3 elos proposto pelo Grupo 7 | `docs/cartoes_conexao.md` §2 | Combinar com parceiros (P-04) |
 | RF-A3-11 | Parcial: `RitmoProducao` e `StatusLinha` publicados (lidos com `uals`) | `f3-3.1-twin-t2t.md` | Print no navegador OPC UA |
+
+### 2.7 Módulo 3 — situação ao fim da Fase 4 (2026-11-18)
+
+Status aceito pelo verificador no fechamento da Fase 4. Tudo é **emulado** (ADR-0002); o M3 vem da planta `godot`
+(**Demonstração**, ADR-0013); nenhum KPI é Medido ainda.
+
+| Requisito | Situação | Evidência | O que falta |
+|---|---|---|---|
+| RF-A4-01 | Parcial: estrutura de pastas completa; falta o modelo `.env.example` | árvore do repositório, `README.md` | `.env.example` (1.1) |
+| RF-A4-02 | Parcial: README com as 7 seções na ordem; hardware emulado com pinagem e custo estimado | `README.md`, `f4-documentos.md` | Link do vídeo (RF-A4-08); validação pelo RF-A4-03 |
+| RF-A4-03 | Bloqueado: não executado | — | Colega real em máquina limpa e ata |
+| RF-A4-04 | Parcial: `docs/relatorio.pdf` com a tabela das 3 gerações e divergências; sem a geração Medido | `docs/relatorio.pdf`, `f4-documentos.md` | Coleta com OP1; nova geração do PDF |
+| RF-A4-05 | Parcial: cada afirmação aponta um arquivo de evidência; 0 frases proibidas no texto do grupo; afirmações que dependem de vídeo, UaExpert e teste do terceiro sem evidência | `f4-documentos.md`, `docs/autoavaliacao.md` | Evidências do grupo |
+| RF-A4-06 | Atendido: limitações no formato limitação → impacto → proposta no README §7 e no relatório §10 | `README.md`, `docs/relatorio.md` | — |
+| RF-A4-07 | Parcial: só roteiro 2-2-5-3-2-1 | `docs/apresentacao/roteiro-apresentacao.md` | Slides, papéis (P-05), ensaio cronometrado |
+| RF-A4-08 | Bloqueado: só roteiro | `docs/apresentacao/roteiro-video-reserva.md` | Vídeo e link no README |
+| RF-A4-09 | Atendido: `docs/arquitetura.png` com L0–L4 e portas, gerado por script | `f4-4.5-arquitetura.md` | Manter o SVG em sincronia com o ARCHITECTURE |
+| RF-A4-10 | Parcial: autoavaliação 10/40 (faixa 10–30) | `docs/autoavaliacao.md` | Revisar depois das pendências do grupo |
 
 ## 3. Decisões do grupo que moldam o escopo
 

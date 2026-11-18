@@ -3,11 +3,15 @@
 Registro do andamento. As tarefas vêm de [PLAN.md](PLAN.md). Atualize este arquivo ao concluir cada tarefa: marque a
 caixa, anote a data e aponte a evidência.
 
-**Última atualização:** 2026-11-16
-**Fase atual:** Fase 3 executada em 2026-11-16: 1 tarefa feita (3.0), 10 parciais, 1 bloqueada (3.6, P-04). A
-Fase 3 não fecha sem o vídeo da propagação (RF-A3-03), prints novos com o código do ADR-0030, parceiro ou decisão
-oficial de cadeia emulada (P-04) e a rodada limpa da 3.7. Fases 1 e 2 continuam abertas (vídeos, UaExpert, coleta
-com operador). Próxima: pendências de evidência das Fases 1–3 e Fase 4
+**Última atualização:** 2026-11-18
+**Fase atual:** Fase 4 executada em 2026-11-18 no que não depende do grupo, revisada (`f4-revisao.md`) e fechada
+pelo verificador: 2 tarefas feitas (4.3, 4.5), 6 parciais (4.1, 4.2, 4.4, 4.6, 4.9, 4.10) e 3 bloqueadas pelo grupo
+ou pelo usuário (4.7 teste do terceiro, 4.8 vídeo, 4.11 entrega/push). 4.1 e 4.2 voltaram a parcial porque os prints
+pelo `start.py` são anteriores à revisão das 10:26 no `nucleo`. Fase 3: 4 feitas (3.0, 3.2, 3.4, 3.7), 6 parciais, 1
+bloqueada (3.6, P-04); não fecha sem o vídeo da propagação (RF-A3-03), o print no UaExpert (3.1), a decisão sobre a
+PARADA na queda do broker (3.8) e parceiro ou decisão oficial de cadeia emulada (P-04). Fases 1 e 2 continuam abertas
+(vídeos, UaExpert, coleta com operador). Próximo: uma subida pelo `start.py` com o código atual para os prints de 4.1,
+4.2 e 3.1 (imagem do twin-t2t reconstruída); depois, pendências do grupo (`docs/pendencias-do-grupo.md`).
 **Código do M3 implementado:** contrato `dev/v1` (`pipeline/contrato`), emulador com fontes `roteiro`, `godot` e
 `operador` (`hardware/emulador`), firmware ESP32 com QEMU (`hardware/firmware`), `device-gateway` (OPC UA 4850),
 `aas-sync` (SQLite WAL e AAS), app Streamlit com "Visão geral" e Andon (`app/`), compose adicional e `start.py`
@@ -18,7 +22,10 @@ pelo `aas-sync`; páginas "Rastreio" e "Dispositivos"; análise de espera (`dado
 Fase 3: `twin-t2t` (OPC UA 4851, `twin/t2t`, com cliente da cadeia), elos Fornecedor/Distribuição EMULADOS
 (`twin/cadeia`, 4852/4853, P-04) subidos pelo `start.py`, `nucleo/estado_gemeo.py` e `nucleo/cadeia.py`, página
 "Cadeia", diagnóstico de conexão (`cadeia.diagnostico`), modelo SimPy da cadeia e tabela das 3 gerações
-(`dados/analises/f3_*`), roteiros ao vivo em `tests/vivo/`
+(`dados/analises/f3_*`), roteiros ao vivo em `tests/vivo/`.
+Fase 4: páginas "3 gerações" (`nucleo/geracoes*.py`) e "What-if" (`nucleo/what_if*.py`, simulador do M2 em
+subprocesso), Andon dos KPIs ligado ao M1 (`config/andon.yaml`), README final, `docs/arquitetura.png`, relatório
+(`docs/relatorio.md`/`.pdf`), roteiros da apresentação e do vídeo, autoavaliação
 
 ## Resumo
 
@@ -29,23 +36,25 @@ Fase 3: `twin-t2t` (OPC UA 4851, `twin/t2t`, com cliente da cadeia), elos Fornec
 | Fase 0 — Fundação | Concluída (2026-11-15) | 8 de 8 |
 | Fase 1 — Primeiro dispositivo | Em andamento: 1 feita (1.8), 11 parciais, 2 bloqueadas (1.12, 1.13) | 1 de 14 |
 | Fase 2 — Rastreabilidade | Executada em 2026-11-16: 2.3–2.7 feitas; 2.1, 2.2, 2.8, 2.9, 2.10 parciais | 5 de 10 |
-| Fase 3 — Rede federada | Executada em 2026-11-16: 3.0 feita; 3.1–3.5, 3.7, 3.8 parciais; 3.6 bloqueada (P-04) | 1 de 12 |
-| Fase 4 — Consolidação | Não iniciada | 0 de 11 |
+| Fase 3 — Rede federada | 3.0, 3.2, 3.4, 3.7 feitas; 3.1, 3.3, 3.3a, 3.3b, 3.5, 3.8 parciais; 3.6 bloqueada (P-04) | 4 de 11 |
+| Fase 4 — Consolidação | Executada em 2026-11-18 sem o grupo: 4.3, 4.5 feitas; 4.1, 4.2, 4.4, 4.6, 4.9, 4.10 parciais; 4.7, 4.8, 4.11 bloqueadas (grupo/usuário; roteiros de 4.8 e 4.9 prontos) | 2 de 11 |
 | Fase 5 — Bônus | Não iniciada | 0 de 7 |
 
 ## Rubrica (40 pts + 4)
 
-Autoavaliação corrente. "Hoje" é o que se sustentaria com evidência se a entrega fosse agora.
+Autoavaliação corrente. "Hoje" é o que se sustentaria com evidência se a entrega fosse agora. Tabela unificada com
+[`docs/autoavaliacao.md`](docs/autoavaliacao.md) na revisão da Fase 4 (`f4-revisao.md`); na dúvida, vale a nota menor.
 
 | Critério | Pts | Hoje | O que falta |
 |---|---:|---:|---|
-| Sistema real funcionando | 10 | 2 | Fase 2: 4 dispositivos emulados pelo `start.py` com a planta virtual (`f2-2.8-fluxo-pecas.md`); sem mudança de nota, porque continua tudo emulado e sem vídeo. Caminho dispositivo emulado → MQTT → OPC UA → SQLite/AAS → dashboard roda pelo `start.py` com 4 fontes (`f1-1.6-start.md`, `f1-1.10-troca-l0.md`), mas tudo emulado (P-02), sem vídeo do dashboard e sem print no UaExpert; a sessão de teste deixou de contar como Medido em 2026-11-16 (ADR-0025). Falta: vídeo, coleta com operador, Fase 2 |
-| Rastreabilidade + KPIs | 8 | 3 | Sustentado por evidência (planta virtual, emulada): 31 peças com trajetória e lead time individual em `eventos`, 0 repetidos (`f2-2.8-fluxo-pecas.md`); fichas de 4 peças no dashboard e no AAS (`f2-2.8-rastreio-*.png`); FPY = RTY do trecho de demonstração 90,3 % ao lado do M1 e do M2 (`f2-2.10-fpy-rty.md`); análise de espera (`f2-2.9-espera.md`). Falta: print do address space, vídeo de uma peça, peça lenta de verdade, KPIs da geração Medido (coleta com operador, P-02). Fase 3: linha do lead time da cadeia no README §5 (RF-A3-06) com Simulado SimPy 67,41 → 5,87 min e "Real" de demonstração 84,3 s **parcial** (2 de 3 elos, Fornecedor fora); sem baseline no M1 (P-07); sem mudança de nota até a rodada limpa da 3.7 |
-| Documentação profissional | 8 | 0 | Fase 4 (os documentos de projeto existem, o README final e o relatório não) |
-| Apresentação + demo | 8 | 0 | Fase 4 |
-| Reprodutibilidade | 6 | 1 | `start.py` com health check existe e rodou (`f1-1.6-start.md`); falta `.env.example`, `devcontainer up` e teste do terceiro em máquina limpa |
-| Rede federada (RF-A3-*; pontua em "Rastreabilidade + KPIs" pelo RF-A3-06 e no Bônus pelo RF-A3-01 a 05 ao vivo) | — | — | Sustentado (emulado, `localhost`): twin-t2t na 4851 pelo `start.py`, cliente com OFFLINE e reconexão, propagação 1,96 s (n = 6), 6 tipos de falha com recuperação (`f3-3.5-propagacao.md`, `f3-3.8-falhas.md`). Fornecedor e Distribuição são EMULADOS (P-04). Falta: vídeo (RF-A3-03), print no UaExpert, prints com o código do ADR-0030, parceiro real |
-| Bônus | +4 | 0 | RF-A3-01 a 05 rodam ao vivo só com elos emulados na mesma máquina (sem parceiro, P-04, e sem vídeo): não sustenta o bônus. Ishikawa e what-if: Fase 5 |
+| Sistema real funcionando | 10 | 2 | Caminho dispositivo → MQTT → OPC UA → SQLite/AAS → twin → dashboard pelo `start.py` com 172 verificações OK em 16,7 min e as 6 páginas (`f4-integracao.md`); 4 fontes com o mesmo L2–L4 (`f1-1.10-troca-l0.md`); firmware no QEMU. Fica em 2 porque tudo é emulado (P-02 sem aceite), sem vídeo e sem print no UaExpert. Falta: P-02, vídeo, UaExpert, coleta com operador |
+| Rastreabilidade + KPIs | 8 | 3 | Fichas de 4 peças no dashboard e no AAS, 0 eventos repetidos, lead time por peça (`f2-2.8-fluxo-pecas.md`); tabela das 3 gerações pelo `nucleo` com origem classificada (`f4-4.1-tres-geracoes.md`); FPY = RTY do trecho 91,5 % de demonstração (`f4-integracao.md`); lead time da cadeia 204,5 s com 3 de 3 elos (`f3-3.7-tres-geracoes.md`). Fica em 3 porque nenhum KPI é Medido. Falta: coleta com operador (1.12), vídeo de uma peça, peça lenta de verdade, print do address space |
+| Documentação profissional | 8 | 4 | README com as 7 seções, relatório em PDF, diagrama, 33 ADRs (`f4-documentos.md`, `f4-4.5-arquitetura.md`). Fica em 4 porque o README não passou pelo teste do terceiro, o `.env.example` não existe e 24 ADRs seguem Propostos. Falta: 4.7, `.env.example`, link do vídeo, decisão sobre os ADRs |
+| Apresentação + demo | 8 | 0 | Só roteiros (`docs/apresentacao/`). Falta: slides, ensaio cronometrado (4.9), vídeo (4.8), papéis (P-05) |
+| Reprodutibilidade | 6 | 1 | `start.py` com health check e `--parar` (`f4-integracao.md`); submódulos fixados; testes sem rede externa. Falta: teste do terceiro (4.7), `.env.example`, `devcontainer up` |
+| **Total** | **40** | **10** | Faixa 10–30 em `docs/autoavaliacao.md`; o otimista supõe todas as ações do grupo |
+| Rede federada (RF-A3-*; pontua em "Rastreabilidade + KPIs" pelo RF-A3-06 e no Bônus pelo RF-A3-01 a 05 ao vivo) | — | — | Sustentado (emulado, `localhost`): twin-t2t na 4851 pelo `start.py`, cliente com OFFLINE e reconexão, propagação 2,42 s (n = 6, código atual; 2,19 s em n = 12), 6 tipos de falha refeitos com o código do ADR-0030 e prints atuais da página Cadeia; lead time da cadeia com os 3 elos 204,5 s lido do painel (`f3-3.5-propagacao.md`, `f3-3.8-falhas.md`, `f3-3.7-tres-geracoes.md`). Fornecedor e Distribuição são EMULADOS (P-04). Falta: vídeo (RF-A3-03), print no UaExpert, decisão da queda do broker, parceiro real |
+| Bônus | +4 | 0 | RF-A3-01 a 05 rodam ao vivo só com elos emulados na mesma máquina (sem parceiro, P-04, e sem vídeo): não sustenta o bônus. Ishikawa e what-if da cadeia: Fase 5 |
 
 ## Feito
 
@@ -383,6 +392,128 @@ Mudou no plano: ADRs 0028, 0029 e 0030 propostos; `start.py` sobe `twin-t2t` e o
 README §3, §5, §6 e §7; `docs/convencoes-fase-3.md` e `docs/cartoes_conexao.md` versionados; nota de implementação
 no ADR-0011. A tarefa 5.2a (chicote) foi adiantada como parte da 3.0 (modelo, não medição).
 
+### 2026-11-18 — Fase 3: pendências técnicas (pend-3)
+
+Rodada única com a base completa e banco novo: `COMPOSE_PROFILES=base-completa DB_PATH=dados/dados.f4.db python3
+start.py --fonte godot --manter-base`. A pilha ficou saudável em 75 s, com twin-t2t (4851) e elos EMULADOS (4852/4853)
+subidos pelo `start.py`. A fonte iniciou com o `mes` ainda subindo: o `start.py` não tem opção para esperar por ele.
+Ao fim, `start.py --parar` (com `COMPOSE_PROFILES=base-completa`, sem `-v`): 0 contêineres `vf-*` e portas 1883,
+4850–4853, 8091 e 8501 livres. **Tudo emulado** (ADR-0002); Produção = planta `godot` (demonstração, ADR-0013); elos
+EMULADOS (P-04).
+
+- [ ] 3.1 **Parcial.** Registrado pelo `start.py` (`saudável: twin-t2t`, `OPC UA T2T :4851`) e lido ao vivo por
+  asyncua (934 leituras). Falta só o print no UaExpert — evidência: `docs/evidencias/f3-3.1-twin-t2t.md` §6
+- [x] 3.2 **Feita (elos EMULADOS).** Com o código do ADR-0030, ao vivo:
+  - Fornecedor parado: OFFLINE em 0,9 s e ONLINE em 15,9 s.
+  - Distribuição parada: OFFLINE em 0,8 s e ONLINE em 7,8 s.
+  - Distribuição congelada: OFFLINE em 10,5 s.
+  - Espelhos `Cadeia.<Elo>.*` com `UncertainLastUsableValue` lidos por asyncua, e `Good` ao voltar.
+  - Reposição do Fornecedor sem estoque forçado (pedido com estoque 39; entrega após 120,2 s).
+
+  Evidência: `docs/evidencias/f3-3.2-cadeia.md` §6, `f3-3.8-falhas.md`
+- [x] 3.4 **Feita (elos EMULADOS).** Prints pelo `start.py` com o código atual:
+  - Normal, com soma completa de 204,5 s (3 de 3), igual à publicada pelo twin.
+  - Elo OFFLINE fora da soma.
+  - Decisão: "estoque 3 < limite 20 → RISCO_FALTA".
+  - Twin fora: "Cadeia indisponível".
+  - A Produção aparece como "(emulado)" e "dado emulado: sim".
+
+  Evidência: `docs/evidencias/f3-3.4-pagina-cadeia.md`, `f3-3.8-cadeia-*-pos-adr0030.png`
+- [ ] 3.5 **Parcial.** 6 repetições com o código atual: reação da Distribuição de 2,42 ± 0,47 s (1,91–3,02), alvo
+  ≤ 15 s em 6/6; juntando com a rodada anterior, n = 12 e média de 2,19 s. Falta o vídeo (RF-A3-03) — evidência:
+  `docs/evidencias/f3-3.5-propagacao.md`, `f3-3.5-propagacao-pos-adr0030.log`
+- [x] 3.7 **Feita (demonstração).** Rodada limpa de 16,4 min (12:48–13:04Z) sem nada forçado:
+  - O Fornecedor entregou uma reposição e o painel publicou `Cadeia.LeadTimeCadeia` = **204,5 s** com
+    `LeadTimeCompleto = true` (Fornecedor 120,2 + Produção 24,2 + Distribuição 60,1).
+  - O valor foi gravado do painel por um observador asyncua (`dados/analises/f3_painel_cadeia.csv`) e conferido pelo
+    `nucleo` (diferença de 0,07 s).
+  - README §5 atualizado.
+  - Sem baseline/meta no M1 (P-07).
+
+  Evidência: `docs/evidencias/f3-3.7-tres-geracoes.md`, `dados/analises/f3_tres_geracoes.*`
+- [ ] 3.8 **Parcial.** As 6 falhas foram refeitas com o código atual (tempos em `f3-3.8-falhas.md`). Texto de
+  `Cadeia.Decisao` visto ao vivo nos 4 casos do ADR-0030, inclusive "PARADA prevalece sobre RISCO_FALTA". Broker
+  derrubado 3 vezes: `PARADA` em 39,6 s, 0,8 s e 45,0 s.
+  - Causa: o `aas-sync` fecha só 2–3 das 4 sessões, conforme o Last Will que o broker entrega.
+  - O parâmetro `parada_sem_saida_s` **não** foi alterado: é decisão do grupo, com 4 opções em `f3-3.8-falhas.md`.
+  - Falta essa decisão e a seção do relatório (Fase 4).
+
+  Evidência: `docs/evidencias/f3-3.8-falhas.md`, `f3-3.8-falhas-pos-adr0030.log`
+- [x] Scripts de análise divididos (achado 8 da revisão):
+  - `f3_cadeia_modelo.py` 423 → 308 linhas + `f3_cadeia_parametros.py` (140).
+  - `f3_tres_geracoes.py` 442 → 202 linhas + `_comum` (140), `_grafico` (65) e `_texto` (≈190).
+  - Saída idêntica antes e depois da divisão: `f3_cadeia_simpy.csv` sha256 `9b12ecb9…f5f3`; `f3_tres_geracoes.csv`
+    `fc5ae7c8…0391` com os insumos da rodada de 2026-11-16, e `.md` e `.png` também iguais.
+  - `tests/analises` com 18 passados; ruff limpo; lockfiles conferidos com `uv lock --script --check` (sem mudança).
+
+Surpresas:
+
+- A soma "Real" com os 3 elos (204,5 s) ficou abaixo do Simulado Lean ampliado (352 s). Isso é efeito do recorte (a
+  planta tem 3 pontos e não tem fila), não melhoria.
+- O Fornecedor religado demorou 15,9 s para voltar (antes 3,9 s), por causa do ciclo de 5 s do monitor somado à
+  espera de reconexão.
+- A queda do broker passou de 30 s em 2 de 3 quedas nesta rodada (antes, 1 de 3).
+
+Mudou no plano: `tests/vivo/f3_falhas.py` ganhou `PRINT_SUFIXO` e a leitura dos espelhos com StatusCode;
+`f3_tres_geracoes.py` ganhou `--painel` e `--rodada`, e o padrão passou a ser a rodada de 2026-11-18. SPECS
+(RF-A3-03 a 09), PLAN, README §5 e §7 e `docs/pendencias-do-grupo.md` foram atualizados.
+
+### 2026-11-18 — Fase 4: consolidação (sem o grupo) e revisão
+
+Executada com a pilha subida pelo `start.py` (`COMPOSE_PROFILES=base-completa DB_PATH=dados/dados.f4.db python3
+start.py --fonte godot --manter-base`, 172 verificações OK, 0 ATENÇÃO, `--parar` ao fim; `f4-integracao.md`). **Tudo
+é emulado** (ADR-0002); M3 = planta `godot`, **Demonstração** (ADR-0013); elos EMULADOS (P-04).
+
+- [ ] 4.1 **Parcial.** Página "3 gerações": Baseline M1 → Simulado (M2, n = 30) → M3 → Meta, com a origem classificada (Medido,
+  Demonstração, Sintético) e as divergências; nenhum número digitado. M3 = Demonstração, então "Atingiu a meta?" fica
+  "não se afirma". Rebaixada no fechamento: os prints (09:42 e 09:49) são anteriores à revisão das 10:26 em
+  `nucleo/geracoes.py`, `regras.py` e `configuracao.py`; a coluna "Atingiu a meta?" sai cortada no print; os números
+  de `f4-4.1` (125/136) e `f4-integracao` (130/142) são de instantes diferentes do mesmo banco. Falta novo print pelo
+  `start.py` e coleta com OP1 — evidência: `docs/evidencias/f4-4.1-tres-geracoes.md`, `f4-paginas-tres-geracoes.png`
+- [ ] 4.2 **Parcial.** Andon dos KPIs ligado ao baseline e à meta do M1 por `config/andon.yaml` (ADR-0010 item 6; ADR-0032
+  Proposto); OEE e 1 − COPQ cinza (sem cálculo no M3). Falta novo print pelo `start.py` depois da reescrita de
+  `regras.py`/`painel.py`/`kpis.py` (10:26), a decisão da borda (igual ao baseline) e o aceite do ADR-0032 —
+  evidência: `docs/evidencias/f4-4.2-andon.md`,
+  `f4-4.2-andon-visao-geral.png`
+- [x] 4.3 Página "What-if" com a função pura do simulador do M2 em subprocesso (ADR-0031 Proposto), fiel ao
+  `metrics.js` da 0.8 (tolerância 1e-12); origem Simulado — evidência: `docs/evidencias/f4-4.3-what-if.md`,
+  `f4-4.3-what-if-*.png`, `f4-paginas-what-if-defeito5.png`
+- [ ] 4.4 **Parcial.** README com as 7 seções, revisado em 2026-11-18. Falta o teste do terceiro (4.7), o link do vídeo
+  (4.8) e o `.env.example` — evidência: `docs/evidencias/f4-documentos.md`
+- [x] 4.5 `docs/arquitetura.png` (1920 × 1120) gerado de `docs/arquitetura.svg` — evidência:
+  `docs/evidencias/f4-4.5-arquitetura.md`
+- [ ] 4.6 **Parcial.** `docs/relatorio.md` e `docs/relatorio.pdf` com as 3 gerações, divergências, falhas e
+  limitações; depende da validação do 4.7 e das evidências do grupo (vídeos) — evidência:
+  `docs/evidencias/f4-documentos.md`, `f4-revisao.md`
+- [ ] 4.7 **Bloqueada (grupo).** Teste do terceiro em máquina limpa com colega real e ata (RF-A4-03); não executada
+- [ ] 4.8 **Bloqueada (grupo); roteiro pronto** em `docs/apresentacao/roteiro-video-reserva.md`
+- [ ] 4.9 **Parcial; roteiro pronto** em `docs/apresentacao/roteiro-apresentacao.md`. Slides e ensaio
+  cronometrado com todos não feitos; a demo nunca foi ensaiada inteira
+- [ ] 4.10 **Parcial.** `docs/autoavaliacao.md` com nota 10/40 (unificada com a Rubrica acima) e varredura de frases
+  proibidas; revisar depois de 4.7–4.9
+- [ ] 4.11 **Bloqueada.** Commits locais feitos no fechamento; `push` só com pedido explícito do usuário; envio do PDF
+  no ambiente da disciplina é do grupo
+
+Revisão da Fase 4 (`docs/evidencias/f4-revisao.md`): `validar_andon` passou a exigir exatamente FPY, RTY, OEE e
+"1 − COPQ" (antes um hífen ASCII derrubava a Visão geral com `KeyError`); `nucleo.regras` lê `config/andon.yaml` sob
+demanda, e o twin-t2t deixou de depender dele na importação (`ANDON_PATH` declarado no compose); ADRs 0031–0033
+Propostos; contagens, rubrica e pendências corrigidas. Suítes: `tests/app` 154 passaram, `tests/twin_t2t` 40,
+`tests/cadeia` 22, `tests/analises` 18; ruff limpo.
+
+Fechamento (verificador, 2026-11-18): suítes rodadas de novo antes dos commits, `tests/app` 154, `tests/twin_t2t` 40,
+`tests/cadeia` 22, `tests/analises` 18, todas passando. Ressalvas registradas:
+
+- 3.1: `twin/t2t/configuracao.py` e o compose (`ANDON_PATH`) mudaram às 10:28, depois da rodada ao vivo; a imagem não
+  foi reconstruída nem testada ao vivo.
+- 3.2: `tests/cadeia/test_integracao_cadeia.py::test_cadeia_completa_decisao_queda_religacao_e_congelamento` falhou
+  1 vez rodando junto com outras suítes e passou nas execuções seguintes: teste intermitente, a investigar.
+- 4.3 segue feita: depois dos prints só mudou a importação sob demanda de `REFERENCIAS_M1`, coberta por AppTest.
+
+Surpresas:
+
+- O banco `dados.f4.db` continua crescendo enquanto a pilha roda: a `f4-4.1` registrou 125/136 e a `f4-integracao`
+  130/142. README §5 e relatório §6 dizem qual instante usam.
+
 ### 2026-11-15 — ferramentas do assistente
 
 - [x] `.claude/` na raiz do espaço de trabalho, adaptado do projeto Órbita: 9 regras, 7 skills, 5 agentes e
@@ -456,9 +587,15 @@ Fase 2, evidências que faltam: print do address space com os 5 objetos (2.1); w
 M2 (2.9) e FPY/RTY medidos (2.10), que dependem da fonte `operador`.
 
 Fase 3, evidências que faltam: vídeo da propagação (3.5, RF-A3-03); print de `EstadoGemeo`/`Cadeia` no UaExpert
-(3.1); rodada ao vivo e prints da página Cadeia com o código do ADR-0030 (3.2–3.4, 3.8); rodada limpa da 3.7 com
-reposição do Fornecedor gravando `Cadeia.LeadTimeCadeia`; decisão sobre a PARADA na queda do broker; dividir os dois
-scripts de análise ou registrar que não serão divididos; parceiro (P-04). Depois, Fase 4.
+(3.1); decisão sobre a PARADA na queda do broker (3.8; 3 de 6 quedas acima de 30 s); parceiro (P-04). A seção de falhas no relatório foi escrita
+(`docs/relatorio.md` §8). Resolvidas em 2026-11-18: prints e falhas com o código do ADR-0030, rodada limpa da 3.7
+com os 3 elos e divisão dos scripts de análise.
+
+Fase 4, técnico: nova subida pelo `start.py` com o código atual para os prints de 4.1 (com "Atingiu a meta?"
+visível) e 4.2, e a imagem do twin-t2t reconstruída (3.1); `.env.example` (4.4); investigar o teste intermitente da
+cadeia (3.2). Do grupo: teste do terceiro (4.7), vídeo de reserva (4.8), slides e ensaio cronometrado (4.9), revisão
+da autoavaliação (4.10), entrega (4.11), papéis e datas (P-05), borda do Andon e ADR-0032. Roteiros prontos em
+`docs/apresentacao/`.
 
 ## Bloqueios
 
@@ -472,12 +609,17 @@ scripts de análise ou registrar que não serão divididos; parceiro (P-04). Dep
 | Webcam inacessível no WSL2 (sem `/dev/video*`) | 2.2 completa (leitura física de QR) | Usuário (Windows nativo ou usbipd) |
 | Sem grupo parceiro (P-04) | 3.6, RF-A3-10 (contrato combinado), bônus da federação ao vivo | Grupo |
 | Vídeo da propagação (RF-A3-03) | 3.5 completa | Grupo |
+| Teste do terceiro com colega real em máquina limpa | 4.7, validação do README (4.4), RF-A4-03 | Grupo |
+| Vídeo de reserva de 3 min | 4.8 e link no README (4.4) | Grupo |
+| `push` e entrega no ambiente da disciplina | 4.11 | Usuário (pedido explícito) e grupo |
+| Decisão sobre a PARADA na queda do broker | 3.5 e 3.8 completas | Grupo |
+| Decisão da borda do Andon (igual ao baseline) e aceite do ADR-0032 | 4.2 completa | Grupo |
 | Planta `godot` determinística | Peça lenta de verdade (RF-A2-07) e Muda real na análise de espera (RF-A2-08) | Coleta com operador (1.12) ou roteiro com espera |
 
 ## Registro de decisões
 
 Ver [docs/adr/README.md](docs/adr/README.md). Aceitas pelo grupo: 0001, 0002, 0004, 0013 a 0018. Propostas,
-aguardando validação: 0003, 0005 a 0012, 0019 a 0030.
+aguardando validação: 0003, 0005 a 0012, 0019 a 0033.
 
 Em 2026-11-15, depois da Fase 0, o grupo decidiu:
 
@@ -520,6 +662,11 @@ Na Fase 1 (2026-11-15), propostos pelo assistente, aguardando o grupo:
   processos do computador com religamento até 3 vezes; roteiros ao vivo em `tests/vivo/`; protocolo da 3.5 com 45 s
   de estabilidade; "Real" da 3.7 = janela da 3.5 reconstituída pelo `nucleo` + logs dos elos; ping como aviso no
   diagnóstico; ADR-0011 mantido, com nota de implementação.
+- ADR-0031 (2026-11-18, tarefa 4.3): what-if roda a função pura do simulador do M2 num subprocesso, sem gravar nada.
+- ADR-0032 (2026-11-18, tarefa 4.2 e revisão da Fase 4): limites do Andon e referências do M1 em `config/andon.yaml`,
+  validados (exatamente os 4 KPIs do M1) e lidos sob demanda.
+- ADR-0033 (2026-11-18, tarefas 4.5 e 4.6): relatório e diagrama gerados com `markdown` e o Chromium do Playwright,
+  Python 3.12 fixado.
 - Pendentes de decisão (sem ADR ainda): detecção de PARADA na queda do broker (`parada_sem_saida_s` ou gateway);
   nomes de `origem` (ADR-0005 item 6 × contrato), `boot` obrigatório em
   tel/evt.
@@ -570,6 +717,16 @@ Destino: `docs/evidencias/`, um arquivo por requisito de SPECS.
 | `docs/evidencias/f3-3.7-tres-geracoes.md`, `.png`, `dados/analises/f3_tres_geracoes.*`, `dados/amostras/f3-3.7-elos-lead-time.csv` | 3.7 | 3 gerações do lead time da cadeia |
 | `docs/evidencias/f3-3.8-falhas.md`, `f3-3.8-cadeia-*.png` | 3.8 | 6 tipos de falha, prints da página (anteriores ao ADR-0030) |
 | `docs/evidencias/f3-revisao.md` | revisão F3 | 9 achados, correções e suítes |
+| `docs/evidencias/f3-3.8-cadeia-*-pos-adr0030.png`, `f3-3.8-falhas-pos-adr0030.log`, `f3-3.5-propagacao-pos-adr0030.log` | 3.4, 3.5, 3.8 (2026-11-18) | prints da página Cadeia, falhas e propagação com o código atual |
+| `dados/analises/f3_painel_cadeia.csv`, `dados/amostras/f3-3.7-elos-lead-time-2026-11-18.csv`, `docs/evidencias/f3-3.7-tres-geracoes-pos-adr0030.png` | 3.7 (2026-11-18) | painel gravado ao vivo (934 leituras), lead time da cadeia com os 3 elos |
+| `docs/evidencias/f4-4.1-tres-geracoes.md`, `.png` | 4.1 | página 3 gerações, saída do `nucleo` |
+| `docs/evidencias/f4-4.2-andon.md`, `f4-4.2-andon-visao-geral.png` | 4.2 | Andon dos KPIs contra o M1 |
+| `docs/evidencias/f4-4.3-what-if.md`, `f4-4.3-what-if-*.png` | 4.3 | what-if com o simulador do M2, fidelidade com a 0.8 |
+| `docs/evidencias/f4-4.5-arquitetura.md` | 4.5 | diagrama L0–L4 |
+| `docs/evidencias/f4-integracao.md`, `f4-paginas-*.png` | Fase 4 | 6 páginas pela subida completa do `start.py` |
+| `docs/evidencias/f4-documentos.md` | 4.4, 4.6, 4.8, 4.9, 4.10 | README, relatório, roteiros, autoavaliação, frases proibidas |
+| `docs/evidencias/f4-revisao.md` | revisão F4 | 17 achados, correções e suítes |
+| `docs/arquitetura.png`, `docs/relatorio.pdf`, `docs/autoavaliacao.md`, `docs/apresentacao/` | 4.5, 4.6, 4.9, 4.10 | diagrama, relatório (14 páginas), autoavaliação, roteiros |
 
 ## Como registrar uma entrada
 

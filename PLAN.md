@@ -122,33 +122,44 @@ Objetivo: o estado medido sai do gêmeo, um vizinho reage, e a cadeia tem lead t
       Simulado (modelo), Fornecedor e Distribuição com parâmetros dos elos EMULADOS (P-04) (`f3-3.0-simpy-cadeia.md`)
 - [ ] 3.1 `twin-t2t`: servidor com `RitmoReal`, `UltimaPeca`, `LeadTimeMedio`, `StatusLinha`
       — parcial em 2026-11-16: falta print de `ns=2;s=EstadoGemeo` e `ns=2;s=Cadeia` no UaExpert (ou equivalente) com
-      a pilha subida pelo `start.py`; ADR-0028 Proposto
-- [ ] 3.2 Cliente com reconexão automática e estado `OFFLINE` por elo
-      — parcial em 2026-11-16: falta rodada ao vivo com o código do ADR-0030 (espelho `Uncertain`, `Batimento`
-      ilegível); ADR-0029/0030 Propostos
+      a pilha subida pelo `start.py`; ADR-0028 Proposto. 2026-11-18: sobe pelo `start.py` (base completa) e publica ao
+      vivo (934 leituras asyncua); continua parcial pelo print no navegador OPC UA gráfico e por subir uma vez a imagem
+      reconstruída com a `configuracao.py` atual (alterada na revisão da Fase 4, depois da rodada ao vivo)
+- [x] 3.2 Cliente com reconexão automática e estado `OFFLINE` por elo
+      — feita em 2026-11-18 com elos EMULADOS (P-04): ao vivo pelo `start.py` com o código do ADR-0030, OFFLINE em
+      0,8–0,9 s (parado) e 10,5 s (congelado), reconexão sozinha, espelhos `UncertainLastUsableValue` lidos por asyncua
+      (`f3-3.8-falhas.md`, `f3-3.2-cadeia.md`); `Batimento` ilegível só em teste; ADR-0029/0030 Propostos.
+      Ressalva: `test_cadeia_completa_decisao_queda_religacao_e_congelamento` falhou 1 vez rodando junto com outras
+      suítes e passou nas seguintes (intermitente, a investigar)
 - [ ] 3.3 Elos "Fornecedor" e "Distribuição" emulados localmente; teste em `localhost` antes de qualquer rede
       — parcial em 2026-11-16: elos EMULADOS (P-04) sobem pelo `start.py` (4852/4853); falta repetir ao vivo depois
       do ADR-0030 e decidir P-04
 - [ ] 3.3a Usar o dado do vizinho numa decisão nossa (ex.: estoque do fornecedor baixo → `StatusLinha`)
       — parcial em 2026-11-16: RISCO_FALTA em 2,1 s com estoque emulado forçado; texto de `Cadeia.Decisao` corrigido
-      (ADR-0030) só verificado em teste
+      (ADR-0030) só verificado em teste. 2026-11-18: textos do ADR-0030 vistos ao vivo (RISCO_FALTA, OFFLINE, PARADA
+      prevalece); o estoque continua forçado na demo
 - [ ] 3.3b Contrato de interface da cadeia e cartão de conexão completo (tipos e unidades)
       — parcial em 2026-11-16: `docs/cartoes_conexao.md` é proposta nossa; falta combinar com parceiros (P-04, RF-A3-10)
-- [ ] 3.4 Página "Cadeia": elos, ritmo, lead time da cadeia (soma dos locais)
-      — parcial em 2026-11-16: falta print novo pelo `start.py` com o código atual (rótulos de origem corrigidos na
-      revisão); os prints `f3-3.8-cadeia-*.png` são anteriores
+- [x] 3.4 Página "Cadeia": elos, ritmo, lead time da cadeia (soma dos locais)
+      — feita em 2026-11-18 com elos EMULADOS (P-04): prints pelo `start.py` com o código atual
+      (`f3-3.8-cadeia-*-pos-adr0030.png`): soma completa 204,5 s (3 de 3), elo OFFLINE fora da soma, decisão e
+      "Cadeia indisponível"; 88 testes do app (`f3-3.4-pagina-cadeia.md`)
 - [ ] 3.5 Teste de propagação: interromper a produção e medir o tempo de reação do elo a jusante
       — parcial em 2026-11-16: reação 1,96 s em média (máx. 2,52 s, n = 6, Distribuição EMULADA); falta o vídeo
-      (RF-A3-03)
+      (RF-A3-03). 2026-11-18, código atual: 2,42 s (máx. 3,02 s, n = 6); falta o vídeo e a decisão sobre
+      a detecção de PARADA na queda do broker (até ~45 s, ver 3.8)
 - [ ] 3.6 Conexão com grupos parceiros, se houver (P-04), na ordem `localhost` → `ping` → porta → OPC UA
       — bloqueada em 2026-11-16 pela P-04 (sem grupo parceiro); `cadeia.diagnostico` e roteiro em
       `docs/cartoes_conexao.md` §5 prontos, testados só contra elos emulados
-- [ ] 3.7 Tabela das 3 gerações do lead time da cadeia
-      — parcial em 2026-11-16: "Real" de demonstração 84,3 s com soma de 2 de 3 elos (Fornecedor fora), reconstituído
-      depois da rodada; falta rodada limpa com reposição gravando `Cadeia.LeadTimeCadeia`; sem baseline no M1 (P-07)
+- [x] 3.7 Tabela das 3 gerações do lead time da cadeia
+      — feita em 2026-11-18 como demonstração: rodada limpa de 16 min com reposição do Fornecedor sem forçar; "Real"
+      204,5 s com os 3 elos (`LeadTimeCompleto = true`) lido do painel gravado (`f3_painel_cadeia.csv`); Simulado 67,41
+      → 5,87 min; sem baseline/meta no M1 (P-07); elos EMULADOS (P-04) (`f3-3.7-tres-geracoes.md`)
 - [ ] 3.8 Registro de falhas provocadas e da recuperação
       — parcial em 2026-11-16: 6 tipos de falha com tempos (`f3-3.8-falhas.md`); falta refazer com o código do
-      ADR-0030, levar à seção do relatório (Fase 4) e decidir a PARADA de 46,2 s na queda do broker
+      ADR-0030, levar à seção do relatório (Fase 4) e decidir a PARADA de 46,2 s na queda do broker. 2026-11-18:
+      refeita com o código atual; broker 3 vezes: PARADA em 39,6 / 0,8 / 45,0 s (causa: Last Will de só parte dos
+      dispositivos); seção 8 do relatório escrita (`docs/relatorio.md`); falta a decisão do grupo e nova medição
 
 Evidências: vídeo da propagação com o tempo medido; painel da cadeia; `docs/cartoes_conexao.md`; registro de falhas.
 
@@ -157,16 +168,40 @@ Evidências: vídeo da propagação com o tempo medido; painel da cadeia; `docs/
 Objetivo: um produto único, documentado e reproduzível.
 
 - [ ] 4.1 Página "3 gerações" com a tabela final e as divergências
+      — parcial em 2026-11-18: página pelo `nucleo` (sem SQL), origem declarada e 154 testes do app; falta novo print
+      pelo `start.py` com o código atual (os prints de 09:42/09:49 são anteriores à revisão das 10:26 em
+      `nucleo/geracoes.py`/`regras.py`/`configuracao.py`), com a coluna "Atingiu a meta?" visível, e coleta com OP1
+      para haver KPI Medido
 - [ ] 4.2 Limites do Andon ligados a `regras.py` com baseline e metas do M1 (SPECS §2.1)
-- [ ] 4.3 Página "What-if" reaproveitando o simulador do M2
+      — parcial em 2026-11-18: limites em `config/andon.yaml` amarrados ao SPECS por teste e 4 cartões na Visão geral;
+      falta novo print pelo `start.py` depois da reescrita de `regras.py`/`painel.py`/`kpis.py` (10:26), a decisão da
+      borda (igual ao baseline: amarelo ou vermelho) e o aceite do ADR-0032
+- [x] 4.3 Página "What-if" reaproveitando o simulador do M2
+      — feita em 2026-11-18: rodada pelo `start.py` e pela interface (defeito 5 %, resposta em 5,7 s), origem Simulado
+      (M2/SimPy), `simulador/` intocado (`f4-4.3-what-if.md`, `f4-paginas-what-if*.png`); ADR-0031 Proposto
 - [ ] 4.4 README final com as 7 seções obrigatórias
-- [ ] 4.5 `docs/arquitetura.png`
+      — parcial em 2026-11-18: 7 seções na ordem, hardware emulado com pinagem e custo estimado, limitações no formato;
+      falta o teste do terceiro (4.7), o link do vídeo (4.8) e o `.env.example`
+- [x] 4.5 `docs/arquitetura.png`
+      — feita em 2026-11-18: L0–L4, portas, elos EMULADOS e base ao lado, gerada por `docs/arquitetura_png.py`
+      (`f4-4.5-arquitetura.md`)
 - [ ] 4.6 Relatório final: 3 gerações, divergências, evidências, limitações (limitação → impacto → proposta)
+      — parcial em 2026-11-18: `docs/relatorio.pdf` gerado (14 páginas); falta a geração Medido e as evidências do
+      grupo (vídeos, UaExpert, ata da 4.7) e gerar o PDF de novo depois delas
 - [ ] 4.7 Teste do terceiro em máquina limpa; corrigir o README até passar
+      — bloqueada em 2026-11-18: precisa de um colega real em máquina limpa e ata com data e quem executou (RF-A4-03)
 - [ ] 4.8 Vídeo de reserva de 3 min; link no README
+      — bloqueada em 2026-11-18: depende do grupo gravar e publicar; roteiro pronto
+      (`docs/apresentacao/roteiro-video-reserva.md`)
 - [ ] 4.9 Slides no roteiro de 15 min; ensaio cronometrado com todos os integrantes
+      — parcial em 2026-11-18: roteiro 2-2-5-3-2-1 pronto; faltam papéis (P-05), slides finais, ensaio cronometrado e
+      a demo executada inteira
 - [ ] 4.10 Checklist de autoavaliação da rubrica; revisão de "frases proibidas"
+      — parcial em 2026-11-18: `docs/autoavaliacao.md` com 10/40 (faixa 10–30) e varredura com 0 ocorrências no texto
+      do grupo; revisar depois de 4.7, 4.8, 4.9, coleta com OP1 e UaExpert
 - [ ] 4.11 Entrega: GitHub + PDF no ambiente da disciplina
+      — bloqueada em 2026-11-18: commits locais feitos; `push` só com pedido explícito do usuário; envio do PDF no
+      ambiente da disciplina é do grupo
 
 ## Fase 5 — Bônus e extras (só se sobrar tempo)
 

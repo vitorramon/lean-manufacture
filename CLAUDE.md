@@ -12,8 +12,9 @@ repositório `vitorramon/lean-manufacture` (remoto `origin`; push só a pedido).
 
 Em 2026-11-16 as Fases 1 e 2 existem em código (contrato, emulador com leitor de QR, firmware, gateway com rastreio,
 aas-sync com `eventos` e ficha da peça, app com Rastreio e Dispositivos, `start.py`), e a Fase 3 também (`twin-t2t`
-na 4851, elos EMULADOS 4852/4853, página Cadeia), com quase todas as tarefas parciais: confira o PROGRESS antes de
-presumir que algo está pronto. Convenções em `docs/convencoes-fase-2.md` e `docs/convencoes-fase-3.md`.
+na 4851, elos EMULADOS 4852/4853, página Cadeia). Em 2026-11-18 a Fase 4 (páginas "3 gerações" e "What-if", Andon
+ligado ao M1 em `config/andon.yaml`, README final, diagrama, relatório, roteiros), com quase todas as tarefas
+parciais: confira o PROGRESS antes de presumir que algo está pronto. Convenções em `docs/convencoes-fase-2.md` e `docs/convencoes-fase-3.md`.
 
 ## Regras do projeto
 
@@ -65,9 +66,11 @@ python3 start.py --fonte roteiro --velocidade 4 [--manter-base]   # ou godot | o
 python3 start.py --parar [--manter-base]                           # compose down sem -v
 DB_PATH=dados/dados.f2.db python3 start.py --fonte godot --manter-base   # Fase 2: trecho com 4 dispositivos, banco próprio
 DB_PATH=dados/dados.f3.db python3 start.py --fonte godot --manter-base   # Fase 3: + twin-t2t 4851 e elos emulados 4852/4853
+COMPOSE_PROFILES=base-completa DB_PATH=dados/dados.f4.db python3 start.py --fonte godot --manter-base  # Fase 4 (6 páginas)
 uv run --project pipeline/contrato pytest tests/contrato           # idem: hardware/emulador tests/emulador,
 uv run --project pipeline/device_gateway pytest tests/device_gateway  # pipeline/aas_sync tests/aas_sync, app tests/app, twin/t2t tests/twin_t2t, twin/cadeia tests/cadeia
 (cd hardware/firmware && pio test -e native && pio run -e esp32)   # ./emular.sh roda no QEMU
+uv run --no-project --python 3.12 --with markdown==3.7 --with playwright==1.65.2 python docs/relatorio_pdf.py  # PDF; docs/arquitetura_png.py idem
 ```
 
 Cada componente tem `pyproject.toml` e `uv.lock` próprios; detalhes em `infra/README.md` e no README de cada pasta.
