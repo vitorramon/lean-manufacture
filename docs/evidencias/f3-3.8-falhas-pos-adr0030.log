@@ -1,0 +1,236 @@
+Requested session timeout to be 3600000ms, got 600000ms instead
+Requested session timeout to be 3600000ms, got 600000ms instead
+[t=    0.02 s]    t2t:EstadoGemeo.StatusLinha = 'PRODUZINDO'
+[t=    0.03 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000349'
+[t=    0.03 s]    t2t:Cadeia.Fornecedor.Status = 'ONLINE'
+[t=    0.03 s]    t2t:Cadeia.Fornecedor.Reconexoes = 0
+[t=    0.03 s]    t2t:Cadeia.Distribuicao.Status = 'ONLINE'
+[t=    0.03 s]    t2t:Cadeia.Distribuicao.Reconexoes = 0
+[t=    0.03 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=    0.03 s]    t2t:Cadeia.ElosForaDoLeadTime = ''
+[t=    0.03 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=    0.03 s]    dist:Reacoes = 6
+[t=    3.00 s] OK linha normal (início) após 0.00 s
+[t=    3.06 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000350'
+[t=   15.24 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000351'
+[t=   16.09 s] PRINT f3-3.8-cadeia-normal-pos-adr0030.png: código 0; texto da página: Cadeia | Fornecedor → Produção (nós, Grupo 7) → Distribuição. Lido do twin-t2t por OPC UA (só leitura, opc.tcp://localhost:4851). Tudo é emulado (ADR-0002): a origem dos números da Produção está na coluna "origem do número" (de EstadoGemeo.Origem × config/origens.yaml; a planta virtual godot é demonstração, não medição física, ADR-0013); Fornecedor e Distribuição são elos emulados localmente por nós enquanto não houver grupo parceiro (P-04). Sem baseline de lead time da cadeia no M1 (P-07). | Fornecedor (emulado) | ONLINE | 300.0 unidades/h | Producao (emulado) | ONLINE | 258.0 peças/h | Distribuicao (emulado) | ONLINE | 270.0 unidades/h | Lead time da cadeia (RF-A3-04) | Soma dos lead times
+[t=   16.09 s] == Decisão com dado do vizinho: SIGUSR2 no Fornecedor (estoque forçado = 5 < 20)
+[t=   19.39 s]    t2t:EstadoGemeo.StatusLinha = 'RISCO_FALTA'
+[t=   19.43 s] OK StatusLinha=RISCO_FALTA após 3.34 s
+[t=   19.43 s]    Decisao = 'estoque do fornecedor 4 < mínimo 20 (dado do vizinho, RF-A3-09) → StatusLinha RISCO_FALTA'; estoque = 4.0
+[t=   25.28 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000352'
+[t=   31.99 s] PRINT f3-3.8-cadeia-decisao-pos-adr0030.png: código 0; texto da página: Cadeia | Fornecedor → Produção (nós, Grupo 7) → Distribuição. Lido do twin-t2t por OPC UA (só leitura, opc.tcp://localhost:4851). Tudo é emulado (ADR-0002): a origem dos números da Produção está na coluna "origem do número" (de EstadoGemeo.Origem × config/origens.yaml; a planta virtual godot é demonstração, não medição física, ADR-0013); Fornecedor e Distribuição são elos emulados localmente por nós enquanto não houver grupo parceiro (P-04). Sem baseline de lead time da cadeia no M1 (P-07). | Fornecedor (emulado) | ONLINE | 300.0 unidades/h | Producao (emulado) | ONLINE | 264.0 peças/h | Distribuicao (emulado) | ONLINE | 270.0 unidades/h | Lead time da cadeia (RF-A3-04) | Soma dos lead times
+[t=   37.46 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000353'
+[t=   51.47 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000354'
+[t=   63.44 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000355'
+[t=   73.58 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000356'
+[t=   85.58 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000357'
+[t=   99.60 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000358'
+[t=  111.57 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000359'
+[t=  121.71 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000360'
+[t=  133.69 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000361'
+[t=  137.75 s]    t2t:EstadoGemeo.StatusLinha = 'PRODUZINDO'
+[t=  137.78 s] OK StatusLinha=PRODUZINDO (reposição emulada chegou) após 121.69 s
+[t=  142.78 s] == Falha: Distribuição (EMULADA) congelada por SIGUSR1 (servidor responde; Batimento parado)
+[t=  147.89 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000362'
+[t=  153.17 s]    t2t:Cadeia.Distribuicao.Status = 'OFFLINE'
+[t=  153.25 s] OK Cadeia.Distribuicao.Status=OFFLINE (batimento parado) após 10.47 s
+Requested session timeout to be 3600000ms, got 600000ms instead
+[t=  153.26 s]    espelho Cadeia.Distribuicao.FilaDistribuicao = 5.0 StatusCode=UncertainLastUsableValue
+[t=  153.26 s]    espelho Cadeia.Distribuicao.RitmoReal = 258.0 StatusCode=UncertainLastUsableValue
+[t=  153.26 s]    espelho Cadeia.Distribuicao.LeadTimeMedio = 60.061044891150004 StatusCode=UncertainLastUsableValue
+[t=  153.26 s]    espelho Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO' StatusCode=UncertainLastUsableValue
+[t=  153.26 s]    espelho Cadeia.Distribuicao.Batimento = 1457 StatusCode=UncertainLastUsableValue
+[t=  153.26 s]    espelho Cadeia.Distribuicao.Status = 'OFFLINE' StatusCode=Good
+[t=  153.26 s]    espelho Cadeia.Decisao = 'estoque do fornecedor 49 ≥ mínimo 20: nenhuma ação (StatusLinha PRODUZINDO)' StatusCode=Good
+[t=  153.26 s]    dashboard /_stcore/health = ok
+[t=  153.78 s]    t2t:Cadeia.ElosForaDoLeadTime = 'Distribuicao:OFFLINE'
+[t=  159.86 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000363'
+[t=  165.57 s] PRINT f3-3.8-cadeia-elo-offline-pos-adr0030.png: código 0; texto da página: Cadeia | Fornecedor → Produção (nós, Grupo 7) → Distribuição. Lido do twin-t2t por OPC UA (só leitura, opc.tcp://localhost:4851). Tudo é emulado (ADR-0002): a origem dos números da Produção está na coluna "origem do número" (de EstadoGemeo.Origem × config/origens.yaml; a planta virtual godot é demonstração, não medição física, ADR-0013); Fornecedor e Distribuição são elos emulados localmente por nós enquanto não houver grupo parceiro (P-04). Sem baseline de lead time da cadeia no M1 (P-07). | Fornecedor (emulado) | ONLINE | 600.0 unidades/h | Producao (emulado) | ONLINE | 264.0 peças/h | Distribuicao (emulado) | OFFLINE | ritmo — | Lead time da cadeia (RF-A3-04) | Soma dos lead times locais 
+[t=  165.57 s] t1: SIGUSR1 de novo (descongela)
+[t=  167.15 s]    t2t:Cadeia.Distribuicao.Status = 'ONLINE'
+[t=  167.18 s] OK Cadeia.Distribuicao.Status=ONLINE após 1.61 s
+[t=  167.96 s]    t2t:Cadeia.ElosForaDoLeadTime = ''
+[t=  172.02 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000364'
+[t=  172.18 s] == Falha: elo Fornecedor (EMULADO) parado por SIGINT; o monitor do start.py religa (até 3 vezes)
+[t=  172.18 s] t0: SIGINT em fornecedor (pid 8958); Reconexoes antes = 0
+[t=  173.03 s]    t2t:Cadeia.Fornecedor.Status = 'OFFLINE'
+[t=  173.09 s] OK Cadeia.Fornecedor.Status=OFFLINE após 0.90 s
+Requested session timeout to be 3600000ms, got 600000ms instead
+[t=  173.09 s]    espelho Cadeia.Fornecedor.EstoqueFornecedor = 48.0 StatusCode=UncertainLastUsableValue
+[t=  173.09 s]    espelho Cadeia.Fornecedor.RitmoReal = 600.0 StatusCode=UncertainLastUsableValue
+[t=  173.09 s]    espelho Cadeia.Fornecedor.LeadTimeMedio = 120.15959770749998 StatusCode=UncertainLastUsableValue
+[t=  173.09 s]    espelho Cadeia.Fornecedor.StatusLinha = 'OPERANDO' StatusCode=UncertainLastUsableValue
+[t=  173.09 s]    espelho Cadeia.Fornecedor.Batimento = 1486 StatusCode=UncertainLastUsableValue
+[t=  173.09 s]    espelho Cadeia.Fornecedor.Status = 'OFFLINE' StatusCode=Good
+[t=  173.09 s]    espelho Cadeia.Decisao = 'estoque do fornecedor 48 ≥ mínimo 20: nenhuma ação (StatusLinha PRODUZINDO)' StatusCode=Good
+[t=  173.10 s]    dashboard /_stcore/health = ok
+[t=  173.84 s]    t2t:Cadeia.ElosForaDoLeadTime = 'Fornecedor:OFFLINE'
+[t=  184.00 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000365'
+[t=  188.07 s]    t2t:Cadeia.Fornecedor.Status = 'ONLINE'
+[t=  188.07 s]    t2t:Cadeia.Fornecedor.Reconexoes = 1
+[t=  188.10 s] OK Cadeia.Fornecedor.Status=ONLINE após 15.92 s
+[t=  189.60 s]    novo pid de fornecedor: 63021; Reconexoes 0 -> 1
+[t=  190.10 s]    t2t:Cadeia.ElosForaDoLeadTime = 'Fornecedor:sem lead time'
+[t=  194.60 s] == Falha: elo Distribuicao (EMULADO) parado por SIGINT; o monitor do start.py religa (até 3 vezes)
+[t=  194.60 s] t0: SIGINT em distribuicao (pid 8959); Reconexoes antes = 0
+close_session was called but connection is closed
+close_secure_channel was called but connection is closed
+[t=  194.75 s]    dist:erro = 'ConnectionError'
+[t=  194.96 s]    dist:erro = 'ConnectionRefusedError'
+[t=  195.36 s]    t2t:Cadeia.Distribuicao.Status = 'OFFLINE'
+[t=  195.41 s] OK Cadeia.Distribuicao.Status=OFFLINE após 0.81 s
+Requested session timeout to be 3600000ms, got 600000ms instead
+[t=  195.42 s]    espelho Cadeia.Distribuicao.FilaDistribuicao = 4.0 StatusCode=UncertainLastUsableValue
+[t=  195.42 s]    espelho Cadeia.Distribuicao.RitmoReal = 258.0 StatusCode=UncertainLastUsableValue
+[t=  195.42 s]    espelho Cadeia.Distribuicao.LeadTimeMedio = 61.364597669249996 StatusCode=UncertainLastUsableValue
+[t=  195.42 s]    espelho Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO' StatusCode=UncertainLastUsableValue
+[t=  195.42 s]    espelho Cadeia.Distribuicao.Batimento = 1485 StatusCode=UncertainLastUsableValue
+[t=  195.42 s]    espelho Cadeia.Distribuicao.Status = 'OFFLINE' StatusCode=Good
+[t=  195.42 s]    espelho Cadeia.Decisao = 'estoque do fornecedor 99 ≥ mínimo 20: nenhuma ação (StatusLinha PRODUZINDO)' StatusCode=Good
+[t=  195.42 s]    dashboard /_stcore/health = ok
+[t=  195.97 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000366'
+[t=  195.97 s]    t2t:Cadeia.ElosForaDoLeadTime = 'Fornecedor:sem lead time,Distribuicao:OFFLINE'
+Requested session timeout to be 3600000ms, got 600000ms instead
+[t=  200.04 s]    dist:StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  200.04 s]    dist:Reacoes = 0
+[t=  201.05 s]    dist:StatusLinha = 'OCIOSA'
+[t=  202.27 s]    t2t:Cadeia.Distribuicao.Status = 'ONLINE'
+[t=  202.27 s]    t2t:Cadeia.Distribuicao.Reconexoes = 1
+[t=  202.27 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'OCIOSA'
+[t=  202.36 s] OK Cadeia.Distribuicao.Status=ONLINE após 7.76 s
+[t=  203.87 s]    novo pid de distribuicao: 63477; Reconexoes 0 -> 1
+[t=  204.09 s]    t2t:Cadeia.ElosForaDoLeadTime = 'Fornecedor:sem lead time,Distribuicao:sem lead time'
+[t=  208.16 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000367'
+[t=  208.87 s] == Falha: twin-t2t encerrado (SIGTERM no PID 1 do contêiner vf-twin-t2t-1; restart: unless-stopped)
+[t=  209.13 s] t0: SIGTERM no PID 1 de vf-twin-t2t-1 -> ok; RestartCount antes = 0
+close_session was called but connection is closed
+close_secure_channel was called but connection is closed
+[t=  209.13 s]    t2t:erro = 'ConnectionError'
+[t=  209.13 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=  209.23 s] OK twin-t2t sem resposta após 0.30 s
+[t=  209.33 s]    t2t:erro = 'ConnectionResetError'
+[t=  209.54 s]    t2t:erro = 'ConnectionError'
+[t=  209.74 s]    t2t:erro = 'ConnectionResetError'
+[t=  211.16 s]    t2t:erro = 'ConnectionError'
+[t=  211.16 s]    dist:StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  211.16 s]    dist:Reacoes = 1
+[t=  211.24 s] OK Distribuição reage (Produção OFFLINE) após 2.31 s
+[t=  211.24 s]    dashboard /_stcore/health = ok
+[t=  211.36 s]    t2t:erro = 'ConnectionResetError'
+[t=  211.77 s]    t2t:erro = 'ConnectionError'
+[t=  212.38 s]    t2t:erro = 'ConnectionResetError'
+Requested session timeout to be 3600000ms, got 600000ms instead
+[t=  212.59 s]    t2t:Cadeia.Fornecedor.Reconexoes = 0
+[t=  212.59 s]    t2t:Cadeia.Distribuicao.Reconexoes = 0
+[t=  212.59 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  212.59 s]    t2t:Cadeia.ElosForaDoLeadTime = 'Fornecedor:OFFLINE,Distribuicao:OFFLINE'
+[t=  212.65 s] OK twin-t2t responde de novo após 3.72 s
+[t=  212.65 s] OK elos ONLINE no twin religado após 3.72 s
+[t=  214.21 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=  214.26 s] OK linha normal (PRODUZINDO e Distribuição fora da reação) após 5.33 s
+[t=  214.31 s]    RestartCount/saúde depois = 1 healthy
+[t=  214.62 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=  214.62 s]    t2t:Cadeia.ElosForaDoLeadTime = 'Fornecedor:sem lead time,Distribuicao:sem lead time'
+[t=  218.67 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000368'
+[t=  219.31 s] == Falha: twin-t2t parado (docker stop vf-twin-t2t-1) por 25 s; religado com docker start
+[t=  220.13 s] t0: docker stop vf-twin-t2t-1 -> vf-twin-t2t-1
+close_session was called but connection is closed
+close_secure_channel was called but connection is closed
+[t=  220.13 s]    t2t:erro = 'ConnectionError'
+[t=  220.23 s] OK twin-t2t sem resposta após 0.92 s
+[t=  220.33 s]    t2t:erro = 'ConnectionRefusedError'
+[t=  221.14 s]    dist:StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  221.14 s]    dist:Reacoes = 2
+[t=  221.23 s] OK Distribuição reage (Produção OFFLINE) após 1.93 s
+[t=  221.24 s]    dashboard /_stcore/health = ok
+[t=  236.85 s] PRINT f3-3.8-cadeia-twin-fora-pos-adr0030.png: código 0; texto da página: Cadeia | Fornecedor → Produção (nós, Grupo 7) → Distribuição. Lido do twin-t2t por OPC UA (só leitura, opc.tcp://localhost:4851). Tudo é emulado (ADR-0002): a origem dos números da Produção está na coluna "origem do número" (de EstadoGemeo.Origem × config/origens.yaml; a planta virtual godot é demonstração, não medição física, ADR-0013); Fornecedor e Distribuição são elos emulados localmente por nós enquanto não houver grupo parceiro (P-04). Sem baseline de lead time da cadeia no M1 (P-07). | Cadeia indisponível: twin-t2t indisponível em opc.tcp://localhost:4851 (ConnectionRefusedError) | Fornecedor (emulado) | OFFLINE | ritmo — | Producao | OFFLINE | ritmo — | Distribuicao (emulado) | OFFLI
+[t=  244.65 s] t1: docker start vf-twin-t2t-1 -> vf-twin-t2t-1
+[t=  244.65 s]    t2t:erro = 'ConnectionResetError'
+[t=  244.85 s]    t2t:erro = 'ConnectionError'
+[t=  245.06 s]    t2t:erro = 'ConnectionResetError'
+[t=  245.47 s]    t2t:erro = 'ConnectionError'
+[t=  246.08 s]    t2t:erro = 'ConnectionResetError'
+[t=  246.28 s]    t2t:erro = 'ConnectionError'
+[t=  246.48 s]    t2t:erro = 'ConnectionResetError'
+Requested session timeout to be 3600000ms, got 600000ms instead
+[t=  247.10 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000370'
+[t=  247.10 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  247.10 s]    t2t:Cadeia.ElosForaDoLeadTime = 'Fornecedor:OFFLINE,Distribuicao:OFFLINE'
+[t=  247.16 s] OK twin-t2t responde de novo após 2.85 s
+[t=  247.16 s] OK elos ONLINE no twin religado após 2.85 s
+[t=  249.14 s]    t2t:Cadeia.ElosForaDoLeadTime = 'Fornecedor:sem lead time,Distribuicao:sem lead time'
+[t=  255.23 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000371'
+[t=  256.24 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=  256.33 s] OK linha normal (PRODUZINDO e Distribuição fora da reação) após 12.02 s
+[t=  257.26 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=  261.33 s] == Falha: broker MQTT parado (docker stop vf-mqtt-1); religado à mão após 30 s
+[t=  261.81 s] t0: docker stop vf-mqtt-1 -> vf-mqtt-1
+[t=  264.81 s]    última peça antes da queda: PC3280-2026-000371
+[t=  271.14 s]    t2t:Cadeia.ElosForaDoLeadTime = 'Fornecedor:sem lead time'
+[t=  301.37 s]    t2t:EstadoGemeo.StatusLinha = 'PARADA'
+[t=  301.45 s] OK twin StatusLinha=PARADA após 40.11 s
+[t=  303.20 s]    dist:StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  303.20 s]    dist:Reacoes = 3
+[t=  303.26 s] OK Distribuição reage após 1.81 s
+[t=  303.32 s]    motivo no twin: 'sem saída há 47 s (limite 45 s)'; saúde dos contêineres: /vf-device-gateway-1 healthy
+/vf-aas-sync-1 healthy
+[t=  303.33 s]    dashboard /_stcore/health = ok
+[t=  303.64 s] t1: docker start vf-mqtt-1 -> vf-mqtt-1
+[t=  303.65 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  327.55 s]    t2t:EstadoGemeo.StatusLinha = 'PRODUZINDO'
+[t=  327.56 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000377'
+[t=  327.63 s] OK peça nova chega ao twin depois do broker voltar após 24.31 s
+[t=  329.18 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=  329.25 s] OK linha normal após 25.92 s
+[t=  329.59 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=  334.25 s] == Falha: broker MQTT parado (docker stop vf-mqtt-1); religado à mão após 30 s
+[t=  334.66 s] t0: docker stop vf-mqtt-1 -> vf-mqtt-1
+[t=  335.48 s]    t2t:EstadoGemeo.StatusLinha = 'PARADA'
+[t=  337.19 s]    dist:StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  337.19 s]    dist:Reacoes = 4
+[t=  337.61 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  337.66 s]    última peça antes da queda: PC3280-2026-000377
+[t=  337.66 s] OK twin StatusLinha=PARADA após 3.41 s
+[t=  337.66 s] OK Distribuição reage após 0.00 s
+[t=  337.97 s]    motivo no twin: 'leitor do ponto de saída sem sessão aberta (fonte parada ou offline)'; saúde dos contêineres: /vf-device-gateway-1 healthy
+/vf-aas-sync-1 healthy
+[t=  337.99 s]    dashboard /_stcore/health = ok
+[t=  364.60 s] t1: docker start vf-mqtt-1 -> vf-mqtt-1
+[t=  381.69 s]    t2t:EstadoGemeo.StatusLinha = 'PRODUZINDO'
+[t=  381.69 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000381'
+[t=  381.71 s] OK peça nova chega ao twin depois do broker voltar após 17.46 s
+[t=  383.31 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=  383.32 s] OK linha normal após 19.07 s
+[t=  383.72 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=  387.77 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000382'
+[t=  388.32 s] == Falha: broker MQTT parado (docker stop vf-mqtt-1); religado à mão após 30 s
+[t=  388.96 s] t0: docker stop vf-mqtt-1 -> vf-mqtt-1
+[t=  391.96 s]    última peça antes da queda: PC3280-2026-000382
+[t=  433.93 s]    t2t:EstadoGemeo.StatusLinha = 'PARADA'
+[t=  433.97 s] OK twin StatusLinha=PARADA após 45.65 s
+[t=  435.35 s]    dist:StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  435.35 s]    dist:Reacoes = 5
+[t=  435.38 s] OK Distribuição reage após 1.42 s
+[t=  435.47 s]    motivo no twin: 'sem saída há 47 s (limite 45 s)'; saúde dos contêineres: /vf-device-gateway-1 healthy
+/vf-aas-sync-1 healthy
+[t=  435.47 s]    dashboard /_stcore/health = ok
+[t=  435.89 s] t1: docker start vf-mqtt-1 -> vf-mqtt-1
+[t=  436.10 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  470.22 s]    t2t:EstadoGemeo.StatusLinha = 'PRODUZINDO'
+[t=  470.22 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000388'
+[t=  470.32 s] OK peça nova chega ao twin depois do broker voltar após 34.85 s
+[t=  471.44 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=  471.53 s] OK linha normal após 36.05 s
+[t=  472.26 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=  474.08 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000389'
+[t=  476.53 s] == TABELA: o que caiu | o que o sistema fez | como voltou | recuperação
+[t=  476.53 s]    Estoque do Fornecedor (emulado) forçado a 5 (SIGUSR2) | StatusLinha = RISCO_FALTA em 3.3 s (decisão com dado do vizinho) | reposição emulada de 50 (lead time 120 s): PRODUZINDO em 121.7 s | automática
+[t=  476.53 s]    Elo Distribuição (emulado) congelado (SIGUSR1) | OFFLINE pelo Batimento parado em 10.5 s (prazo 10 s); painel ok | descongelado: ONLINE em 1.6 s, sem reconexão (a sessão não caiu) | automática
+[t=  476.53 s]    Elo Fornecedor (emulado) parado (SIGINT) | OFFLINE em 0.9 s; fora do lead time da cadeia; painel ok | start.py religou o processo; cliente reconectou sozinho: ONLINE em 15.9 s; Reconexoes 0 → 1 | automática
+[t=  476.53 s]    Elo Distribuicao (emulado) parado (SIGINT) | OFFLINE em 0.8 s; fora do lead time da cadeia; painel ok | start.py religou o processo; cliente reconectou sozinho: ONLINE em 7.8 s; Reconexoes 0 → 1 | automática
+[t=  476.53 s]    twin-t2t (contêiner) encerrado (SIGTERM no PID 1) | sem resposta em 0.3 s; Distribuição reage (AGUARDANDO_PRODUCAO) em 2.3 s; painel ok | Docker religou (RestartCount 0 → 1): responde em 3.7 s, elos ONLINE em 3.7 s, linha normal em 5.3 s | automática
+[t=  476.53 s]    twin-t2t parado (docker stop, 25 s) | sem resposta em 0.9 s; Distribuição reage em 1.9 s; painel ok (página: PRINT cadeia-twin-fora) | religado à mão (docker start): responde em 2.9 s, elos ONLINE em 2.9 s, linha normal em 12.0 s | twin: manual; reconexões: automáticas
+[t=  476.53 s]    Broker MQTT parado (docker stop, 30 s) | twin PARADA em 40.1 s; Distribuição reage em 41.9 s; painel ok | broker religado à mão; peça nova no twin 24.3 s e linha normal 25.9 s depois do docker start | broker: manual; resto: automática
+[t=  476.53 s]    Broker MQTT parado (docker stop, 30 s) | twin PARADA em 3.4 s; Distribuição reage em 3.4 s; painel ok | broker religado à mão; peça nova no twin 17.5 s e linha normal 19.1 s depois do docker start | broker: manual; resto: automática
+[t=  476.53 s]    Broker MQTT parado (docker stop, 30 s) | twin PARADA em 45.6 s; Distribuição reage em 47.1 s; painel ok | broker religado à mão; peça nova no twin 34.8 s e linha normal 36.1 s depois do docker start | broker: manual; resto: automática

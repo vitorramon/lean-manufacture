@@ -34,6 +34,9 @@ TWIN = os.environ.get("TWIN_CONTEINER", "vf-twin-t2t-1")
 TWIN_FORA_S = float(os.environ.get("TWIN_FORA_S", "25"))
 BROKER_FORA_S = float(os.environ.get("BROKER_FORA_S", "30"))
 PRINT_CMD = os.environ.get("PRINT_CMD")   # comando que recebe o caminho do PNG como último argumento
+PRINT_SUFIXO = os.environ.get("PRINT_SUFIXO", "")   # ex.: "-pos-adr0030" (não sobrescreve prints antigos)
+ESPELHOS = {"Fornecedor": ("EstoqueFornecedor", "RitmoReal", "LeadTimeMedio", "StatusLinha", "Batimento"),
+            "Distribuicao": ("FilaDistribuicao", "RitmoReal", "LeadTimeMedio", "StatusLinha", "Batimento")}
 
 
 def docker(*args: str) -> str:
@@ -49,11 +52,24 @@ class Prova:
     async def print_(self, nome: str) -> None:
         if self.prints is None or not PRINT_CMD:
             return
-        destino = self.prints / f"f3-3.8-{nome}.png"
+        destino = self.prints / f"f3-3.8-{nome}{PRINT_SUFIXO}.png"
         r = await asyncio.to_thread(subprocess.run, [*shlex.split(PRINT_CMD), str(destino)], capture_output=True,
                                     text=True, check=False)
         texto = (r.stdout.strip().splitlines() or ["(sem saída)"])[-1]
         self.obs.reg(f"PRINT {destino.name}: código {r.returncode}; texto da página: {texto[:700]}")
+
+    async def espelhos(self, elo: str) -> None:
+        """ADR-0030: com o elo OFFLINE, `Cadeia.<Elo>.<Variavel>` guarda o último valor com StatusCode incerto."""
+        from asyncua import Client
+        from observa import T2T_URL
+        try:
+            async with Client(T2T_URL, timeout=3) as c:
+                nos = [f"Cadeia.{elo}.{v}" for v in (*ESPELHOS[elo], "Status")] + ["Cadeia.Decisao"]
+                dvs = await c.read_attributes([c.get_node(f"ns=2;s={n}") for n in nos])
+                for n, dv in zip(nos, dvs, strict=True):
+                    self.obs.reg(f"   espelho {n} = {dv.Value.Value!r} StatusCode={dv.StatusCode.name}")
+        except Exception as e:  # noqa: BLE001 - só registra
+            self.obs.reg(f"   leitura dos espelhos de {elo} falhou: {e.__class__.__name__}")
 
     def painel(self) -> str:
         ok = dashboard_ok()
@@ -69,6 +85,7 @@ class Prova:
         os.killpg(pid, signal.SIGINT)
         o.reg(f"t0: SIGINT em {proc} (pid {pid}); Reconexoes antes = {rec0}")
         off = await o.ate(o.igual(f"t2t:Cadeia.{elo}.Status", "OFFLINE"), 30, f"Cadeia.{elo}.Status=OFFLINE", t0)
+        await self.espelhos(elo)
         painel = self.painel()
         on = await o.ate(o.igual(f"t2t:Cadeia.{elo}.Status", "ONLINE"), 60, f"Cadeia.{elo}.Status=ONLINE", t0)
         await asyncio.sleep(1.5)
@@ -87,6 +104,7 @@ class Prova:
         os.kill(pid, signal.SIGUSR1)
         off = await o.ate(o.igual("t2t:Cadeia.Distribuicao.Status", "OFFLINE"), 30,
                           "Cadeia.Distribuicao.Status=OFFLINE (batimento parado)", t0)
+        await self.espelhos("Distribuicao")
         painel = self.painel()
         await self.print_("cadeia-elo-offline")
         t1 = time.monotonic()

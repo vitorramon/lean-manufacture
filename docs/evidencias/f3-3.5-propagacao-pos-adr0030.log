@@ -1,0 +1,156 @@
+[t=    0.00 s] == Teste de propagação: 6 repetições; alvo ≤ 15 s, limite ≤ 30 s
+[t=    0.00 s] == Repetição 1: esperando a linha normal (PRODUZINDO e Distribuição fora de AGUARDANDO_PRODUCAO)
+[t=    0.03 s]    t2t:EstadoGemeo.StatusLinha = 'PRODUZINDO'
+[t=    0.03 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000319'
+[t=    0.03 s]    t2t:Cadeia.Fornecedor.Status = 'ONLINE'
+[t=    0.03 s]    t2t:Cadeia.Fornecedor.Reconexoes = 0
+[t=    0.03 s]    t2t:Cadeia.Distribuicao.Status = 'ONLINE'
+[t=    0.03 s]    t2t:Cadeia.Distribuicao.Reconexoes = 0
+[t=    0.03 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=    0.03 s]    t2t:Cadeia.ElosForaDoLeadTime = ''
+[t=    0.03 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=    0.03 s]    dist:Reacoes = 0
+[t=    9.61 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000320'
+[t=   23.84 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000321'
+[t=   35.83 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000322'
+[t=   45.18 s] OK linha normal estável há 45 s
+[t=   45.18 s] t0: SIGINT na fonte da Produção (pid 8957); Reacoes da Distribuição = 0
+[t=   45.78 s]    t2t:EstadoGemeo.StatusLinha = 'PARADA'
+[t=   45.88 s] OK t1 twin StatusLinha=PARADA após 0.70 s
+[t=   47.00 s]    dist:StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=   47.00 s]    dist:Reacoes = 1
+[t=   47.09 s] OK t2 Distribuição=AGUARDANDO_PRODUCAO (reação) após 1.91 s
+[t=   47.10 s]    motivo no twin: 'leitor do ponto de saída sem sessão aberta (fonte parada ou offline)'; Reacoes = 1; dashboard /_stcore/health = ok
+[t=   48.02 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=   52.10 s] t3: fonte religada (pid 49106)
+[t=   53.92 s]    t2t:EstadoGemeo.StatusLinha = 'PRODUZINDO'
+[t=   54.02 s] OK t4 twin volta a PRODUZINDO após 1.92 s
+[t=   54.94 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=   55.02 s] OK t5 Distribuição sai de AGUARDANDO_PRODUCAO após 2.92 s
+[t=   55.95 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=   59.81 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000324'
+[t=   59.85 s] OK t6 primeira peça nova sai depois da religação após 7.75 s
+[t=   59.85 s]    repetição 1: t1=0.70 s, t2=1.91 s; volta: t4=1.92 s, t5=2.92 s, t6=7.75 s
+[t=   59.85 s] == Repetição 2: esperando a linha normal (PRODUZINDO e Distribuição fora de AGUARDANDO_PRODUCAO)
+[t=   71.99 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000325'
+[t=   83.96 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000326'
+[t=   95.93 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000327'
+[t=  104.94 s] OK linha normal estável há 45 s
+[t=  104.94 s] t0: SIGINT na fonte da Produção (pid 49106); Reacoes da Distribuição = 1
+[t=  106.11 s]    t2t:EstadoGemeo.StatusLinha = 'PARADA'
+[t=  106.14 s] OK t1 twin StatusLinha=PARADA após 1.21 s
+[t=  107.12 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  107.12 s]    dist:StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  107.12 s]    dist:Reacoes = 2
+[t=  107.15 s] OK t2 Distribuição=AGUARDANDO_PRODUCAO (reação) após 2.21 s
+[t=  107.15 s]    motivo no twin: 'leitor do ponto de saída sem sessão aberta (fonte parada ou offline)'; Reacoes = 2; dashboard /_stcore/health = ok
+[t=  112.15 s] t3: fonte religada (pid 50530)
+[t=  114.02 s]    t2t:EstadoGemeo.StatusLinha = 'PRODUZINDO'
+[t=  114.07 s] OK t4 twin volta a PRODUZINDO após 1.91 s
+[t=  115.04 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=  115.07 s] OK t5 Distribuição sai de AGUARDANDO_PRODUCAO após 2.92 s
+[t=  115.24 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=  120.11 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000329'
+[t=  120.21 s] OK t6 primeira peça nova sai depois da religação após 8.06 s
+[t=  120.21 s]    repetição 2: t1=1.21 s, t2=2.21 s; volta: t4=1.91 s, t5=2.92 s, t6=8.06 s
+[t=  120.21 s] == Repetição 3: esperando a linha normal (PRODUZINDO e Distribuição fora de AGUARDANDO_PRODUCAO)
+[t=  132.08 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000330'
+[t=  144.06 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000331'
+[t=  156.22 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000332'
+[t=  165.29 s] OK linha normal estável há 45 s
+[t=  165.29 s] t0: SIGINT na fonte da Produção (pid 50530); Reacoes da Distribuição = 2
+[t=  166.16 s]    t2t:EstadoGemeo.StatusLinha = 'PARADA'
+[t=  166.20 s] OK t1 twin StatusLinha=PARADA após 0.91 s
+[t=  167.17 s]    dist:StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  167.17 s]    dist:Reacoes = 3
+[t=  167.20 s] OK t2 Distribuição=AGUARDANDO_PRODUCAO (reação) após 1.91 s
+[t=  167.20 s]    motivo no twin: 'leitor do ponto de saída sem sessão aberta (fonte parada ou offline)'; Reacoes = 3; dashboard /_stcore/health = ok
+[t=  167.37 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  172.21 s] t3: fonte religada (pid 51923)
+[t=  174.27 s]    t2t:EstadoGemeo.StatusLinha = 'PRODUZINDO'
+[t=  174.32 s] OK t4 twin volta a PRODUZINDO após 2.12 s
+[t=  175.08 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=  175.13 s] OK t5 Distribuição sai de AGUARDANDO_PRODUCAO após 2.92 s
+[t=  175.48 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=  180.15 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000334'
+[t=  180.16 s] OK t6 primeira peça nova sai depois da religação após 7.95 s
+[t=  180.16 s]    repetição 3: t1=0.91 s, t2=1.91 s; volta: t4=2.12 s, t5=2.92 s, t6=7.95 s
+[t=  180.16 s] == Repetição 4: esperando a linha normal (PRODUZINDO e Distribuição fora de AGUARDANDO_PRODUCAO)
+[t=  194.35 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000335'
+[t=  204.30 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000336'
+[t=  216.47 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000337'
+[t=  225.23 s] OK linha normal estável há 45 s
+[t=  225.23 s] t0: SIGINT na fonte da Produção (pid 51923); Reacoes da Distribuição = 3
+[t=  226.42 s]    t2t:EstadoGemeo.StatusLinha = 'PARADA'
+[t=  226.44 s] OK t1 twin StatusLinha=PARADA após 1.21 s
+[t=  228.24 s]    dist:StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  228.24 s]    dist:Reacoes = 4
+[t=  228.25 s] OK t2 Distribuição=AGUARDANDO_PRODUCAO (reação) após 3.02 s
+[t=  228.26 s]    motivo no twin: 'leitor do ponto de saída sem sessão aberta (fonte parada ou offline)'; Reacoes = 4; dashboard /_stcore/health = ok
+[t=  228.65 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  233.26 s] t3: fonte religada (pid 53362)
+[t=  234.53 s]    t2t:EstadoGemeo.StatusLinha = 'PRODUZINDO'
+[t=  234.57 s] OK t4 twin volta a PRODUZINDO após 1.31 s
+[t=  236.16 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=  236.18 s] OK t5 Distribuição sai de AGUARDANDO_PRODUCAO após 2.92 s
+[t=  236.77 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=  240.42 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000339'
+[t=  240.51 s] OK t6 primeira peça nova sai depois da religação após 7.25 s
+[t=  240.51 s]    repetição 4: t1=1.21 s, t2=3.02 s; volta: t4=1.31 s, t5=2.92 s, t6=7.25 s
+[t=  240.51 s] == Repetição 5: esperando a linha normal (PRODUZINDO e Distribuição fora de AGUARDANDO_PRODUCAO)
+[t=  252.59 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000340'
+[t=  264.56 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000341'
+[t=  276.54 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000342'
+[t=  285.51 s] OK linha normal estável há 45 s
+[t=  285.51 s] t0: SIGINT na fonte da Produção (pid 53362); Reacoes da Distribuição = 4
+[t=  286.69 s]    t2t:EstadoGemeo.StatusLinha = 'PARADA'
+[t=  286.71 s] OK t1 twin StatusLinha=PARADA após 1.20 s
+[t=  288.32 s]    dist:StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  288.32 s]    dist:Reacoes = 5
+[t=  288.33 s] OK t2 Distribuição=AGUARDANDO_PRODUCAO (reação) após 2.82 s
+[t=  288.33 s]    motivo no twin: 'leitor do ponto de saída sem sessão aberta (fonte parada ou offline)'; Reacoes = 5; dashboard /_stcore/health = ok
+[t=  288.93 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  293.33 s] t3: fonte religada (pid 54879)
+[t=  294.62 s]    t2t:EstadoGemeo.StatusLinha = 'PRODUZINDO'
+[t=  294.64 s] OK t4 twin volta a PRODUZINDO após 1.31 s
+[t=  296.24 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=  296.25 s] OK t5 Distribuição sai de AGUARDANDO_PRODUCAO após 2.92 s
+[t=  296.85 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=  300.73 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000344'
+[t=  300.78 s] OK t6 primeira peça nova sai depois da religação após 7.45 s
+[t=  300.78 s]    repetição 5: t1=1.20 s, t2=2.82 s; volta: t4=1.31 s, t5=2.92 s, t6=7.45 s
+[t=  300.78 s] == Repetição 6: esperando a linha normal (PRODUZINDO e Distribuição fora de AGUARDANDO_PRODUCAO)
+[t=  312.77 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000345'
+[t=  324.77 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000346'
+[t=  336.77 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000347'
+[t=  345.80 s] OK linha normal estável há 45 s
+[t=  345.80 s] t0: SIGINT na fonte da Produção (pid 54879); Reacoes da Distribuição = 5
+[t=  346.95 s]    t2t:EstadoGemeo.StatusLinha = 'PARADA'
+[t=  347.01 s] OK t1 twin StatusLinha=PARADA após 1.21 s
+[t=  348.38 s]    dist:StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  348.38 s]    dist:Reacoes = 6
+[t=  348.42 s] OK t2 Distribuição=AGUARDANDO_PRODUCAO (reação) após 2.62 s
+[t=  348.42 s]    motivo no twin: 'leitor do ponto de saída sem sessão aberta (fonte parada ou offline)'; Reacoes = 6; dashboard /_stcore/health = ok
+[t=  349.19 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'AGUARDANDO_PRODUCAO'
+[t=  353.42 s] t3: fonte religada (pid 56316)
+[t=  354.90 s]    t2t:EstadoGemeo.StatusLinha = 'PRODUZINDO'
+[t=  354.93 s] OK t4 twin volta a PRODUZINDO após 1.51 s
+[t=  356.33 s]    dist:StatusLinha = 'DESPACHANDO'
+[t=  356.34 s] OK t5 Distribuição sai de AGUARDANDO_PRODUCAO após 2.92 s
+[t=  357.15 s]    t2t:Cadeia.Distribuicao.StatusLinha = 'DESPACHANDO'
+[t=  362.96 s]    t2t:EstadoGemeo.UltimaPeca = 'PC3280-2026-000349'
+[t=  363.01 s] OK t6 primeira peça nova sai depois da religação após 9.59 s
+[t=  363.01 s]    repetição 6: t1=1.21 s, t2=2.62 s; volta: t4=1.51 s, t5=2.92 s, t6=9.59 s
+[t=  363.01 s] == RESUMO (s, relógio deste processo observador)
+[t=  363.01 s]    rep 1: t1 (twin PARADA) = 0.70; t2 (Distribuição reage) = 1.91; volta: t4 = 1.92; t5 = 2.92; t6 = 7.75
+[t=  363.01 s]    rep 2: t1 (twin PARADA) = 1.21; t2 (Distribuição reage) = 2.21; volta: t4 = 1.91; t5 = 2.92; t6 = 8.06
+[t=  363.01 s]    rep 3: t1 (twin PARADA) = 0.91; t2 (Distribuição reage) = 1.91; volta: t4 = 2.12; t5 = 2.92; t6 = 7.95
+[t=  363.01 s]    rep 4: t1 (twin PARADA) = 1.21; t2 (Distribuição reage) = 3.02; volta: t4 = 1.31; t5 = 2.92; t6 = 7.25
+[t=  363.01 s]    rep 5: t1 (twin PARADA) = 1.20; t2 (Distribuição reage) = 2.82; volta: t4 = 1.31; t5 = 2.92; t6 = 7.45
+[t=  363.01 s]    rep 6: t1 (twin PARADA) = 1.21; t2 (Distribuição reage) = 2.62; volta: t4 = 1.51; t5 = 2.92; t6 = 9.59
+[t=  363.01 s]    t2 reação a jusante: n=6 média=2.42 dp=0.47 mín=1.91 máx=3.02
+[t=  363.01 s]    t1 nosso pipeline: n=6 média=1.07 dp=0.22 mín=0.70 máx=1.21
+[t=  363.01 s]    t5 Distribuição volta: n=6 média=2.92 dp=0.00 mín=2.92 máx=2.92
+[t=  363.01 s]    t6 primeira peça nova: n=6 média=8.01 dp=0.83 mín=7.25 máx=9.59
+[t=  363.01 s]    alvo ≤ 15 s: 6/6; limite ≤ 30 s: 6/6
+[t=  363.17 s] fonte religada por este script continua no ar (pid 56316) para a 3.8
