@@ -1,6 +1,7 @@
 # Cartões de conexão e contrato de interface da cadeia
 
-Tarefa 3.3b (RF-A3-08, RF-A3-10; ADR-0006, ADR-0011 e ADR-0028, Propostos). Atualizado em 2026-11-16.
+Tarefa 3.3b (RF-A3-08, RF-A3-10; ADR-0006, ADR-0011, ADR-0028 a ADR-0030, Propostos). Atualizado em 2026-11-18
+(revisado contra `nucleo/estado_gemeo.texto_decisao` e o ADR-0030; nenhum nó ou tipo mudou desde 2026-11-16).
 
 **Tudo é emulado** (ADR-0002). A Produção (nós) vem do emulador sobre a planta virtual `godot`: os valores valem como
 fluxo, ritmo e lead time de demonstração, não como medição física (ADR-0013). Os elos **Fornecedor e Distribuição
@@ -127,7 +128,8 @@ pode usar os dele: o nosso cliente só **exige** `LeadTimeMedio` de cada elo e `
 
 Com a linha produzindo e o Fornecedor `ONLINE`, `EstoqueFornecedor` < 20 (`decisao.estoque_minimo`) leva o nosso
 `StatusLinha` a `RISCO_FALTA`. O motivo vai para `MotivoStatus` e `Cadeia.Decisao` (ex.: "estoque do fornecedor 5 <
-mínimo 20 (dado do vizinho, RF-A3-09)"). Com o Fornecedor OFFLINE, o valor velho não é usado e `Cadeia.Decisao` mostra
+mínimo 20 (dado do vizinho, RF-A3-09) → StatusLinha RISCO_FALTA"; com estoque suficiente: "estoque do fornecedor 39 ≥
+mínimo 20: nenhuma ação (StatusLinha PRODUZINDO)"). Com o Fornecedor OFFLINE, o valor velho não é usado e `Cadeia.Decisao` mostra
 "sem decisão: estoque do fornecedor não lido (OFFLINE)". `PARADA` prevalece sobre `RISCO_FALTA`: com estoque abaixo do
 mínimo e a linha parada, `Cadeia.Decisao` diz "estoque do fornecedor 5 < mínimo 20; StatusLinha PARADA prevalece sobre
 RISCO_FALTA" (ADR-0030). A evidência está em
@@ -143,7 +145,7 @@ RISCO_FALTA" (ADR-0030). A evidência está em
 
 ## 5. Roteiro de conexão com um grupo parceiro (tarefa 3.6, P-04)
 
-**Situação em 2026-11-16: BLOQUEADO.** Não há grupo parceiro definido (P-04); a conexão real não foi feita. O roteiro
+**Situação em 2026-11-18: BLOQUEADO.** Não há grupo parceiro definido (P-04); a conexão real não foi feita. O roteiro
 abaixo está pronto e foi testado só contra os nossos elos **EMULADOS** (`localhost` e o IP do WSL2), o que prova o
 roteiro, não a interoperabilidade (evidência: [`evidencias/f3-3.6-conexao-parceiros.md`](evidencias/f3-3.6-conexao-parceiros.md)).
 
@@ -179,5 +181,5 @@ primeiro passo obrigatório que falhar, para que o grupo saiba **onde** está o 
 
 - IP do dia da apresentação, encaminhamento de porta do WSL2 e regras de firewall: a preencher pelo grupo na rede da
   apresentação.
-- Contrato combinado com grupos parceiros reais (P-04): nenhum parceiro até 2026-11-16. Fornecedor e Distribuição
+- Contrato combinado com grupos parceiros reais (P-04): nenhum parceiro até 2026-11-18. Fornecedor e Distribuição
   seguem emulados.

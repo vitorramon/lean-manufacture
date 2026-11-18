@@ -12,6 +12,8 @@ O Virtual-Factory fornece a planta virtual 3D, o ambiente AAS e a infraestrutura
 
 ## 2. Camadas L0–L4
 
+Versão para apresentação e relatório, com portas e a base ao lado: `docs/arquitetura.png` (1920 × 1120), gerada de `docs/arquitetura.svg` por `docs/arquitetura_png.py` (tarefa 4.5).
+
 ```mermaid
 flowchart TB
   subgraph L0["L0 — Física (única camada que troca)"]
@@ -249,6 +251,13 @@ compose como `LEAN_DB_ARQUIVO`, sempre dentro de `dados/`); na Fase 2 a rodada d
 
 - **`nucleo/`**: única porta de leitura dos dados (`dados.py`), cálculo de KPIs, fichas, `regras.py` (baseline e
   metas do M1, limites do Andon) e what-if. Nenhuma página faz SQL direto.
+  Fase 4: `nucleo/geracoes.py` monta a tabela das 3 gerações (baseline/meta de `config/andon.yaml`, Simulado dos
+  CSVs de `dados/analises/`, M3 do banco por `nucleo.dados`; leitura das fontes em `nucleo/geracoes_fontes.py`) e
+  classifica o M3 em Medido, Demonstração ou Sintético pela `config/origens.yaml` (ADR-0013 item 5, ADR-0025).
+  `nucleo/what_if.py` roda o simulador do M2 (`simulador/`, só leitura) num **subprocesso**
+  (`python -m nucleo.what_if_motor`, tempo limite, só a função pura `simulate.simulate()`): nada é gravado (sem
+  SQLite, MQTT nem `transmissoes/`) e só as métricas voltam, em JSON. `nucleo/regras.py` lê `config/andon.yaml`
+  sob demanda (na primeira avaliação do Andon), não na importação: o twin-t2t importa o `nucleo` sem depender dele.
 - **Gêmeo**: planta 3D do Virtual-Factory (clique na peça abre o AAS dela) + representação 2D no dashboard.
 - **`twin-t2t`**: servidor OPC UA `opc.tcp://0.0.0.0:4851`, objeto `EstadoGemeo` com `RitmoReal` (peças com evento
   de saída nos últimos 10 min × 6), `UltimaPeca`, `LeadTimeMedio`, `StatusLinha`. Cliente com reconexão para ler os
@@ -343,7 +352,8 @@ lean-manufacture/                (github.com/vitorramon/lean-manufacture; local:
   simulador/   (M2: GemeoDigitalCelulares)
   base/        (Virtual-Factory, commit fixado)
   infra/       docker-compose.lean.yml  lean-servicos.Dockerfile  orquestracao.py
-  config/      dispositivos.yaml  origens.yaml  rastreio.yaml (Fase 2)
+  config/      dispositivos.yaml  origens.yaml  rastreio.yaml (Fase 2)  cadeia.yaml  cadeia_simulacao.yaml (Fase 3)
+               andon.yaml (limites do Andon e baseline/meta do M1, tarefa 4.2)
   dados/       amostras/  analises/  etiquetas/
   tests/
 ```
@@ -351,8 +361,9 @@ lean-manufacture/                (github.com/vitorramon/lean-manufacture; local:
 ## 11. Qualidade e verificação
 
 - **Testes de contrato**: esquemas JSON e mensagens de referência em `pipeline/contrato/`, validados contra o
-  emulador, o construtor de payload do firmware e o gateway. É o que garante que emulador e ESP32 são
-  intercambiáveis.
+  emulador, o construtor de payload do firmware e o gateway. Sustentam a troca de emulador por ESP32 no formato
+  da mensagem (104 testes de contrato, `docs/evidencias/f1-1.1-contrato.md`; payload do firmware conferido byte a
+  byte, `f1-1.7-firmware.md`); com placa física a troca não foi testada (ADR-0002).
 - **Testes do gateway**: faixa, duplicata, lacuna, QR repetido, peça expirada, linha malformada.
 - **Testes de KPI**: lead time, espera e ritmo sobre conjuntos pequenos com resultado conhecido.
 - **Testes de falha**: derrubar dispositivo, broker, gateway e elo vizinho; o sistema pausa e se recupera.

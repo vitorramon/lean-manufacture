@@ -37,6 +37,9 @@ vale como direção de trabalho até o grupo confirmar ou recusar. *Substituído
 | [0028](0028-address-space-t2t-e-estado-da-cadeia-no-twin.md) | Address space do `twin-t2t` (:4851, `EstadoGemeo`, `StatusLinha`), leitura somente leitura pelo `nucleo` e estado da cadeia em `Cadeia.*` no próprio twin | Proposto | Tarefa 3.1 |
 | [0029](0029-elos-emulados-e-cliente-da-cadeia.md) | Elos emulados da cadeia (Fornecedor :4852, Distribuição :4853: address space, comportamento, falhas por sinal) e cliente da cadeia com backoff e prazo de `Batimento` | Proposto | Tarefas 3.2 e 3.3 |
 | [0030](0030-espelho-de-elo-offline-e-texto-da-decisao.md) | Espelho de elo OFFLINE com StatusCode `UncertainLastUsableValue`, tipo do vizinho convertido, `Batimento` ilegível conta como parado e `Cadeia.Decisao` pela comparação do estoque | Proposto | Revisão de contratos da Fase 3 |
+| [0031](0031-what-if-em-subprocesso-sobre-o-simulador-do-m2.md) | What-if roda a função pura do simulador do M2 num subprocesso, sem gravar nada | Proposto | Tarefa 4.3 |
+| [0032](0032-limites-do-andon-em-configuracao.md) | Limites do Andon e referências do M1 em `config/andon.yaml`, lidos sob demanda e validados (exatamente os 4 KPIs do M1) | Proposto | Tarefa 4.2; revisão da Fase 4 |
+| [0033](0033-relatorio-em-pdf-com-markdown-e-playwright.md) | Relatório e diagrama gerados do Markdown/SVG com `markdown` e o Chromium do Playwright (Python 3.12 fixado) | Proposto | Tarefas 4.5 e 4.6 |
 
 ## Modelo
 

@@ -9,7 +9,7 @@
 | `CADEIA_PATH` | `config/cadeia.yaml` | Janela do ritmo, período, amostras, parada, elos vizinhos |
 | `CADEIA_FORNECEDOR_URL`, `CADEIA_DISTRIBUICAO_URL` | da config | Endereço dos vizinhos (cliente da cadeia, 3.2) |
 | `T2T_CLIENTE_CADEIA` | `1` | `0` desliga o cliente da cadeia (só servidor; vizinhos ficam OFFLINE) |
-| `DISPOSITIVOS_PATH`, `RASTREIO_PATH`, `ORIGENS_PATH` | `config/...` | Os mesmos do nucleo |
+| `DISPOSITIVOS_PATH`, `RASTREIO_PATH`, `ORIGENS_PATH`, `ANDON_PATH` | `config/...` | Os mesmos do nucleo (`ANDON_PATH` só é lido se algo avaliar o Andon; o twin-t2t não avalia) |
 """
 
 from __future__ import annotations

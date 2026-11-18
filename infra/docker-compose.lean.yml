@@ -114,6 +114,7 @@ services:
       RASTREIO_PATH: /app/config/rastreio.yaml
       ORIGENS_PATH: /app/config/origens.yaml
       CADEIA_PATH: /app/config/cadeia.yaml
+      ANDON_PATH: /app/config/andon.yaml   # nucleo.regras lê sob demanda; o twin-t2t não usa o Andon
       CADEIA_FORNECEDOR_URL: ${CADEIA_FORNECEDOR_URL:-opc.tcp://host.docker.internal:4852}
       CADEIA_DISTRIBUICAO_URL: ${CADEIA_DISTRIBUICAO_URL:-opc.tcp://host.docker.internal:4853}
       LOG_LEVEL: ${LEAN_LOG_LEVEL:-INFO}
