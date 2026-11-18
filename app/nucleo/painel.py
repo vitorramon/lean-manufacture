@@ -12,7 +12,7 @@ from statistics import fmean, stdev
 
 from nucleo.configuracao import Configuracao
 from nucleo.dados import Dados, Leitura, Rejeicao, ResumoOrigem, Sessao
-from nucleo.regras import LIMITES_PADRAO, EstadoAndon, LimitesCiclo, avaliar, prazo_sem_dado_s
+from nucleo.regras import EstadoAndon, LimitesCiclo, avaliar, limites_padrao, prazo_sem_dado_s
 
 
 @dataclass(frozen=True)
@@ -57,8 +57,9 @@ def amostra(ciclos: list[Leitura]) -> AmostraMedida:
 
 
 def estado_posto(dados: Dados, dispositivo: str, conf: Configuracao, agora: datetime | None = None,
-                 limites: LimitesCiclo = LIMITES_PADRAO, n_ciclos: int = 20) -> EstadoPosto:
+                 limites: LimitesCiclo | None = None, n_ciclos: int = 20) -> EstadoPosto:
     agora = agora or datetime.now(UTC)
+    limites = limites or limites_padrao()
     cfg = dados.dispositivos[dispositivo]
     sessao = dados.sessao_atual(dispositivo)
     ultimo = dados.ultima_atividade(dispositivo)   # leitura ou evento de peça: leitor de QR não gera leitura

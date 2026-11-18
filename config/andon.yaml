@@ -1,0 +1,34 @@
+# Limites do Andon (tarefa 4.2; ADR-0010 item 6). Lido por app/nucleo/regras.py (variável ANDON_PATH para outro
+# arquivo). Mudar um limite muda este arquivo, não o código.
+#
+# Andon dos KPIs: verde a partir da meta; amarelo do baseline (inclusive) até a meta; vermelho abaixo do baseline;
+# cinza sem valor ou com conjunto que inclui dado que não é medição (roteiro/teste; ADR-0013, ADR-0025).
+# Lead time e espera não têm baseline nem meta no M1 (P-07): não entram aqui até o grupo decidir.
+
+versao: 1
+
+# Baseline e meta do M1 (SPECS §2.1, PPGEE_Grupo_7_Cen_8.pptx, projeção em 90 dias), em fração (0,78 = 78 %).
+# São da LINHA INTEIRA; o trecho do M3 é só montagem → teste → embalagem (ADR-0009): a comparação declara o recorte.
+fonte_m1: "M1 (SPECS §2.1, PPGEE_Grupo_7_Cen_8.pptx), linha inteira"
+kpis_m1:
+  FPY:
+    baseline: 0.78
+    meta: 0.92
+  RTY:
+    baseline: 0.82
+    meta: 0.90
+  OEE:
+    baseline: 0.68
+    meta: 0.80
+  "1 − COPQ":
+    baseline: 0.95
+    meta: 0.98
+
+# Tempo de ciclo por posto: o M1 não define (SPECS §2.1). Referência provisória = tempo do posto Bateria no
+# simulador do M2 (27 s, gargalo; config/dispositivos.yaml). Amarelo acima da referência ou com a média dos últimos
+# `janela_tendencia` ciclos acima dela; vermelho acima de referência × (1 + tolerância).
+ciclo:
+  referencia_s: 27.0
+  tolerancia: 0.20
+  janela_tendencia: 5
+  fonte: "provisório: tempo do posto Bateria no simulador do M2 (27 s); o M1 não define tempo de ciclo por posto"

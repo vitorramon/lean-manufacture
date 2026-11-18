@@ -8,9 +8,14 @@ from conftest import TC, TEMP, s
 from nucleo.configuracao import Configuracao
 from nucleo.dados import Dados
 from nucleo.painel import estado_posto
-from nucleo.regras import LimitesCiclo, Nivel, avaliar, prazo_sem_dado_s
+from nucleo.regras import LIMITES_PADRAO, LimitesCiclo, Nivel, avaliar, prazo_sem_dado_s
 
-L = LimitesCiclo()   # referência 27 s, vermelho acima de 32,4 s
+L = LimitesCiclo(27.0, 0.20, 5, "teste")   # referência 27 s, vermelho acima de 32,4 s
+
+
+def test_limites_padrao_vem_de_config_andon():
+    assert LIMITES_PADRAO == LimitesCiclo(27.0, 0.20, 5, LIMITES_PADRAO.fonte)
+    assert "provisório" in LIMITES_PADRAO.fonte
 
 
 def test_prazo_segue_a_cadencia_do_dispositivo(dispositivos):

@@ -1,7 +1,7 @@
 """KPIs de qualidade do trecho instrumentado (tarefa 2.10, cálculo; RF-A2-07; ADR-0010, ADR-0026).
 
 Lógica pura: recebe os resumos de peça (`nucleo.pecas.ResumoPeca`) e devolve proporções com n e a origem dos
-dados, mais a referência do M1 (SPECS §2.1, em `nucleo.regras.REFERENCIAS_M1`). Nenhuma regra depende da origem;
+dados, mais a referência do M1 (SPECS §2.1, em `nucleo.regras.referencias_m1()`). Nenhuma regra depende da origem;
 o filtro "só medidas" é feito antes, em `nucleo.dados`.
 
 - **FPY por estação** = peças cujo primeiro resultado na estação é 1 / peças com algum resultado na estação.
@@ -24,7 +24,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 from nucleo.pecas import ResumoPeca
-from nucleo.regras import REFERENCIAS_M1, ReferenciaM1
+from nucleo.regras import ReferenciaM1, referencias_m1
 
 
 @dataclass(frozen=True)
@@ -117,7 +117,7 @@ def fpy_trecho(resumos: Iterable[ResumoPeca], apenas_medidas: bool) -> Indicador
     aprovadas = sum(all(v == 1 for v in r.resultados.values()) for r in pecas)
     p = Proporcao(aprovadas, len(pecas))
     return IndicadorTrecho("FPY", p.valor, len(pecas), por_est, frozenset(o for r in pecas for o in r.origens),
-                           apenas_medidas, REFERENCIAS_M1["FPY"], _nota(por_est),
+                           apenas_medidas, referencias_m1()["FPY"], _nota(por_est),
                            {"aprovadas_de_primeira": float(aprovadas)})
 
 
@@ -127,4 +127,4 @@ def rty_trecho(resumos: Iterable[ResumoPeca], apenas_medidas: bool) -> Indicador
     valores = [p.valor for p in por_est.values() if p.valor is not None]
     valor = math.prod(valores) if valores else None
     return IndicadorTrecho("RTY", valor, len(pecas), por_est, frozenset(o for r in pecas for o in r.origens),
-                           apenas_medidas, REFERENCIAS_M1["RTY"], _nota(por_est))
+                           apenas_medidas, referencias_m1()["RTY"], _nota(por_est))

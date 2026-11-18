@@ -1,4 +1,6 @@
-"""Página "Visão geral" (mínima, tarefa 1.5): estado de cada posto, último tempo de ciclo, Andon e origem dos dados.
+"""Página "Visão geral" (tarefa 1.5; Andon dos KPIs do M1 na tarefa 4.2): Andon de FPY, RTY, OEE e 1 − COPQ contra o
+baseline e a meta do M1 (`nucleo.regras`, limites em `config/andon.yaml`); estado de cada posto, último tempo de
+ciclo, Andon e origem dos dados.
 
 Só formata o que `nucleo.painel` entrega; nenhuma consulta ao banco aqui (ADR-0010).
 """
@@ -12,8 +14,9 @@ import streamlit as st
 
 from nucleo.configuracao import dispositivos, ler_configuracao
 from nucleo.dados import ORIGENS_MEDIDAS, BancoIndisponivel, Dados
+from nucleo.geracoes import andon_kpis, m3_do_banco
 from nucleo.painel import EstadoPosto, estado_posto
-from nucleo.regras import Nivel
+from nucleo.regras import AndonKpi, Nivel
 
 COR = {Nivel.VERDE: "#2e7d32", Nivel.AMARELO: "#f9a825", Nivel.VERMELHO: "#c62828", Nivel.CINZA: "#757575"}
 conf = ler_configuracao()
@@ -28,6 +31,17 @@ def origem_txt(origem: str | None) -> str:
     if origem is None:
         return "desconhecida (fora de sessão)"
     return origem if origem in ORIGENS_MEDIDAS else f"{origem} (não é medição; config/origens.yaml)"
+
+
+def kpis_m1(andons: list[AndonKpi], fonte: str) -> None:
+    st.subheader("Andon dos KPIs do M1")
+    for col, a in zip(st.columns(len(andons)), andons, strict=True):
+        col.markdown(
+            f"<div style='background:{COR[a.nivel]};color:white;padding:0.6rem 0.8rem;border-radius:0.5rem'>"
+            f"<b>{a.nome} — {a.nivel.value.upper()}</b><br/>{a.motivo}</div>", unsafe_allow_html=True)
+    st.caption(f"Limites de config/andon.yaml (baseline e meta do M1, SPECS §2.1, linha inteira; o M3 mede o trecho, "
+               f"ADR-0009). Verde a partir da meta, amarelo do baseline até a meta, vermelho abaixo do baseline, cinza "
+               f"sem valor ou com dado que não é medição. Origem: {fonte}. Tabela completa na página 3 gerações.")
 
 
 def posto(e: EstadoPosto) -> None:
@@ -83,10 +97,14 @@ st.caption("Todos os dispositivos são **emulados** (ADR-0002). A origem de cada
 def painel() -> None:
     try:
         with Dados(conf.db_path, cfg_disp, aas_url=conf.aas_url) as dados:
+            amostra = m3_do_banco(dados)
+            kpis_m1(andon_kpis(amostra), f"{amostra.fonte}, origem {', '.join(sorted(str(o) for o in amostra.origens))}"
+                    if amostra else "banco sem peça com resultado")
             agora = datetime.now(UTC)
             for disp in cfg_disp:
                 posto(estado_posto(dados, disp, conf, agora))
     except BancoIndisponivel as erro:
+        kpis_m1(andon_kpis(None), "sem banco")
         st.warning(f"Sem banco ainda: {erro}")
     st.caption(f"Atualizado às {datetime.now(UTC).astimezone():%H:%M:%S}; a cada {conf.atualizacao_s:g} s.")
 

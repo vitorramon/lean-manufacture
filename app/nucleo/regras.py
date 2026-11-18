@@ -8,9 +8,15 @@ O prazo do cinza segue a cadência do dispositivo: `fator` × o menor `periodo_s
 `config/dispositivos.yaml` (esp32-bat01: 3 × 5 s = 15 s), ou um prazo fixo/padrão vindo do ambiente
 (`nucleo.configuracao`).
 
-Limites do tempo de ciclo: **provisórios**. O M1 não define tempo de ciclo por posto (SPECS §2.1); a referência é
-o tempo do posto Bateria no simulador do M2 (27 s, gargalo; `config/dispositivos.yaml`). A tarefa 4.2 liga os
-limites do Andon de FPY/RTY/OEE ao baseline e às metas do M1. Nenhuma regra depende da origem do dado (ADR-0013).
+Todos os limites vêm de `config/andon.yaml` (`ANDON_PATH`; tarefa 4.2), não do código:
+
+- **Tempo de ciclo**: **provisório**. O M1 não define tempo de ciclo por posto (SPECS §2.1); a referência é o tempo
+  do posto Bateria no simulador do M2 (27 s, gargalo).
+- **KPIs do M1** (FPY, RTY, OEE, 1 − COPQ; SPECS §2.1; ADR-0010 item 6): verde a partir da meta; amarelo do
+  baseline (inclusive) até a meta; vermelho abaixo do baseline; cinza sem valor ou quando o conjunto inclui dado
+  que não é medição (`roteiro`/`teste`; ADR-0013, ADR-0025), a mesma regra de `kpis.situacao_m1`.
+
+Nenhuma regra depende da origem do dado além desse corte de "vale como medição" (ADR-0013).
 """
 
 from __future__ import annotations
@@ -18,8 +24,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
+from functools import cache
 from statistics import fmean
 from typing import Any
+
+from nucleo.configuracao import ConfigAndon, carregar_andon
 
 
 class Nivel(StrEnum):
@@ -31,17 +40,28 @@ class Nivel(StrEnum):
 
 @dataclass(frozen=True)
 class LimitesCiclo:
-    referencia_s: float = 27.0      # posto Bateria no M2 (simulado); provisório
-    tolerancia: float = 0.20        # acima de referência × (1 + tolerância) = vermelho
-    janela_tendencia: int = 5       # média dos últimos N ciclos acima da referência = amarelo
-    fonte: str = "provisório: tempo do posto Bateria no simulador do M2 (27 s); substituído na tarefa 4.2"
+    referencia_s: float             # posto Bateria no M2 (simulado); provisório
+    tolerancia: float               # acima de referência × (1 + tolerância) = vermelho
+    janela_tendencia: int           # média dos últimos N ciclos acima da referência = amarelo
+    fonte: str
 
     @property
     def limite_vermelho_s(self) -> float:
         return self.referencia_s * (1 + self.tolerancia)
 
 
-LIMITES_PADRAO = LimitesCiclo()
+# Lido sob demanda, na primeira chamada, e guardado (cache). Não na importação: `nucleo.dados` → `nucleo.kpis` →
+# `nucleo.regras` também é importado pelo twin-t2t, que não usa o Andon e não deve cair por causa de config/andon.yaml.
+@cache
+def config_andon() -> ConfigAndon:
+    """`config/andon.yaml` (ou `ANDON_PATH`), lido uma vez por processo."""
+    return carregar_andon()
+
+
+@cache
+def limites_padrao() -> LimitesCiclo:
+    """Limites do tempo de ciclo vindos de `config/andon.yaml`."""
+    return LimitesCiclo(**config_andon().ciclo)
 
 
 @dataclass(frozen=True)
@@ -64,7 +84,7 @@ def prazo_sem_dado_s(cfg_dispositivo: dict[str, Any], prazo_fixo_s: float | None
 def avaliar(agora: datetime, online: bool, ultimo_dado: datetime | None, prazo_s: float,
             ciclos_s: list[float], limites: LimitesCiclo | None = None) -> EstadoAndon:
     """Nível do Andon de um posto. `ciclos_s`: tempos de ciclo mais recentes primeiro."""
-    limites = limites or LIMITES_PADRAO
+    limites = limites or limites_padrao()
     if ultimo_dado is None:
         return EstadoAndon(Nivel.CINZA, "nenhum dado recebido deste dispositivo", None, prazo_s)
     idade = (agora - ultimo_dado).total_seconds()
@@ -90,12 +110,10 @@ def avaliar(agora: datetime, online: bool, ultimo_dado: datetime | None, prazo_s
                        f"{limites.referencia_s:.1f} s", idade, prazo_s)
 
 
-# --- Referências do M1 para FPY e RTY (SPECS §2.1; ADR-0010 item 6) ----------------------------------------------
-# Valores do M1 (PPGEE_Grupo_7_Cen_8.pptx), projeção em 90 dias, para a LINHA INTEIRA. O trecho instrumentado do M3
-# é só montagem -> teste -> embalagem (ADR-0009): a comparação declara o recorte. Lead time e espera não têm
-# baseline no M1. A tarefa 4.2 liga estes valores aos limites do Andon.
-
-FONTE_M1 = "M1 (SPECS §2.1, PPGEE_Grupo_7_Cen_8.pptx), linha inteira"
+# --- Referências do M1 (SPECS §2.1; ADR-0010 item 6) ---------------------------------------------------------------
+# Valores do M1 (PPGEE_Grupo_7_Cen_8.pptx), projeção em 90 dias, para a LINHA INTEIRA, lidos de config/andon.yaml.
+# O trecho instrumentado do M3 é só montagem -> teste -> embalagem (ADR-0009): a comparação declara o recorte. Lead
+# time e espera não têm baseline no M1 (P-07).
 
 
 @dataclass(frozen=True)
@@ -103,23 +121,78 @@ class ReferenciaM1:
     nome: str
     baseline: float
     meta: float
-    fonte: str = FONTE_M1
+    fonte: str = ""                 # vazio = `fonte_m1` de config/andon.yaml (preenchido em __post_init__)
+
+    def __post_init__(self) -> None:
+        if not self.fonte:
+            object.__setattr__(self, "fonte", config_andon().fonte_m1)
+
+    def nivel(self, valor: float | None) -> Nivel:
+        """Faixas do ADR-0010 item 6. `valor` igual ao baseline é amarelo (não piorou); igual à meta é verde."""
+        if valor is None:
+            return Nivel.CINZA
+        if valor < self.baseline:
+            return Nivel.VERMELHO
+        if valor < self.meta:
+            return Nivel.AMARELO
+        return Nivel.VERDE
 
     def situacao(self, valor: float | None) -> str:
-        """Faixas do ADR-0010 item 6: abaixo do baseline, entre baseline e meta, na meta."""
-        if valor is None:
-            return "sem valor"
-        if valor < self.baseline:
-            return "abaixo do baseline do M1"
-        if valor < self.meta:
-            return "entre o baseline e a meta do M1"
-        return "na meta do M1 ou acima"
+        return SITUACAO[self.nivel(valor)]
 
 
-REFERENCIAS_M1 = {
-    "FPY": ReferenciaM1("FPY", 0.78, 0.92),
-    "RTY": ReferenciaM1("RTY", 0.82, 0.90),
-}
+SITUACAO = {Nivel.CINZA: "sem valor", Nivel.VERMELHO: "abaixo do baseline do M1",
+            Nivel.AMARELO: "entre o baseline e a meta do M1", Nivel.VERDE: "na meta do M1 ou acima"}
+
+@cache
+def referencias_m1() -> dict[str, ReferenciaM1]:
+    """Baseline e meta do M1 por KPI (FPY, RTY, OEE, 1 − COPQ), de `config/andon.yaml`."""
+    c = config_andon()
+    return {nome: ReferenciaM1(nome, b, m, c.fonte_m1) for nome, (b, m) in c.kpis_m1.items()}
+
+
+# Nomes antigos (CONFIG_ANDON, LIMITES_PADRAO, FONTE_M1, REFERENCIAS_M1), resolvidos só quando usados (PEP 562).
+_PREGUICOSOS = {"CONFIG_ANDON": config_andon, "LIMITES_PADRAO": limites_padrao,
+                "FONTE_M1": lambda: config_andon().fonte_m1, "REFERENCIAS_M1": referencias_m1}
+
+
+def __getattr__(nome: str) -> Any:
+    if nome in _PREGUICOSOS:
+        return _PREGUICOSOS[nome]()
+    raise AttributeError(f"module {__name__!r} has no attribute {nome!r}")
+
+
+@dataclass(frozen=True)
+class AndonKpi:
+    nome: str
+    nivel: Nivel
+    motivo: str
+    valor: float | None
+    referencia: ReferenciaM1
+
+
+def _pct(v: float) -> str:
+    return f"{v:.1%}".replace(".", ",")
+
+
+def avaliar_kpi(referencia: ReferenciaM1, valor: float | None, vale_como_medicao: bool,
+                ressalva: str = "") -> AndonKpi:
+    """Andon de um KPI contra o baseline e a meta do M1 (tarefa 4.2).
+
+    `vale_como_medicao`: o conjunto só tem origens de `config/origens.yaml` `medida` (o mesmo corte de
+    `kpis.IndicadorTrecho.compara_com_m1`). Fora disso é cinza: número de demonstração com dado sintético nunca
+    acende verde nem vermelho. `ressalva` vai no motivo (ex.: "demonstração: planta godot determinística").
+    """
+    r = referencia
+    faixa = f"baseline {_pct(r.baseline)}, meta {_pct(r.meta)}"
+    if valor is None:
+        return AndonKpi(r.nome, Nivel.CINZA, f"sem valor no M3 ({faixa})", None, r)
+    if not vale_como_medicao:
+        return AndonKpi(r.nome, Nivel.CINZA, f"{_pct(valor)} inclui dado que não é medição (roteiro/teste; "
+                        "ADR-0013, ADR-0025): sem comparação com o M1", valor, r)
+    nivel = r.nivel(valor)
+    motivo = f"{_pct(valor)}: {SITUACAO[nivel]} ({faixa})" + (f"; {ressalva}" if ressalva else "")
+    return AndonKpi(r.nome, nivel, motivo, valor, r)
 
 
 # --- Geração "Simulado" do M2 para FPY e RTY (tarefa 2.10; SPECS §2.2; tarefa 0.8) --------------------------------

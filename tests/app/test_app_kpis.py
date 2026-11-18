@@ -43,8 +43,8 @@ def test_situacao_contra_o_m1(valor, esperado):
 
 
 def test_referencias_sao_as_do_specs_2_1():
-    assert {k: (r.baseline, r.meta) for k, r in REFERENCIAS_M1.items()} == {"FPY": (0.78, 0.92),
-                                                                          "RTY": (0.82, 0.90)}
+    assert {k: (r.baseline, r.meta) for k, r in REFERENCIAS_M1.items()} == {
+        "FPY": (0.78, 0.92), "RTY": (0.82, 0.90), "OEE": (0.68, 0.80), "1 − COPQ": (0.95, 0.98)}
 
 
 def test_simulado_m2_e_o_da_tarefa_0_8():

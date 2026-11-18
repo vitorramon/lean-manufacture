@@ -157,6 +157,8 @@ isso, esta tabela é a referência). O `.env` real fica fora do Git.
 | `DISPOSITIVOS_PATH` | `config/dispositivos.yaml` | gateway, emulador, aas-sync (via `carregar_dispositivos`) |
 | `RASTREIO_PATH` | `config/rastreio.yaml` | gateway (normalização do QR, deduplicação, expiração, associação ciclo ↔ peça); aas-sync (início/fim do trecho e `planta`, inclusive `planta.padrao_peca`, para a ficha da peça no AAS, tarefa 2.5); esquema `esquemas/rastreio.schema.json`, lido por `contrato.carregar_rastreio()` desde a tarefa 2.3 (`docs/convencoes-fase-2.md`); `app/nucleo` (início/fim do trecho e normalização do QR na busca, tarefa 2.6) |
 | `ORIGENS_PATH` | `config/origens.yaml` | `app/nucleo` (origens que valem como Medido, ADR-0025); lido na partida do dashboard e do twin-t2t |
+| `ANDON_PATH` | `config/andon.yaml` | `app/nucleo/regras.py` (baseline/meta do M1 por KPI e referência do tempo de ciclo do Andon, tarefa 4.2); lido sob demanda, na primeira avaliação do Andon (ADR-0032); o twin-t2t importa o `nucleo` mas não o lê. No compose, declarado também no twin-t2t (`/app/config/andon.yaml`) |
+| `ANALISES_DIR` | `dados/analises` | `app/nucleo/geracoes_fontes.py` (CSVs das análises na página 3 gerações, tarefa 4.1) |
 | `SAUDE_MAX_FALHAS_BANCO` | `5` | healthcheck do aas-sync: falhas seguidas do SQLite toleradas |
 | `LOG_LEVEL` | `INFO` | todos |
 | `UNS_MQTT_HOST` / `UNS_MQTT_PORT` | iguais a `MQTT_HOST` / `MQTT_PORT` | emulador, fonte `godot` (broker da UNS da planta) |
