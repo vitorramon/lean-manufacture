@@ -49,6 +49,7 @@ from orquestracao import (
 FONTES = ("roteiro", "godot", "operador", "firmware", "hardware")
 ESTADO = RAIZ / "dados" / "estado" / "start"
 ARQ_PIDS = ESTADO / "pids.json"
+ARQ_PID_START = ESTADO / "start.pid"   # o próprio start.py em execução: o --parar de outro terminal o encerra antes
 DB = (RAIZ / os.environ.get("DB_PATH", "dados/dados.db")).resolve()   # relativo à raiz; precisa ficar em dados/
 MQTT_PORT = int(os.environ.get("MQTT_PORT", "1883"))
 AAS_URL = os.environ.get("AAS_URL", "http://localhost:8091").rstrip("/")
@@ -255,8 +256,36 @@ def derrubar(procs: list[Processo], antes: set[str], manter_base: bool, t0: floa
     log(t0, "encerrado")
 
 
+def start_vivo(pid: int) -> bool:
+    """True se `pid` ainda é um start.py (o arquivo pode ter sobrado de uma execução que caiu)."""
+    try:
+        os.kill(pid, 0)
+    except (ProcessLookupError, PermissionError):
+        return False
+    cmdline = Path(f"/proc/{pid}/cmdline")
+    return not cmdline.exists() or b"start.py" in cmdline.read_bytes()
+
+
+def parar_start_em_execucao(t0: float) -> None:
+    """Sem isto, o monitor do start.py que está no ar religava o dashboard e os elos (reiniciar=True) depois que o
+    --parar os encerrava. SIGINT faz o start.py em execução cair no próprio `derrubar` (Ctrl+C)."""
+    if not ARQ_PID_START.exists():
+        return
+    try:
+        pid = int(ARQ_PID_START.read_text().strip())
+    except ValueError:
+        pid = 0
+    if pid and pid != os.getpid() and start_vivo(pid):
+        os.kill(pid, signal.SIGINT)
+        log(t0, f"SIGINT para o start.py em execução (pid {pid}); esperando ele encerrar o que subiu")
+        if not esperar(lambda: not start_vivo(pid), 120):
+            log(t0, f"start.py (pid {pid}) não saiu em 120 s; seguindo com a parada")
+    ARQ_PID_START.unlink(missing_ok=True)
+
+
 def parar_tudo(manter_base: bool) -> None:
     t0 = time.monotonic()
+    parar_start_em_execucao(t0)
     if ARQ_PIDS.exists():
         for nome, pid in json.loads(ARQ_PIDS.read_text()).items():
             try:
@@ -296,6 +325,8 @@ def main() -> int:
         log(t0, "fonte roteiro: dado de TESTE/DEMONSTRAÇÃO, nunca medição (ADR-0013)")
     antes = subir_infra(t0)
     procs: list[Processo] = []
+    ESTADO.mkdir(parents=True, exist_ok=True)
+    ARQ_PID_START.write_text(str(os.getpid()))
     try:
         procs = iniciar_processos(a, t0)
         monitorar(procs, a, t0)
@@ -305,6 +336,8 @@ def main() -> int:
     finally:
         signal.signal(signal.SIGINT, signal.SIG_IGN)   # um segundo Ctrl+C não interrompe a limpeza
         derrubar(procs, antes, a.manter_base, t0)
+        if ARQ_PID_START.exists() and ARQ_PID_START.read_text().strip() == str(os.getpid()):
+            ARQ_PID_START.unlink()
     return 0
 
 
